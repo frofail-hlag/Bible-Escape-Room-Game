@@ -1,17 +1,20 @@
-# Bibel Escape PWA V2
+# Bibel Escape Room – V3
 
-German Sunday-school Bible escape engine for ages 9–15.
+Originaler deutscher PWA-Prototyp für die Sonntagsschule.
 
-## Included
-- 3 complete starter missions: Moses, Gefahr in Ägypten, Esther
-- Multiple puzzle types: text, number, multiple choice, code
-- Timer and time bonus
-- Per-puzzle scoring
-- Hint system
-- Teacher mode with lesson overview, solutions and hints
-- Local result history on the device
-- PWA manifest + service worker for install/offline foundation
+## V3-Funktionen
+- 3 Missionen: Rettet Mose!, Gefahr in Ägypten, Esthers geheime Mission
+- Vor Spielstart: allein oder als Team
+- Name bzw. Teamname
+- Zurück zur Startseite ohne App-Neustart
+- Countdown
+- Rätsel mit Text, Zahl und Multiple Choice
+- Hinweise sammeln
+- Finales Lösungswort aus den gesammelten Hinweisen
+- Punkte + Zeitbonus
+- Lokale Bestenliste pro Mission
+- Responsive für iPhone/iPad
+- Offline-PWA-Grundlage via Service Worker
 
-## Important
-This is an engine prototype. Content and puzzle quality should be reviewed together before the first live Sunday-school session.
-The next architecture step can add team mode, a session code, live teacher dashboard, richer puzzle types and a lesson editor/import format.
+## Deployment
+Alle Dateien dieses Ordners müssen gemeinsam auf den Webserver bzw. GitHub Pages.
