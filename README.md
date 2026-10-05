@@ -1,18 +1,17 @@
-# Bibel Escape – Sonntagsschule
+# Bibel Escape PWA V2
 
-Modularer deutscher PWA-Prototyp für die Altersgruppe 9–15.
+German Sunday-school Bible escape engine for ages 9–15.
 
-## Enthalten
-- Rettet Mose!
-- Gefahr in Ägypten
-- Esthers geheime Mission
-- Countdown
-- Rätsel + Antworten
-- Hinweis-System
-- Offline-fähiger Service Worker
-- Installierbares PWA-Grundgerüst
+## Included
+- 3 complete starter missions: Moses, Gefahr in Ägypten, Esther
+- Multiple puzzle types: text, number, multiple choice, code
+- Timer and time bonus
+- Per-puzzle scoring
+- Hint system
+- Teacher mode with lesson overview, solutions and hints
+- Local result history on the device
+- PWA manifest + service worker for install/offline foundation
 
-## Nächster Entwicklungsschritt
-Die Rätsel sind absichtlich als Datenstruktur angelegt. Für die finale Version können wir einen Lehrer-/Admin-Modus bauen, in dem neue Monatslektionen mit Story, Bibelstellen, Rätseln, Antworten, Hinweisen, Zeitlimit, Punkten und Schwierigkeitsgrad angelegt werden können.
-
-Die aktuelle Version ist ein funktionsfähiger Prototyp, noch keine fertige Produktions-App.
+## Important
+This is an engine prototype. Content and puzzle quality should be reviewed together before the first live Sunday-school session.
+The next architecture step can add team mode, a session code, live teacher dashboard, richer puzzle types and a lesson editor/import format.

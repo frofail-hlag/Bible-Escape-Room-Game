@@ -1,109 +1,135 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#17324d">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Bibel Escape">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <title>Bibel Escape – Sonntagsschule</title>
-  <style>
-    :root{--navy:#17324d;--gold:#c49a45;--cream:#f7f3ea;--ink:#20303d;--muted:#66727d;--white:#fff;--line:#e4dfd4;--ok:#2f7d58;--bad:#a84343}
-    *{box-sizing:border-box} body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-    button,input{font:inherit} button{cursor:pointer}.app{max-width:920px;margin:auto;min-height:100vh}
-    header{background:linear-gradient(135deg,var(--navy),#294e6b);color:#fff;padding:28px 20px 24px;border-radius:0 0 28px 28px}
-    .eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;opacity:.78;font-weight:700}.brand{font-size:1.9rem;font-weight:800;margin:.35rem 0}.sub{opacity:.82;line-height:1.45}
-    main{padding:20px}.section-title{font-size:1.25rem;font-weight:800;margin:6px 0 12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-    .card{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 4px 18px rgba(23,50,77,.05)}
-    .story{min-height:180px;display:flex;flex-direction:column;justify-content:space-between}.story-icon{font-size:2.2rem}.story h3{margin:8px 0 4px}.meta{font-size:.84rem;color:var(--muted)}
-    .btn{border:0;border-radius:13px;padding:12px 15px;font-weight:750;background:#eef2f5;color:var(--navy);min-height:46px}.btn.primary{background:var(--navy);color:#fff}.btn.gold{background:var(--gold);color:#fff}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}.game-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.timer{font-size:1.5rem;font-weight:850;color:var(--navy);white-space:nowrap}
-    .progress{height:8px;background:#e9e6df;border-radius:99px;overflow:hidden;margin:15px 0}.progress>div{height:100%;background:var(--gold);transition:width .25s}
-    .clue{background:#fbf8f0;border:1px solid #e7ddc8;border-radius:16px;padding:16px;margin:14px 0;line-height:1.55}.answer{display:flex;gap:10px;flex-wrap:wrap}.answer input{flex:1;min-width:170px;border:1px solid #ccd3d9;border-radius:13px;padding:12px 14px;background:#fff}
-    .feedback{margin-top:12px;font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}.hint{background:#f1f5f7;border-radius:13px;padding:12px;margin-top:12px;color:#46535e}
-    .hidden{display:none}.footer{color:var(--muted);font-size:.82rem;text-align:center;padding:25px 0}.badge{display:inline-block;background:#f0eadc;color:#735c2e;border-radius:99px;padding:5px 9px;font-size:.75rem;font-weight:750}
-    @media(max-width:650px){.grid{grid-template-columns:1fr}header{border-radius:0 0 22px 22px}.story{min-height:0}.game-top{flex-direction:column}.timer{align-self:flex-end}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17324d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bibel Escape">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<title>Bibel Escape – Sonntagsschule</title>
+<style>
+:root{--navy:#17324d;--blue:#315a78;--gold:#c49a45;--cream:#f7f3ea;--ink:#20303d;--muted:#68737c;--white:#fff;--line:#ded9cf;--ok:#2f7d58;--bad:#a84343}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}.app{max-width:960px;margin:auto;min-height:100vh}
+header{background:linear-gradient(135deg,var(--navy),#294e6b);color:white;padding:25px 20px 22px;border-radius:0 0 28px 28px}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;opacity:.78;font-weight:750}.brand{font-size:1.8rem;font-weight:850;margin:3px 0}.sub{opacity:.82;line-height:1.45}
+main{padding:20px}.nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.nav button{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:12px;padding:10px 13px;font-weight:750}.nav button.active{background:var(--navy);color:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 4px 18px rgba(23,50,77,.05);margin-bottom:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.story{min-height:190px;display:flex;flex-direction:column;justify-content:space-between}.story-icon{font-size:2.2rem}.story h3{margin:7px 0 4px}.meta{font-size:.83rem;color:var(--muted)}.badge{display:inline-block;background:#f0eadc;color:#735c2e;border-radius:99px;padding:5px 9px;font-size:.72rem;font-weight:800}
+.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:750;min-height:44px;background:#edf1f3;color:var(--navy)}.primary{background:var(--navy);color:#fff}.gold{background:var(--gold);color:#fff}.danger{background:#f8eaea;color:var(--bad)}.actions{display:flex;gap:9px;flex-wrap:wrap}
+.top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.timer{font-size:1.45rem;font-weight:900;white-space:nowrap;color:var(--navy)}.progress{height:8px;background:#e8e5de;border-radius:99px;overflow:hidden;margin:14px 0}.progress>div{height:100%;background:var(--gold)}
+.clue{background:#fbf8f0;border:1px solid #e7ddc8;border-radius:15px;padding:16px;line-height:1.55;margin:14px 0}.answer{display:flex;gap:9px;flex-wrap:wrap}.answer input,.answer select{flex:1;min-width:180px;border:1px solid #cbd2d8;border-radius:12px;padding:11px 13px;background:white;color:var(--ink);min-height:44px}.feedback{margin-top:11px;font-weight:750}.ok{color:var(--ok)}.bad{color:var(--bad)}.hint{margin-top:11px;padding:12px;border-radius:12px;background:#eef3f5;color:#46535e}
+.scorebox{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}.stat{flex:1;min-width:130px;background:#f6f3ed;border-radius:14px;padding:12px}.stat strong{display:block;font-size:1.25rem}.table{width:100%;border-collapse:collapse}.table th,.table td{text-align:left;padding:10px 7px;border-bottom:1px solid var(--line);font-size:.88rem}.small{font-size:.8rem;color:var(--muted)}.hidden{display:none!important}
+.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.formgrid label{display:flex;flex-direction:column;gap:5px;font-size:.82rem;font-weight:700}.formgrid input,.formgrid select{border:1px solid #ccd3d9;border-radius:11px;padding:10px;background:#fff}.full{grid-column:1/-1}
+.teacher-note{background:#eef3f5;border-left:4px solid var(--gold);padding:12px 14px;border-radius:8px;margin:12px 0;line-height:1.5}
+.footer{text-align:center;color:var(--muted);font-size:.8rem;padding:22px}
+@media(max-width:650px){.grid,.formgrid{grid-template-columns:1fr}.top{flex-direction:column}.timer{align-self:flex-end}}
+</style>
 </head>
 <body>
 <div class="app">
-<header>
-  <div class="eyebrow">Sonntagsschule · 9–15 Jahre</div>
-  <div class="brand">✦ Bibel Escape</div>
-  <div class="sub">Biblische Geschichten erleben, Hinweise finden und gemeinsam Rätsel lösen.</div>
-</header>
+<header><div class="eyebrow">Sonntagsschule · 9–15 Jahre</div><div class="brand">✦ Bibel Escape</div><div class="sub">Biblische Geschichten erleben · gemeinsam denken · gemeinsam lösen</div></header>
 <main>
-  <section id="home">
-    <div class="section-title">Wählt eure Mission</div>
-    <div id="storyGrid" class="grid"></div>
-  </section>
-  <section id="game" class="hidden"></section>
-  <div class="footer">Eigene Inhalte für die Sonntagsschule · Neue Geschichten können später ergänzt werden.</div>
+<nav class="nav" aria-label="Navigation">
+<button id="navGames" class="active">🎮 Spiele</button>
+<button id="navTeacher">👨‍🏫 Lehrerbereich</button>
+</nav>
+<section id="gamesView"></section>
+<section id="teacherView" class="hidden"></section>
+<div class="footer">Bibel Escape · Prototyp für die Sonntagsschule</div>
 </main>
 </div>
 <script>
-const stories = [
- {id:"moses",icon:"🧺",title:"Rettet Mose!",level:"Fortgeschritten",ref:"2. Mose 1–2",minutes:12,
-  intro:"Mose ist noch ein Baby. Seine Familie muss einen mutigen Weg finden, ihn zu schützen. Löst die Hinweise und findet den Schlüssel zur Rettung.",
-  puzzles:[
-   {q:"Die Tochter des Pharao findet das Kind im Schilf. Wie nennt sie ihn?",a:["mose"],hint:"Lies 2. Mose 2,10."},
-   {q:"Wie viele Monate versteckte Moses Mutter ihn, bevor sie ihn in das Körbchen legte?",a:["3","drei"],hint:"2. Mose 2,2 gibt euch die Zahl."},
-   {q:"Finaler Code: Addiert die Zahl der Monate aus Rätsel 2 und die Buchstabenanzahl des Namens aus Rätsel 1.",a:["7"],hint:"3 + die Anzahl der Buchstaben von MOSE."}
-  ]},
- {id:"egypt",icon:"🏺",title:"Gefahr in Ägypten",level:"Experte",ref:"2. Mose 7–14",minutes:15,
-  intro:"Das Volk Israel wartet auf Befreiung. Pharao lässt es nicht ziehen. Nur wer die Zeichen und die Geschichte richtig verbindet, kommt weiter.",
-  puzzles:[
-   {q:"Wie viele Plagen werden im Buch Exodus beschrieben?",a:["10","zehn"],hint:"Denkt an die klassische Abfolge der Plagen."},
-   {q:"Welche Plage kam direkt vor dem Auszug: Finsternis oder Erstgeburt?",a:["erstgeburt","erstgeburt töten","die erstgeburt"],hint:"Lies 2. Mose 11–12."},
-   {q:"Finaler Code: Welche Zahl steht für die Zahl der Plagen?",a:["10","zehn"],hint:"Die Antwort aus Rätsel 1 ist zugleich der Schlüssel."}
-  ]},
- {id:"esther",icon:"👑",title:"Esthers geheime Mission",level:"Experte",ref:"Ester 1–10",minutes:15,
-  intro:"Esther steht vor einer Entscheidung, die ihr Volk retten könnte. Sie muss klug handeln und Mut zeigen.",
-  puzzles:[
-   {q:"Wie heißt Esthers Cousin und Pflegevater?",a:["mordechai","mordechaj"],hint:"Lies Ester 2,5–7."},
-   {q:"Was riskiert Esther, wenn sie ohne Einladung zum König geht?",a:["ihr leben","ihr leben zu verlieren","den tod","ihr leben"],hint:"Wer ohne Einladung erscheint, kann nach Ester 4,11 sterben."},
-   {q:"Finaler Code: Wie viele Tage bittet Esther ihr Volk zu fasten?",a:["3","drei"],hint:"Ester 4,16."}
-  ]}
+const STORIES=[
+{id:"moses",icon:"🧺",title:"Rettet Mose!",level:"Fortgeschritten",ref:"2. Mose 1–2",minutes:12,
+ intro:"Mose ist noch ein Baby. Seine Familie muss einen mutigen Weg finden, ihn zu schützen. Löst die Hinweise und findet den Weg zur Rettung.",
+ teacher:"Thema: Gottes Schutz und die mutigen Entscheidungen von Moses Familie.",
+ puzzles:[
+  {type:"text",q:"Die Tochter des Pharao findet das Kind im Schilf. Wie nennt sie ihn?",answer:"mose",hint:"Lies 2. Mose 2,10.",points:100},
+  {type:"number",q:"Wie viele Monate versteckte Moses Mutter ihn, bevor sie ihn in das Körbchen legte?",answer:"3",hint:"2. Mose 2,2.",points:100},
+  {type:"choice",q:"Warum setzte Moses Mutter ihn in ein Körbchen am Nil?",choices:["Damit er spielen konnte","Damit er geschützt wurde und gefunden werden konnte","Damit er zum Pharao gebracht wurde"],answer:1,hint:"Lies 2. Mose 2,3–4.",points:150},
+  {type:"code",q:"Finaler Code: Wie viele Buchstaben hat MOSE?",answer:"4",hint:"Zählt gemeinsam die Buchstaben des Namens.",points:200}
+ ]},
+{id:"egypt",icon:"🏺",title:"Gefahr in Ägypten",level:"Experte",ref:"2. Mose 7–14",minutes:15,
+ intro:"Das Volk Israel wartet auf Befreiung. Pharao lässt es nicht ziehen. Verbindet die Zeichen und Ereignisse richtig.",
+ teacher:"Thema: Befreiung, Vertrauen und Gottes Handeln im Exodus.",
+ puzzles:[
+  {type:"number",q:"Wie viele Plagen werden in der Exodus-Geschichte beschrieben?",answer:"10",hint:"Denkt an die bekannte Abfolge der Plagen.",points:100},
+  {type:"choice",q:"Welche Plage kam unmittelbar vor dem Auszug Israels?",choices:["Finsternis","Heuschrecken","Tod der Erstgeburt"],answer:2,hint:"Lies 2. Mose 11–12.",points:150},
+  {type:"text",q:"Welches Meer teilte sich auf dem Weg der Israeliten?",answer:"schilfmeer",hint:"2. Mose 14,21.",points:150},
+  {type:"code",q:"Finaler Code: Wie viele Plagen gab es insgesamt?",answer:"10",hint:"Die Antwort aus Rätsel 1 ist der Schlüssel.",points:200}
+ ]},
+{id:"esther",icon:"👑",title:"Esthers geheime Mission",level:"Experte",ref:"Ester 1–10",minutes:15,
+ intro:"Esther steht vor einer Entscheidung, die ihr Volk retten könnte. Sie muss klug handeln und Mut zeigen.",
+ teacher:"Thema: Mut, Fürsprache und Verantwortung für andere.",
+ puzzles:[
+  {type:"text",q:"Wie heißt Esthers Cousin und Pflegevater?",answer:"mordechai",hint:"Lies Ester 2,5–7.",points:100},
+  {type:"choice",q:"Was riskiert Esther, wenn sie ohne Einladung zum König geht?",choices:["Eine Belohnung","Ihr Leben","Ihre Krone"],answer:1,hint:"Lies Ester 4,11.",points:150},
+  {type:"number",q:"Wie viele Tage bittet Esther ihr Volk zu fasten?",answer:"3",hint:"Ester 4,16.",points:150},
+  {type:"code",q:"Finaler Code: Welche Zahl ist Esthers Fastenzeit?",answer:"3",hint:"Nehmt die Antwort aus Rätsel 3.",points:200}
+ ]}
 ];
 
-let active=null,timer=null,seconds=0;
-const grid=document.getElementById("storyGrid"), home=document.getElementById("home"), game=document.getElementById("game");
-function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function renderStories(){
- grid.innerHTML=stories.map(s=>`<article class="card story"><div><div class="story-icon">${s.icon}</div><h3>${esc(s.title)}</h3><div class="meta">${esc(s.level)} · ${esc(s.ref)} · ca. ${s.minutes} Min.</div></div><button class="btn primary" data-id="${s.id}">Mission starten</button></article>`).join("");
- grid.querySelectorAll("button").forEach(b=>b.onclick=()=>start(b.dataset.id));
+let active=null,step=0,score=0,correct=0,startedAt=0,timer=null;
+const gamesView=document.getElementById("gamesView"), teacherView=document.getElementById("teacherView");
+const navGames=document.getElementById("navGames"),navTeacher=document.getElementById("navTeacher");
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderGames(){
+ gamesView.innerHTML=`<div class="card"><div class="small">AKTIVE MISSIONEN</div><h2 style="margin:.25rem 0">Wählt eure Mission</h2><p class="meta">Jede Mission kombiniert Bibelwissen, Teamarbeit und Rätsel.</p></div><div class="grid">${STORIES.map(s=>`<article class="card story"><div><div class="story-icon">${s.icon}</div><h3>${esc(s.title)}</h3><div class="meta">${esc(s.level)} · ${esc(s.ref)} · ca. ${s.minutes} Min.</div></div><button class="btn primary" data-start="${s.id}">Mission starten</button></article>`).join("")}</div>`;
+ gamesView.querySelectorAll("[data-start]").forEach(b=>b.onclick=()=>startGame(b.dataset.start));
 }
-function start(id){
- active=stories.find(s=>s.id===id); seconds=active.minutes*60; let step=0; home.classList.add("hidden"); game.classList.remove("hidden");
- function draw(){
-   const p=active.puzzles[step], pct=(step/active.puzzles.length)*100;
-   game.innerHTML=`<div class="card">
-    <div class="game-top"><div><span class="badge">${esc(active.level)}</span><h2>${active.icon} ${esc(active.title)}</h2><div class="meta">${esc(active.ref)}</div></div><div class="timer" id="timer"></div></div>
-    <div class="progress"><div style="width:${pct}%"></div></div>
-    <p>${step===0?esc(active.intro):"Sehr gut! Der nächste Hinweis wartet auf euch."}</p>
-    <div class="clue"><strong>Rätsel ${step+1} von ${active.puzzles.length}</strong><div style="margin-top:8px">${esc(p.q)}</div></div>
-    <form id="form" class="answer"><input id="ans" autocomplete="off" aria-label="Antwort" placeholder="Eure Antwort"><button class="btn primary">Prüfen</button></form>
-    <div id="feedback" class="feedback" aria-live="polite"></div>
-    <div class="actions" style="margin-top:14px"><button id="hint" class="btn" type="button">💡 Hinweis</button><button id="quit" class="btn" type="button">← Mission verlassen</button></div>
-    <div id="hintbox" class="hint hidden"></div>
-   </div>`;
-   const form=game.querySelector("#form"), ans=game.querySelector("#ans"), fb=game.querySelector("#feedback");
-   form.onsubmit=e=>{e.preventDefault(); const v=ans.value.trim().toLowerCase().replace(/\s+/g," "); if(p.a.some(x=>v===x)){ if(step<active.puzzles.length-1){step++;draw()}else{finish()} }else{fb.textContent="Noch nicht. Prüft den Bibeltext und versucht es erneut.";fb.className="feedback bad"}};
-   game.querySelector("#hint").onclick=()=>game.querySelector("#hintbox").classList.toggle("hidden");
-   game.querySelector("#hintbox").textContent=p.hint;
-   game.querySelector("#quit").onclick=()=>quit();
-   tick();
-   ans.focus();
- }
- function tick(){clearInterval(timer);timer=setInterval(()=>{seconds=Math.max(0,seconds-1);const t=game.querySelector("#timer");if(t)t.textContent=`${String(Math.floor(seconds/60)).padStart(2,"0")}:${String(seconds%60).padStart(2,"0")}`;if(seconds===0){clearInterval(timer);const f=game.querySelector("#feedback");if(f){f.textContent="⏰ Die Zeit ist abgelaufen. Startet die Mission neu und versucht es gemeinsam noch einmal.";f.className="feedback bad"}}},1000)}
- function finish(){clearInterval(timer);game.innerHTML=`<div class="card" style="text-align:center;padding:30px"><div style="font-size:3rem">🎉</div><h2>Mission erfüllt!</h2><p>Ihr habt <strong>${esc(active.title)}</strong> erfolgreich gelöst.</p><p class="meta">In der nächsten Version können hier Punkte, Teamname, mehrere Schwierigkeitsstufen und weitere Rätsel gespeichert werden.</p><button class="btn gold" id="again">Weitere Mission</button></div>`;game.querySelector("#again").onclick=quit}
- function quit(){clearInterval(timer);active=null;game.classList.add("hidden");home.classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"})}
+function startGame(id){
+ active=STORIES.find(s=>s.id===id);step=0;score=0;correct=0;startedAt=Date.now();renderPuzzle();clearInterval(timer);timer=setInterval(updateTimer,1000);window.scrollTo({top:0,behavior:"smooth"});
 }
-renderStories();
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});}
+function updateTimer(){
+ if(!active)return; const left=Math.max(0,active.minutes*60-Math.floor((Date.now()-startedAt)/1000));const el=document.getElementById("timer");if(el)el.textContent=`${String(Math.floor(left/60)).padStart(2,"0")}:${String(left%60).padStart(2,"0")}`;if(left===0){clearInterval(timer);const fb=document.getElementById("feedback");if(fb){fb.textContent="⏰ Die Zeit ist abgelaufen.";fb.className="feedback bad"}}
+}
+function inputFor(p){
+ if(p.type==="choice")return `<select id="answer" aria-label="Antwort"><option value="">Antwort auswählen …</option>${p.choices.map((c,i)=>`<option value="${i}">${esc(c)}</option>`).join("")}</select>`;
+ return `<input id="answer" ${p.type==="number"||p.type==="code"?"inputmode=numeric":""} autocomplete="off" aria-label="Antwort" placeholder="${p.type==="code"?"Code eingeben":"Eure Antwort"}">`;
+}
+function renderPuzzle(){
+ const p=active.puzzles[step],pct=Math.round(step/active.puzzles.length*100);
+ gamesView.innerHTML=`<div class="card"><div class="top"><div><span class="badge">${esc(active.level)}</span><h2>${active.icon} ${esc(active.title)}</h2><div class="meta">${esc(active.ref)}</div></div><div><div class="small">ZEIT</div><div id="timer" class="timer"></div></div></div><div class="progress"><div style="width:${pct}%"></div></div><p>${step===0?esc(active.intro):"Sehr gut! Der nächste Hinweis wartet auf euch."}</p><div class="clue"><strong>Rätsel ${step+1} von ${active.puzzles.length}</strong><div style="margin-top:8px">${esc(p.q)}</div><div class="small" style="margin-top:8px">Maximal ${p.points} Punkte</div></div><form id="answerForm" class="answer">${inputFor(p)}<button class="btn primary">Prüfen</button></form><div id="feedback" class="feedback" aria-live="polite"></div><div id="hintBox" class="hint hidden">💡 ${esc(p.hint)}</div><div class="actions" style="margin-top:12px"><button id="hintBtn" class="btn" type="button">💡 Hinweis</button><button id="quitBtn" class="btn danger" type="button">Mission verlassen</button></div><div class="scorebox"><div class="stat"><span class="small">Punkte</span><strong>${score}</strong></div><div class="stat"><span class="small">Gelöst</span><strong>${correct}/${active.puzzles.length}</strong></div></div></div>`;
+ updateTimer();
+ document.getElementById("answerForm").onsubmit=e=>{e.preventDefault();checkAnswer(p)};
+ document.getElementById("hintBtn").onclick=()=>document.getElementById("hintBox").classList.toggle("hidden");
+ document.getElementById("quitBtn").onclick=quitGame;
+ document.getElementById("answer").focus();
+}
+function normalize(v){return String(v).trim().toLowerCase().replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u").replace(/ß/g,"ss")}
+function checkAnswer(p){
+ const raw=document.getElementById("answer").value;let ok=false;
+ if(p.type==="choice")ok=Number(raw)===p.answer;else ok=p.answer.toLowerCase().split("|").map(normalize).includes(normalize(raw));
+ const fb=document.getElementById("feedback");
+ if(ok){correct++;score+=p.points;fb.textContent=`✓ Richtig! +${p.points} Punkte`;fb.className="feedback ok";setTimeout(()=>{if(step<active.puzzles.length-1){step++;renderPuzzle()}else finishGame()},650)}
+ else{fb.textContent="✕ Noch nicht. Nutzt den Bibeltext und prüft eure Antwort.";fb.className="feedback bad"}
+}
+function finishGame(){
+ clearInterval(timer);const elapsed=Math.floor((Date.now()-startedAt)/1000),max=active.puzzles.reduce((a,p)=>a+p.points,0),bonus=Math.max(0,Math.floor((active.minutes*60-elapsed)/10));score+=bonus;
+ const result={story:active.title,score,elapsed,date:new Date().toLocaleString("de-DE")};const history=JSON.parse(localStorage.getItem("bibleEscapeResults")||"[]");history.unshift(result);localStorage.setItem("bibleEscapeResults",JSON.stringify(history.slice(0,50)));
+ gamesView.innerHTML=`<div class="card" style="text-align:center;padding:28px"><div style="font-size:3rem">🎉</div><h2>Mission erfüllt!</h2><p>${esc(active.title)}</p><div class="scorebox"><div class="stat"><span class="small">Punkte</span><strong>${score}</strong></div><div class="stat"><span class="small">Basis</span><strong>${max}</strong></div><div class="stat"><span class="small">Zeitbonus</span><strong>+${bonus}</strong></div></div><p class="meta">Ergebnis wurde auf diesem Gerät gespeichert.</p><button class="btn gold" id="again">Zurück zu den Missionen</button></div>`;
+ document.getElementById("again").onclick=()=>{active=null;renderGames()};
+}
+function quitGame(){clearInterval(timer);active=null;renderGames()}
+function renderTeacher(){
+ const history=JSON.parse(localStorage.getItem("bibleEscapeResults")||"[]");
+ teacherView.innerHTML=`<div class="card"><div class="small">LEHRERBEREICH</div><h2 style="margin:.25rem 0">Session vorbereiten</h2><p class="meta">Hier sehen Lehrer die Inhalte, Hinweise und Ergebnisse der aktuellen Version.</p><div class="teacher-note">Tipp: Für die echte Stunde kann ein Lehrer die Mission auf einem iPad starten und die Klasse gemeinsam spielen lassen. Die nächste Entwicklungsstufe wird daraus einen echten Session-Modus mit Teams machen.</div></div><div class="grid">${STORIES.map(s=>`<article class="card"><div class="story-icon">${s.icon}</div><h3>${esc(s.title)}</h3><div class="meta">${esc(s.ref)} · ${s.minutes} Min.</div><p>${esc(s.teacher)}</p><div class="actions"><button class="btn primary" data-view="${s.id}">Ablauf ansehen</button><button class="btn" data-teachstart="${s.id}">Test spielen</button></div></article>`).join("")}</div><div class="card"><h3>Gespeicherte Ergebnisse</h3>${history.length?`<table class="table"><thead><tr><th>Mission</th><th>Punkte</th><th>Zeit</th><th>Datum</th></tr></thead><tbody>${history.map(r=>`<tr><td>${esc(r.story)}</td><td>${r.score}</td><td>${Math.floor(r.elapsed/60)}:${String(r.elapsed%60).padStart(2,"0")}</td><td>${esc(r.date)}</td></tr>`).join("")}</tbody></table><div class="actions" style="margin-top:12px"><button id="clearResults" class="btn danger">Ergebnisse löschen</button></div>`:`<p class="meta">Noch keine Ergebnisse gespeichert.</p>`}</div>`;
+ teacherView.querySelectorAll("[data-view]").forEach(b=>b.onclick=()=>showTeacherStory(b.dataset.view));
+ teacherView.querySelectorAll("[data-teachstart]").forEach(b=>b.onclick=()=>{navGames.click();startGame(b.dataset.teachstart)});
+ const clear=document.getElementById("clearResults");if(clear)clear.onclick=()=>{if(confirm("Alle gespeicherten Ergebnisse auf diesem Gerät löschen?")){localStorage.removeItem("bibleEscapeResults");renderTeacher()}};
+}
+function showTeacherStory(id){
+ const s=STORIES.find(x=>x.id===id);
+ teacherView.innerHTML=`<div class="card"><button id="backTeacher" class="btn">← Lehrerbereich</button><h2 style="margin-top:14px">${s.icon} ${esc(s.title)}</h2><div class="meta">${esc(s.ref)} · ${s.minutes} Minuten</div><div class="teacher-note">${esc(s.teacher)}</div>${s.puzzles.map((p,i)=>`<div class="clue"><strong>Rätsel ${i+1} · ${esc(p.type)}</strong><div style="margin-top:7px">${esc(p.q)}</div><div class="small" style="margin-top:8px">Lösung: <strong>${p.type==="choice"?esc(p.choices[p.answer]):esc(p.answer)}</strong> · ${p.points} Punkte</div><div class="small">Hinweis: ${esc(p.hint)}</div></div>`).join("")}</div>`;
+ document.getElementById("backTeacher").onclick=renderTeacher;
+}
+navGames.onclick=()=>{navGames.classList.add("active");navTeacher.classList.remove("active");teacherView.classList.add("hidden");gamesView.classList.remove("hidden");if(!active)renderGames()};
+navTeacher.onclick=()=>{clearInterval(timer);active=null;navTeacher.classList.add("active");navGames.classList.remove("active");gamesView.classList.add("hidden");teacherView.classList.remove("hidden");renderTeacher()};
+renderGames();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>
