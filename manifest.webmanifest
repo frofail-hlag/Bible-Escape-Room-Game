@@ -1,0 +1,10 @@
+{
+  "name": "Bibel Escape – Sonntagsschule",
+  "short_name": "Bibel Escape",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f3ea",
+  "theme_color": "#17324d",
+  "lang": "de",
+  "description": "Modulares Bibel-Escape-Spiel für die Sonntagsschule."
+}
