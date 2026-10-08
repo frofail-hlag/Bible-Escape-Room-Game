@@ -1,20 +1,52 @@
-# Bibel Escape Room – V3
+# Bibel Escape Room – V3.1 / V3.2
 
-Originaler deutscher PWA-Prototyp für die Sonntagsschule.
+German PWA prototype for Sunday School (ages 9–15).
 
-## V3-Funktionen
-- 3 Missionen: Rettet Mose!, Gefahr in Ägypten, Esthers geheime Mission
-- Vor Spielstart: allein oder als Team
-- Name bzw. Teamname
-- Zurück zur Startseite ohne App-Neustart
-- Countdown
-- Rätsel mit Text, Zahl und Multiple Choice
-- Hinweise sammeln
-- Finales Lösungswort aus den gesammelten Hinweisen
-- Punkte + Zeitbonus
-- Lokale Bestenliste pro Mission
-- Responsive für iPhone/iPad
-- Offline-PWA-Grundlage via Service Worker
+## V3.1 – Teacher Foundation
+- Lehrerbereich with prototype login
+- Dashboard for all games
+- Edit existing 3 games
+- Create new games
+- Add, edit, duplicate and delete puzzles
+- Archive games so they disappear from participant view
+- Draft / Published status
+- Edit title, Bible reference, introduction, duration, difficulty and final solution
+- Teacher test mode
+- All content is stored locally on the device in this prototype
 
-## Deployment
-Alle Dateien dieses Ordners müssen gemeinsam auf den Webserver bzw. GitHub Pages.
+### Prototype teacher login
+- User: `Lehrer`
+- Password: `1234`
+
+This is intentionally only a local prototype login. It is **not** a secure multi-device teacher authentication system yet. A real shared teacher login will require a backend/authentication service.
+
+## V3.2 – Puzzle Engine
+Supported puzzle types:
+1. Richtig / Falsch
+2. Reihenfolge
+3. Multiple Choice
+4. Offene Frage
+5. Bibel-Suche
+
+Existing number questions are also retained as a simple answer subtype so the three prototype games continue to work.
+
+Each puzzle supports:
+- Question
+- Correct answer / correct order
+- Optional accepted answers
+- Hint
+- Points
+- Collected clue
+
+The participant collects clues after successful answers and must use them for the final escape solution.
+
+## Important architecture note
+The current prototype intentionally uses localStorage so the teacher workflow can be tested without backend costs. It is **not yet a multi-teacher shared database**.
+
+The next planned stage is to test V3.1/V3.2 with the Sunday School team before deciding on backend authentication, shared games, live sessions and any AI assistant.
+
+## Files
+- `index.html` – application
+- `manifest.webmanifest` – PWA manifest
+- `sw.js` – service worker/offline cache
+- `icon.svg` – app icon
