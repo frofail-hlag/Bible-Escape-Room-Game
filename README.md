@@ -50,3 +50,8 @@ The next planned stage is to test V3.1/V3.2 with the Sunday School team before d
 - `manifest.webmanifest` – PWA manifest
 - `sw.js` – service worker/offline cache
 - `icon.svg` – app icon
+
+## Deployment
+The ZIP is intentionally flat. Upload the **contents of this ZIP directly into the GitHub Pages repository root** so that `index.html` is at the root level. Do not upload the ZIP's containing folder as a subfolder.
+
+The service worker uses a new cache version and network-first loading for the app document so newly deployed versions can refresh correctly.
