@@ -1,5 +1,2 @@
-Bibel Escape Room
-Version: V3.1 + V3.2
-Build: 2026-10-08-fix1
-
-This package is intentionally flat: index.html and the PWA files are in the ZIP root.
+Bibel Escape Room V3.1 + V3.2
+FIX 2: restored missing render dispatcher; verified ZIP structure.
