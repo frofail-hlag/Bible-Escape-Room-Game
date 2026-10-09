@@ -1,3 +1,2 @@
-Bibel Escape Room V3.2.2
-Role selection + teacher play access + subtle Bible image background.
-AI assistant remains paused until team testing is complete.
+Bibel Escape Room V3.2.3
+Changes: Bible image moved from page background to compact header logo; student area has a Zur Rollenwahl button.

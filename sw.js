@@ -1,4 +1,4 @@
-const CACHE='bibel-escape-v3.2.2-cache';
+const CACHE='bibel-escape-v3-2-3';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png'];
 
 self.addEventListener('install', event => {
