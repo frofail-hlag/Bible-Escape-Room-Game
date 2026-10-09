@@ -1,2 +1,3 @@
-Bibel Escape Room V3.1 + V3.2
-FIX 2: restored missing render dispatcher; verified ZIP structure.
+Bibel Escape Room V3.2.2
+Role selection + teacher play access + subtle Bible image background.
+AI assistant remains paused until team testing is complete.
