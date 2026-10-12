@@ -14,6 +14,118 @@
     try { return JSON.parse(localStorage.getItem(CHALLENGE_RESULTS_KEY) || "[]"); }
     catch (_) { return []; }
   }
+  function saveChallengeResults(list) {
+    localStorage.setItem(CHALLENGE_RESULTS_KEY, JSON.stringify(list));
+  }
+  function firebaseErrorText(error) {
+    const code = String(error && error.code || "");
+    if (code.includes("permission-denied")) return "Firestore hat den Zugriff abgelehnt. Bitte die firestore.rules aus dem Repository im Firebase-Console-Bereich Firestore → Rules veröffentlichen.";
+    if (code.includes("unauthenticated") || code.includes("auth/invalid-credential") || code.includes("auth/invalid-login-credentials")) return "E-Mail oder Passwort stimmen nicht. Bitte das Lehrer-Konto in Firebase Authentication prüfen.";
+    if (code.includes("auth/unauthorized-domain")) return "Diese Domain ist in Firebase Authentication nicht freigeschaltet. Füge frofail-hlag.github.io unter Authentication → Settings → Authorized domains hinzu.";
+    if (code.includes("unavailable") || code.includes("network")) return "Firebase ist momentan nicht erreichbar. Prüfe die Internetverbindung und die Firestore-Datenbank.";
+    if (error && error.message === "TEACHER_NOT_ALLOWED") return "Dieses Konto ist noch nicht als Diener/in freigeschaltet. Es benötigt ein aktives teachers-Dokument mit der Firebase-UID.";
+    return String(error && error.message || "Unbekannter Firebase-Fehler").slice(0, 260);
+  }
+  function cloudNoticeHtml() {
+    if (state.firebaseSyncMessage) {
+      return "<div class='notice'><strong>Firebase-Synchronisierung nicht vollständig</strong><br>" + esc(state.firebaseSyncMessage) +
+        "<br><span class='small'>Lokale Daten bleiben auf diesem Gerät erhalten. Bitte korrigiere die Firebase-Einrichtung, bevor du eine Challenge als teamweit veröffentlicht betrachtest.</span></div>";
+    }
+    if (state.firebaseConnected) {
+      return "<p class='small' style='margin-top:8px'>☁️ Firebase verbunden · veröffentlichte Challenges und Ergebnisse werden zwischen Geräten geteilt.</p>";
+    }
+    return "<div class='notice'>Cloud-Verbindung wird beim Öffnen des Bereichs geprüft. Lokale Daten bleiben erhalten.</div>";
+  }
+  async function firebaseApi() {
+    if (!window.bibleFirebaseReady) throw new Error("Das Firebase-Modul wurde nicht geladen. Prüfe firebase-service.js und die Internetverbindung.");
+    return await window.bibleFirebaseReady;
+  }
+  async function syncChallengesFromFirebase(forTeacher) {
+    try {
+      const api = await firebaseApi();
+      const remote = await api.loadChallenges({ teacher: Boolean(forTeacher) });
+      const local = readChallenges();
+      if (forTeacher) {
+        const merged = new Map(remote.map(function (c) { return [c.id, c]; }));
+        const warnings = [];
+        for (const localChallenge of local) {
+          const cloudChallenge = merged.get(localChallenge.id);
+          const localTime = Date.parse(localChallenge.updatedAt || localChallenge.createdAt || "") || 0;
+          const cloudTime = cloudChallenge ? (Date.parse(cloudChallenge.updatedAt || cloudChallenge.createdAt || "") || 0) : -1;
+          if (!cloudChallenge || localTime > cloudTime) {
+            const candidate = JSON.parse(JSON.stringify(localChallenge));
+            if (candidate.status === "published" && readyToPublish(candidate)) candidate.status = "draft";
+            try {
+              const saved = await api.saveChallenge(candidate);
+              merged.set(saved.id, saved);
+            } catch (error) {
+              warnings.push("„" + (candidate.title || candidate.id) + "“ konnte nicht hochgeladen werden: " + firebaseErrorText(error));
+              merged.set(candidate.id, candidate);
+            }
+          }
+        }
+        saveChallenges(Array.from(merged.values()));
+        state.firebaseSyncMessage = warnings.length ? warnings.join(" ") : "";
+      } else {
+        const remoteIds = new Set(remote.map(function (c) { return c.id; }));
+        // Preserve local drafts on a shared device, but let Firebase decide which published
+        // activities students should see, including archived/unpublished changes.
+        const localDrafts = local.filter(function (c) { return c.status !== "published" && !remoteIds.has(c.id); });
+        saveChallenges(remote.concat(localDrafts));
+        state.firebaseSyncMessage = "";
+      }
+      state.firebaseConnected = true;
+      return true;
+    } catch (error) {
+      state.firebaseConnected = false;
+      state.firebaseSyncMessage = firebaseErrorText(error);
+      console.warn("Bible Escape Firebase challenge sync:", error);
+      return false;
+    }
+  }
+  async function persistChallengeToFirebase(challenge) {
+    try {
+      const api = await firebaseApi();
+      const saved = await api.saveChallenge(challenge);
+      state.firebaseConnected = true;
+      state.firebaseSyncMessage = "";
+      return saved;
+    } catch (error) {
+      state.firebaseSyncMessage = firebaseErrorText(error);
+      state.firebaseConnected = false;
+      console.warn("Bible Escape Firebase challenge save:", error);
+      return null;
+    }
+  }
+  async function syncResultsFromFirebase() {
+    try {
+      const api = await firebaseApi();
+      const remote = await api.loadResults();
+      const local = readChallengeResults();
+      const merged = new Map(remote.map(function (r) { return [r.id, r]; }));
+      local.forEach(function (r) { if (!merged.has(r.id)) merged.set(r.id, r); });
+      saveChallengeResults(Array.from(merged.values()));
+      state.firebaseConnected = true;
+      return true;
+    } catch (error) {
+      state.firebaseSyncMessage = firebaseErrorText(error);
+      console.warn("Bible Escape Firebase results sync:", error);
+      return false;
+    }
+  }
+  async function submitResultToFirebase(result) {
+    try {
+      const api = await firebaseApi();
+      await api.saveStudentResult(result);
+      state.challengeCloudSaveStatus = "saved";
+      return true;
+    } catch (error) {
+      state.challengeCloudSaveStatus = "failed";
+      state.firebaseSyncMessage = firebaseErrorText(error);
+      console.warn("Bible Escape Firebase result save:", error);
+      return false;
+    }
+  }
   function id() {
     return "bc_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7);
   }
