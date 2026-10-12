@@ -245,6 +245,7 @@
   teacherChallengeDashboard = function () {
     originalTeacherChallengeDashboard();
     if (!isTeacher()) return;
+    ensureTeacherAreaBack();
     const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
       .find(function (button) { return button.textContent.includes("Spiele spielen"); });
     if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
@@ -882,6 +883,7 @@
   };
 
   Object.assign(window, {
+    teacherDashboard: teacherDashboard,
     studentChallenges: studentChallenges,
     studentModeSelect: studentModeSelect,
     openStudentEscapeMode: openStudentEscapeMode,
