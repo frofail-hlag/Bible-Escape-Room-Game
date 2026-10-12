@@ -84,14 +84,14 @@
         }
         if (Number(q.a) < 0 || Number(q.a) >= q.opts.length) return "Bitte die richtige Antwort bei Frage " + (i + 1) + " auswählen.";
       } else if (q.type === "truefalse") {
-        if (q.a !== "true" && q.a !== "false") return "Bitte die richtige Antwort bei Frage " + (i + 1) + festlegen.";
+        if (q.a !== "true" && q.a !== "false") return "Bitte die richtige Antwort bei Frage " + (i + 1) + " festlegen.";
       } else if (q.type === "order") {
         if (!q.items || q.items.length < 2 || !q.itemsAr || q.itemsAr.length !== q.items.length ||
             q.items.some(function (x) { return !x; }) || q.itemsAr.some(function (x) { return !x; })) {
-          return "Bitte bei der Reihenfolge-Frage " + (i + 1) + mindestens zwei Ereignisse in beiden Sprachen eintragen.";
+          return "Bitte bei der Reihenfolge-Frage " + (i + 1) + " mindestens zwei Ereignisse in beiden Sprachen eintragen.";
         }
       } else if (!q.a && !(q.accepted || []).length && !q.aAr && !(q.acceptedAr || []).length) {
-        return "Bitte eine richtige oder akzeptierte Antwort bei Frage " + (i + 1) + hinterlegen.";
+        return "Bitte eine richtige oder akzeptierte Antwort bei Frage " + (i + 1) + " hinterlegen.";
       }
     }
     return "";
