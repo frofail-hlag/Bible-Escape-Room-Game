@@ -1,2 +1,3 @@
-Bibel Escape Room V3.2.3
-Changes: Bible image moved from page background to compact header logo; student area has a Zur Rollenwahl button.
+Bibel Escape Room V3.2.4 — Deutsch/Arabisch + Bibelzugriff
+
+Adds German and Arabic side-by-side question content and a Bible area linking/attempting to embed Bible.com SCH2000 and AVD passages. AI remains out of scope.

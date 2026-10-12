@@ -1,18 +1,20 @@
-# Bibel Escape Room – V3.2.2 Design Update
+# Bibel Escape Room V3.2.4 — Deutsch / العربية
 
 ## Deployment
-Upload all files in this ZIP directly to the root of the GitHub Pages repository (do not upload the enclosing folder). Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg`, `background-bible.png`, `README.md`, and `VERSION.txt` together.
+Upload all files in this ZIP directly to the root of the GitHub Pages repository, replacing the previous version. Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg`, `background-bible.png`, `README.md`, and `VERSION.txt` together in the repository root.
 
-## What's changed
-- The app opens with a role choice: **Sonntagsschüler/in** or **Diener/in**.
-- Students go directly to the game list and do not see the Lehrerbereich entry.
-- Diener/in must log in before accessing the teacher dashboard.
-- The teacher dashboard has a prominent **Spiele spielen** option; the teacher can play published games and return to the Lehrerbereich.
-- The supplied Bible image is used as a subtle page background with a pale overlay to preserve readability.
-- Existing game/puzzle logic and manual game editor are retained. AI assistant remains intentionally out of scope.
+## New in V3.2.4
+- Existing three games now include Arabic translations alongside German for titles, introductions, questions, answer options, answers, and hints.
+- The teacher editor lets teachers edit German and Arabic game titles, introductions, questions, answer options, correct answers, hints, and ordering events.
+- A Bible area is accessible from the student home and during a game. It includes the requested Bible.com German SCH2000 and Arabic AVD pages.
+- If Bible.com blocks iframe embedding in a browser, visible buttons open the same Bible passages in a new tab. Bible.com content requires an internet connection.
+- Returning from the Bible page to an active game restores the current question and timer.
+- No AI/API calls are included.
 
-## Prototype login
+## Prototype limitations
+- Teacher login and game data remain local to the device, as in the previous prototype.
+- Bible.com may prevent third-party embedding. For a fully native embedded Bible reader, YouVersion Platform access and an app key may be needed.
+
+## Demo teacher login
 Username: `Lehrer`
 Password: `1234`
-
-This is a local demo login, not secure multi-user authentication. Game edits and leaderboard data remain in the browser's local storage on each device.
