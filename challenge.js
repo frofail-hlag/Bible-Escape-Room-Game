@@ -453,6 +453,7 @@
       const profile = await api.getCurrentTeacher();
       if (!profile || profile.admin !== true) {
         state.firebaseTeacherAdmin = false;
+        localStorage.setItem("bibleEscapeTeacherAdmin", "0");
         state.teacherAdminMessage = "Dieses Konto ist nicht als Administrator freigeschaltet.";
         state.teacherAdminRequests = [];
       } else {
