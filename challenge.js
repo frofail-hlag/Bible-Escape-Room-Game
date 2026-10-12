@@ -273,7 +273,7 @@
         : "<button class='btn secondary back' onclick='roleSelect()'>← Zur Rollenwahl / العودة لاختيار الدور</button>";
     let firstAction, secondAction;
     if (audience === "teacher") {
-      firstAction = "teacherEscapeManagement()";
+      firstAction = "openTeacherEscapeManagement()";
       secondAction = "teacherChallengeManagement()";
     } else if (teacherPlay) {
       firstAction = "openTeacherEscapePlay()";
@@ -379,6 +379,28 @@
     const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
       .find(function (button) { return button.textContent.includes("Spiele spielen"); });
     if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
+  }
+  function openTeacherEscapeManagement() {
+    if (!isTeacher()) { teacherLogin(); return; }
+    state.role = "teacher";
+    state.teacherSection = "escape";
+    state.playMode = null;
+    try {
+      const dashboard = window.renderTeacherEscapeDashboard;
+      if (typeof dashboard !== "function") {
+        app.innerHTML = "<main class='app'><section class='card'><h2>Lehrerbereich konnte nicht geöffnet werden</h2><p>Die Escape-Room-Verwaltung wurde nicht geladen. Bitte die Seite neu laden.</p><button class='btn secondary' onclick='teacherDashboard()'>Zur Bereichsauswahl</button></section></main>";
+        return;
+      }
+      dashboard();
+      insertTeacherGreeting();
+      ensureTeacherAreaBack();
+      const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
+        .find(function (button) { return button.textContent.includes("Spiele spielen"); });
+      if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
+    } catch (error) {
+      console.error("Escape Room teacher management navigation failed:", error);
+      app.innerHTML = "<main class='app'><section class='card'><h2>Lehrerbereich konnte nicht geöffnet werden</h2><p>Beim Öffnen der Escape-Room-Verwaltung ist ein Fehler aufgetreten. Bitte die Seite neu laden.</p><button class='btn secondary' onclick='teacherDashboard()'>Zur Bereichsauswahl</button></section></main>";
+    }
   }
   function teacherChallengeManagement() {
     if (!isTeacher()) { teacherLogin(); return; }
@@ -1088,6 +1110,7 @@
     openStudentChallengeMode: openStudentChallengeMode,
     returnToModeSelection: returnToModeSelection,
     teacherEscapeManagement: teacherEscapeManagement,
+    openTeacherEscapeManagement: openTeacherEscapeManagement,
     teacherManagementModeSelect: teacherManagementModeSelect,
     teacherChallengeManagement: teacherChallengeManagement,
     teacherPlayModeSelect: teacherPlayModeSelect,
