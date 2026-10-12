@@ -39,6 +39,7 @@
     return "<div class='notice'>Cloud-Verbindung wird beim Öffnen des Bereichs geprüft. Lokale Daten bleiben erhalten.</div>";
   }
   async function firebaseApi() {
+    if (typeof window.waitForBibleFirebaseApi === "function") return await window.waitForBibleFirebaseApi();
     if (!window.bibleFirebaseReady) throw new Error("Das Firebase-Modul wurde nicht geladen. Prüfe firebase-service.js und die Internetverbindung.");
     return await window.bibleFirebaseReady;
   }
