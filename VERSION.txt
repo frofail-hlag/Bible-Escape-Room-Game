@@ -1,3 +1,3 @@
-Bibel Escape Room V3.2.6.3 — Teacher Escape Room Dashboard Restored
+Bibel Escape Room V3.2.7 — Teacher Self-Registration & Admin Approval
 
-Restores the original Escape Room teacher dashboard renderer that the new selector calls. The teacher selector now routes to the working renderer; Firebase email/password login and the personalized displayName greeting are preserved. Bibel-Challenge and student navigation remain unchanged.
+Adds teacher self-registration using Firebase Email/Password, email verification, a pending approval request, and an admin-only Lehrerverwaltung screen. Administrators approve/reject requests; approved teachers receive normal teacher access but not admin rights. Firestore rules secure requests and teacher profiles. Existing teacher, student, Escape Room and Bibel-Challenge flows are retained.
