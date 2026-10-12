@@ -1,5 +1,5 @@
-const CACHE='bibel-escape-v3-2-5-teacher-router-final';
-const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png','./challenge.js','./challenge.css'];
+const CACHE='bibel-escape-v3-2-6-firebase-challenges';
+const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png','./challenge.js','./challenge.css','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
