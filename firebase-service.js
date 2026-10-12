@@ -132,6 +132,7 @@ async function signInTeacher(email, password) {
   const user = credential.user;
   try {
     await reload(user);
+    await user.getIdToken(true);
     const profile = await authorizedTeacher(user);
     // Existing approved teachers (including the first administrator) continue to work
     // even if they were created before self-registration was introduced.
