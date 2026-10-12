@@ -1,20 +1,26 @@
-# Bibel Escape Room V3.2.4 — Deutsch / العربية
+# Bibel Escape Room V3.2.5 — Bibel-Challenge Pilot
 
 ## Deployment
-Upload all files in this ZIP directly to the root of the GitHub Pages repository, replacing the previous version. Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon.svg`, `background-bible.png`, `README.md`, and `VERSION.txt` together in the repository root.
+All files belong in the root of the GitHub Pages repository. The PWA service worker caches the HTML, CSS, JavaScript and image assets, so it may take a refresh or a moment for an installed PWA to activate the new cache after deployment.
 
-## New in V3.2.4
-- Existing three games now include Arabic translations alongside German for titles, introductions, questions, answer options, answers, and hints.
-- The teacher editor lets teachers edit German and Arabic game titles, introductions, questions, answer options, correct answers, hints, and ordering events.
-- A Bible area is accessible from the student home and during a game. It includes the requested Bible.com German SCH2000 and Arabic AVD pages.
-- If Bible.com blocks iframe embedding in a browser, visible buttons open the same Bible passages in a new tab. Bible.com content requires an internet connection.
-- Returning from the Bible page to an active game restores the current question and timer.
+## New in V3.2.5
+- Adds a second student mode: **Bibel-Challenge / تحدي الكتاب المقدس**, alongside the existing Bibel Escape Room.
+- Teachers can create, edit, preview, publish and archive self-paced Bible-reading activities.
+- Each challenge contains a title, Bible passage, German and Arabic instructions, and 3–4 questions.
+- Question types reuse the current engine: True/False, ordering, multiple choice, open answer, number and Bible search.
+- Questions support German and Arabic text, answers, optional hints, points and bilingual explanations.
+- Students enter a name, can reopen the relevant Bible chapter during every question, see feedback/explanations, and review the answers at the end.
+- Challenge results can be reviewed in the teacher area on the same device.
+- Bible.com links attempt to open the selected book/chapter in SCH2000 and AVD. If embedding is blocked by Bible.com, the existing “open in new tab” buttons remain available.
 - No AI/API calls are included.
 
-## Prototype limitations
-- Teacher login and game data remain local to the device, as in the previous prototype.
-- Bible.com may prevent third-party embedding. For a fully native embedded Bible reader, YouVersion Platform access and an app key may be needed.
+## Current prototype boundary
+**Bibel-Challenges and their results are currently stored in this browser's local storage.** Publishing a challenge on one device will not yet make it available on other devices. Shared publishing and shared results are the next step.
+
+The Firebase configuration in the Financial Money Plan belongs to that finance app and uses rules for private per-user data. To avoid exposing or mixing financial records, the Bible Escape Room should use a separate Firebase project (under the same Firebase account is fine), with Firebase Authentication and Firestore security rules specifically for teacher-managed challenges and student results. Do not copy a service-account key into the PWA.
 
 ## Demo teacher login
 Username: `Lehrer`
 Password: `1234`
+
+This is a local prototype login, not a secure multi-teacher account system.
