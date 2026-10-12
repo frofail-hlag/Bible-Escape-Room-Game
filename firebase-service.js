@@ -7,6 +7,7 @@ import {
   getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc,
   updateDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const defaultApp = getApps().some(app => app.name === "[DEFAULT]")
@@ -244,6 +245,12 @@ async function requireAdmin() {
   if (!profile || profile.admin !== true) throw new Error("Für diese Funktion ist eine Admin-Freigabe erforderlich.");
   return profile;
 }
+async function cleanupOrphanTeacherRecords() {
+  await requireAdmin();
+  const cleanupFunction = httpsCallable(getFunctions(defaultApp), "cleanupOrphanTeacherRecords");
+  const response = await cleanupFunction({});
+  return response.data || {};
+}
 async function signOutTeacher() {
   if (auth.currentUser) await signOut(auth);
 }
@@ -293,6 +300,7 @@ window.bibleFirebaseReady = Promise.resolve({
   listTeacherRequests,
   approveTeacherRequest,
   rejectTeacherRequest,
+  cleanupOrphanTeacherRecords,
   signOutTeacher,
   loadChallenges,
   saveChallenge,
