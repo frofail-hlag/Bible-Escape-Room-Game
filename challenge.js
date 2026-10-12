@@ -199,10 +199,26 @@
       studentModeSelect();
     }
   }
+  function ensureTeacherAreaBack() {
+    const nav = document.querySelector(".teacher-nav");
+    if (!nav || document.getElementById("teacherAreaBack")) return;
+    const button = document.createElement("button");
+    button.id = "teacherAreaBack";
+    button.className = "btn secondary";
+    button.textContent = "← Bereichsauswahl";
+    button.setAttribute("onclick", "teacherManagementModeSelect()");
+    nav.insertBefore(button, nav.firstChild);
+  }
+  function teacherManagementModeSelect() {
+    state.teacherSection = null;
+    state.playMode = null;
+    teacherDashboard();
+  }
   function teacherDashboard() {
     if (!isTeacher()) { teacherLogin(); return; }
     if (state.teacherSection === "escape") {
       originalTeacherDashboard();
+      ensureTeacherAreaBack();
       const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
         .find(function (button) { return button.textContent.includes("Spiele spielen"); });
       if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
@@ -215,6 +231,7 @@
     state.teacherSection = "escape";
     state.playMode = null;
     originalTeacherDashboard();
+    ensureTeacherAreaBack();
     const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
       .find(function (button) { return button.textContent.includes("Spiele spielen"); });
     if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
@@ -871,6 +888,7 @@
     openStudentChallengeMode: openStudentChallengeMode,
     returnToModeSelection: returnToModeSelection,
     teacherEscapeManagement: teacherEscapeManagement,
+    teacherManagementModeSelect: teacherManagementModeSelect,
     teacherChallengeManagement: teacherChallengeManagement,
     teacherPlayModeSelect: teacherPlayModeSelect,
     openTeacherEscapePlay: openTeacherEscapePlay,
