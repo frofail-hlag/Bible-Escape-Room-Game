@@ -1,4 +1,4 @@
-const CACHE='bibel-escape-v3-2-5-challenge-pilot';
+const CACHE='bibel-escape-v3-2-5-challenge-pilot-final';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png','./challenge.js','./challenge.css'];
 
 self.addEventListener('install', event => {
