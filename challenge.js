@@ -226,6 +226,7 @@
   }
   function teacherPlayModeSelect() {
     state.role = "teacher";
+    state.teacherSection = null;
     state.playMode = "teacher-play";
     renderActivityModeSelect("teacherPlay");
   }
