@@ -222,6 +222,7 @@
     if (state.view === "challengeQuestion") return renderChallengeQuestion();
     if (state.view === "challengeResult") return renderChallengeResult();
     if (state.view === "teacherChallenges") return renderTeacherChallenges();
+    if (state.view === "teacherAdmin") return renderTeacherAdministration();
     if (state.view === "teacherChallengeEdit") return renderTeacherChallengeEdit(state.teacherChallengeId);
     if (state.view === "teacherChallengeResults") return renderTeacherChallengeResults(state.teacherChallengeId);
     return originalRender();
@@ -269,7 +270,10 @@
     const back = teacherPlay
       ? "<button class='btn secondary back' onclick='teacherDashboard()'>← Zurück zum Lehrerbereich / العودة لمنطقة الخدام</button>"
       : audience === "teacher"
-        ? "<div class='actions' style='margin:0 0 16px'><button class='btn secondary' onclick='teacherPlayModeSelect()'>🎮 Spiele spielen</button><button class='btn secondary' onclick='teacherLogout()'>Abmelden</button></div>"
+        ? "<div class='actions' style='margin:0 0 16px'>" +
+          ((state.firebaseTeacherAdmin === true || localStorage.getItem("bibleEscapeTeacherAdmin") === "1")
+            ? "<button class='btn gold' onclick='teacherAdminDashboard()'>👥 Lehrerverwaltung</button>" : "") +
+          "<button class='btn secondary' onclick='teacherPlayModeSelect()'>🎮 Spiele spielen</button><button class='btn secondary' onclick='teacherLogout()'>Abmelden</button></div>"
         : "<button class='btn secondary back' onclick='roleSelect()'>← Zur Rollenwahl / العودة لاختيار الدور</button>";
     let firstAction, secondAction;
     if (audience === "teacher") {
@@ -407,6 +411,85 @@
     state.teacherSection = "challenge";
     state.playMode = null;
     teacherChallengeDashboard();
+  }
+  function adminErrorMessage(error) {
+    const message = String(error && error.message || "Unbekannter Fehler");
+    if (message.includes("Admin-Freigabe erforderlich")) return "Dieses Konto hat keine Administratorrechte.";
+    if (message.includes("permission-denied")) return "Firebase hat den Zugriff verweigert. Bitte veröffentliche die aktuelle firestore.rules und prüfe, ob dein teachers-Dokument admin = true (Boolean) enthält.";
+    return message;
+  }
+  function renderTeacherAdministration() {
+    clearInterval(state.timer);
+    const requests = state.teacherAdminRequests || [];
+    const rows = requests.map(function (request) {
+      const verified = request.emailVerified === true;
+      return "<article class='teacher-request-card'><div class='teacher-request-main'>" +
+        "<div class='teacher-request-name'>" + esc(request.displayName || "Ohne Anzeigename") + "</div>" +
+        "<div class='teacher-request-email'>" + esc(request.email || "") + "</div>" +
+        "<div class='teacher-request-meta'>" +
+        (verified ? "<span class='badge green'>E-Mail bestätigt</span>" : "<span class='badge gray'>E-Mail noch nicht bestätigt</span>") +
+        "<span class='small'>Registriert: " + (request.createdAt ? esc(new Date(request.createdAt).toLocaleDateString("de-DE")) : "—") + "</span></div></div>" +
+        "<div class='actions teacher-request-actions'><button class='btn success' onclick='approveTeacherSignup(\"" + esc(request.uid) + "\")' " +
+        (verified ? "" : "disabled title='Die Lehrkraft muss zuerst ihre E-Mail bestätigen und sich einmal anmelden.'") +
+        ">Freigeben</button><button class='btn danger' onclick='rejectTeacherSignup(\"" + esc(request.uid) + "\")'>Ablehnen</button></div></article>";
+    }).join("");
+    app.innerHTML = "<main class='app'>" + header("Lehrerverwaltung") +
+      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrerbereich</button><button class='btn secondary' onclick='refreshTeacherAdministration()'>↻ Aktualisieren</button><button class='btn secondary' onclick='teacherLogout()'>Abmelden</button></div>" +
+      "<section class='hero activity-mode-hero'><h1>👥 Lehrerverwaltung</h1><p>Prüfe neue Registrierungen und gib nur bekannten Sonntagsschul-Diener/innen Zugang. Die E-Mail-Adresse muss vor der Freigabe bestätigt sein.</p><p class='lang-ar' dir='rtl'>راجع طلبات التسجيل الجديدة وامنح الوصول فقط لخدام مدارس الأحد المعروفين. يجب تأكيد البريد الإلكتروني قبل الموافقة.</p></section>" +
+      cloudNoticeHtml() +
+      (state.teacherAdminMessage ? "<div class='notice'>" + esc(state.teacherAdminMessage) + "</div>" : "") +
+      "<section class='card'><div class='editor-head'><div><h2>Anfragen zur Freigabe</h2><p class='small'>Freigegebene Konten erhalten Diener/in-Rechte, aber keine Administratorrechte.</p></div><span class='badge'>" + requests.length + " offen</span></div>" +
+      (requests.length ? "<div class='teacher-request-list'>" + rows + "</div>" :
+       "<div class='empty'><div style='font-size:40px'>✅</div><h3>Keine offenen Anfragen</h3><p>Neue Registrierungen erscheinen hier, sobald die E-Mail-Adresse bestätigt und die Anmeldung einmal versucht wurde.</p></div>") +
+      "</section></main>";
+    insertTeacherGreeting();
+  }
+  async function refreshTeacherAdministration(message) {
+    if (!isTeacher()) { teacherLogin(); return; }
+    state.view = "teacherAdmin";
+    state.teacherAdminMessage = message || "";
+    try {
+      const api = await firebaseApi();
+      const profile = await api.getCurrentTeacher();
+      if (!profile || profile.admin !== true) {
+        state.firebaseTeacherAdmin = false;
+        state.teacherAdminMessage = "Dieses Konto ist nicht als Administrator freigeschaltet.";
+        state.teacherAdminRequests = [];
+      } else {
+        state.firebaseTeacherAdmin = true;
+        state.firebaseTeacherName = profile.displayName || state.firebaseTeacherName || "";
+        localStorage.setItem("bibleEscapeTeacherAdmin", "1");
+        state.teacherAdminRequests = await api.listTeacherRequests();
+        state.firebaseSyncMessage = "";
+      }
+    } catch (error) {
+      state.teacherAdminMessage = adminErrorMessage(error);
+      state.teacherAdminRequests = [];
+    }
+    render();
+  }
+  function teacherAdminDashboard() {
+    if (!isTeacher()) { teacherLogin(); return; }
+    refreshTeacherAdministration("");
+  }
+  async function approveTeacherSignup(uid) {
+    try {
+      const api = await firebaseApi();
+      const approved = await api.approveTeacherRequest(uid);
+      await refreshTeacherAdministration("Freigegeben: " + (approved.displayName || approved.email) + ". Die Lehrkraft kann sich jetzt anmelden.");
+    } catch (error) {
+      await refreshTeacherAdministration(adminErrorMessage(error));
+    }
+  }
+  async function rejectTeacherSignup(uid) {
+    if (!confirm("Diese Registrierungsanfrage wirklich ablehnen? / هل تريد رفض طلب التسجيل؟")) return;
+    try {
+      const api = await firebaseApi();
+      await api.rejectTeacherRequest(uid);
+      await refreshTeacherAdministration("Registrierungsanfrage abgelehnt.");
+    } catch (error) {
+      await refreshTeacherAdministration(adminErrorMessage(error));
+    }
   }
   teacherChallengeDashboard = async function () {
     if (!isTeacher()) { originalTeacherChallengeDashboard(); return; }
@@ -1112,6 +1195,10 @@
     teacherEscapeManagement: teacherEscapeManagement,
     openTeacherEscapeManagement: openTeacherEscapeManagement,
     teacherManagementModeSelect: teacherManagementModeSelect,
+    teacherAdminDashboard: teacherAdminDashboard,
+    refreshTeacherAdministration: refreshTeacherAdministration,
+    approveTeacherSignup: approveTeacherSignup,
+    rejectTeacherSignup: rejectTeacherSignup,
     teacherChallengeManagement: teacherChallengeManagement,
     teacherPlayModeSelect: teacherPlayModeSelect,
     openTeacherEscapePlay: openTeacherEscapePlay,
