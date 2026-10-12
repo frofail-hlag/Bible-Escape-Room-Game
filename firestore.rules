@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isTeacher() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/teachers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data.active == true;
+    }
+
+    function validChallenge() {
+      return request.resource.data.keys().hasAll([
+          'id', 'title', 'titleAr', 'passage', 'instructions', 'instructionsAr',
+          'status', 'questions', 'createdAt', 'updatedAt', 'ownerUid'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'id', 'title', 'titleAr', 'passage', 'instructions', 'instructionsAr',
+          'status', 'questions', 'createdAt', 'updatedAt', 'ownerUid'
+        ])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 160
+        && request.resource.data.titleAr is string
+        && request.resource.data.titleAr.size() <= 160
+        && request.resource.data.passage is string
+        && request.resource.data.passage.size() <= 200
+        && request.resource.data.instructions is string
+        && request.resource.data.instructions.size() <= 3000
+        && request.resource.data.instructionsAr is string
+        && request.resource.data.instructionsAr.size() <= 3000
+        && request.resource.data.status in ['draft', 'published', 'archived']
+        && request.resource.data.questions is list
+        && request.resource.data.questions.size() <= 4
+        && request.resource.data.createdAt is string
+        && request.resource.data.updatedAt is string
+        && request.resource.data.ownerUid is string
+        && (request.resource.data.status != 'published'
+            || request.resource.data.questions.size() >= 3);
+    }
+
+    function validStudentResult(resultId) {
+      return request.resource.data.keys().hasOnly([
+          'id', 'challengeId', 'challengeTitle', 'challengeTitleAr', 'passage',
+          'studentName', 'score', 'totalPoints', 'correctCount', 'questionCount',
+          'elapsedSeconds', 'completedAt', 'answers'
+        ])
+        && request.resource.data.id == resultId
+        && request.resource.data.challengeId is string
+        && exists(/databases/$(database)/documents/challenges/$(request.resource.data.challengeId))
+        && get(/databases/$(database)/documents/challenges/$(request.resource.data.challengeId)).data.status == 'published'
+        && request.resource.data.challengeTitle is string
+        && request.resource.data.challengeTitle.size() <= 160
+        && request.resource.data.challengeTitleAr is string
+        && request.resource.data.challengeTitleAr.size() <= 160
+        && request.resource.data.passage is string
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() >= 1
+        && request.resource.data.studentName.size() <= 50
+        && request.resource.data.score is number
+        && request.resource.data.score >= 0
+        && request.resource.data.score <= 10000
+        && request.resource.data.totalPoints is number
+        && request.resource.data.totalPoints > 0
+        && request.resource.data.totalPoints <= 10000
+        && request.resource.data.correctCount is int
+        && request.resource.data.correctCount >= 0
+        && request.resource.data.correctCount <= 4
+        && request.resource.data.questionCount is int
+        && request.resource.data.questionCount >= 3
+        && request.resource.data.questionCount <= 4
+        && request.resource.data.correctCount <= request.resource.data.questionCount
+        && request.resource.data.elapsedSeconds is int
+        && request.resource.data.elapsedSeconds >= 0
+        && request.resource.data.elapsedSeconds <= 86400
+        && request.resource.data.completedAt is string
+        && request.resource.data.answers is list
+        && request.resource.data.answers.size() == request.resource.data.questionCount;
+    }
+
+    match /teachers/{teacherId} {
+      allow get: if request.auth != null && request.auth.uid == teacherId;
+      allow list, create, update, delete: if false;
+    }
+
+    match /challenges/{challengeId} {
+      allow get, list: if resource.data.status == 'published' || isTeacher();
+      allow create: if isTeacher()
+        && validChallenge()
+        && request.resource.data.id == challengeId
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isTeacher()
+        && validChallenge()
+        && request.resource.data.id == challengeId
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+      allow delete: if isTeacher();
+    }
+
+    match /challengeResults/{resultId} {
+      allow create: if request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'anonymous'
+        && validStudentResult(resultId);
+      allow get, list: if isTeacher();
+      allow update, delete: if false;
+    }
+  }
+}
