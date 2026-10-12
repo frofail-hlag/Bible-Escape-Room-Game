@@ -1,5 +1,5 @@
-const CACHE='bibel-escape-v3-2-4-1-egypt-flag';
-const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png'];
+const CACHE='bibel-escape-v3-2-5-challenge-pilot';
+const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png','./challenge.js','./challenge.css'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
