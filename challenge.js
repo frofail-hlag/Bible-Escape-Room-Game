@@ -115,6 +115,7 @@
   const originalHome = home;
   const originalChooseStudent = chooseStudent;
   const originalTeacherDashboard = teacherDashboard;
+  const originalTeacherChallengeDashboard = teacherChallengeDashboard;
   const originalTeacherLogin = teacherLogin;
   const originalTeacherLogout = teacherLogout;
 
@@ -224,6 +225,13 @@
     state.playMode = null;
     teacherChallengeDashboard();
   }
+  teacherChallengeDashboard = function () {
+    originalTeacherChallengeDashboard();
+    if (!isTeacher()) return;
+    const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
+      .find(function (button) { return button.textContent.includes("Spiele spielen"); });
+    if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
+  };
   function teacherPlayModeSelect() {
     state.role = "teacher";
     state.teacherSection = null;
