@@ -1,4 +1,4 @@
-const CACHE='bibel-escape-v3-2-4-bilingual-final';
+const CACHE='bibel-escape-v3-2-4-1-egypt-flag';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png'];
 
 self.addEventListener('install', event => {
