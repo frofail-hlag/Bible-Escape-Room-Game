@@ -114,7 +114,7 @@
 
   const originalHome = home;
   const originalChooseStudent = chooseStudent;
-  const originalTeacherDashboard = window.teacherDashboard;
+  const originalTeacherDashboard = window.renderTeacherEscapeDashboard;
   const originalTeacherChallengeDashboard = teacherChallengeDashboard;
   const originalTeacherLogin = teacherLogin;
   const originalTeacherLogout = teacherLogout;
@@ -882,8 +882,8 @@
     originalCloseBible();
   };
 
+  window.bibleEscapeRouteTeacherDashboard = teacherDashboard;
   Object.assign(window, {
-    teacherDashboard: teacherDashboard,
     studentChallenges: studentChallenges,
     studentModeSelect: studentModeSelect,
     openStudentEscapeMode: openStudentEscapeMode,
