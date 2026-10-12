@@ -9,7 +9,7 @@ const db = admin.firestore();
  * Immediate cleanup for accounts deleted after this function is deployed.
  * Only the account's own teacher request and teacher profile are removed.
  */
-exports.cleanupTeacherDataOnAuthDelete = functions.auth.user().onDelete(async (user) => {
+exports.cleanupTeacherDataOnAuthDelete = functions.region("europe-west3").auth.user().onDelete(async (user) => {
   const uid = user.uid;
   const [requestResult, profileResult] = await Promise.all([
     db.collection("teacherRequests").doc(uid).delete(),
@@ -28,7 +28,7 @@ exports.cleanupTeacherDataOnAuthDelete = functions.auth.user().onDelete(async (u
  * before the trigger was deployed (and for any missed historical records).
  * A document is removed only when its document ID is absent from Firebase Auth.
  */
-exports.cleanupOrphanTeacherRecords = functions.https.onCall(async (_data, context) => {
+exports.cleanupOrphanTeacherRecords = functions.region("europe-west3").https.onCall(async (_data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
