@@ -41,3 +41,15 @@ Do not use permissive rules such as “allow read, write: if true”. Do not put
 
 ## Personalized teacher greeting
 After successful Firebase teacher sign-in, the displayName returned from the Firestore teachers/{uid} profile is shown as a greeting across the teacher dashboard, activity selector, challenge manager, challenge editor and results page. The name is HTML-escaped before rendering.
+
+
+## Teacher self-registration and approvals (V3.2.7)
+
+- The teacher login page now offers Anmelden and Neues Konto erstellen.
+- New teachers register a display name, email and password (minimum 8 characters), then confirm their email address. Signing up does not grant teacher permissions.
+- After email verification, the new teacher signs in once; the app marks their request as verified and keeps it pending until an admin approves it.
+- An active admin can open the Lehrerverwaltung screen from the teacher activity selector. Pending requests show display name, email and verification state. Unverified requests cannot be approved. Approve grants regular teacher access; Reject blocks the request.
+- Approved teachers cannot promote themselves or others to admin. Admin status is set only in Firestore by a trusted project administrator.
+- For the first admin, edit the existing document at teachers/{your Firebase Auth UID} and add admin (Boolean) = true. Keep active (Boolean) = true, displayName and email. This account remains a regular teacher as well.
+- Publish the current firestore.rules from this repository in Firebase Console → Firestore Database → Rules before allowing new registrations. Enable Email/Password and ensure the GitHub Pages domain is in Auth authorized domains.
+- Firestore requests are stored in teacherRequests/{uid}. Approved teacher profiles are stored in teachers/{uid}. Requests and teacher records cannot be self-approved from the client.
