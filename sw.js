@@ -1,4 +1,4 @@
-const CACHE='bibel-escape-v3-2-7-teacher-registration-admin-final';
+const CACHE='bibel-escape-v3-2-7-teacher-registration-admin-release';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png','./challenge.js','./challenge.css','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
