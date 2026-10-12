@@ -1,18 +1,18 @@
 {
-  "name": "Bibel Escape Room Deutsch-Arabisch",
-  "short_name": "Bibel Escape",
+  "name": "Bibelreise · رحلة في الكتاب المقدس",
+  "short_name": "Bibelreise",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#0f172a",
   "lang": "de",
-  "description": "Bibel Escape Room für die Sonntagsschule",
+  "description": "Bibelreise für die Sonntagsschule: zweisprachige biblische Abenteuer und Lese-Challenges.",
   "icons": [
     {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
