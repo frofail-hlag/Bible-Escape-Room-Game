@@ -1,3 +1,3 @@
-Bibel Escape Room V3.2.5 — Bibel-Challenge Pilot
+Bibel Escape Room V3.2.5 — Separate Activity Modes
 
-Adds a bilingual, self-paced Bible-reading challenge mode with 3–4 teacher-authored questions, reopenable passage links, explanations, local results, and a teacher editor. Cloud sharing is not enabled yet; AI remains paused.
+Students first choose between Bibel Escape Room and Bibel-Challenge, then enter the selected mode on a separate page. The teacher area has separate management entry points for both activity types. Existing game logic unchanged; cloud sharing and AI remain out of scope.
