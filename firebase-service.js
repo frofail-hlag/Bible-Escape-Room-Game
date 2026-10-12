@@ -247,7 +247,7 @@ async function requireAdmin() {
 }
 async function cleanupOrphanTeacherRecords() {
   await requireAdmin();
-  const cleanupFunction = httpsCallable(getFunctions(defaultApp), "cleanupOrphanTeacherRecords");
+  const cleanupFunction = httpsCallable(getFunctions(defaultApp, "europe-west3"), "cleanupOrphanTeacherRecords");
   const response = await cleanupFunction({});
   return response.data || {};
 }
