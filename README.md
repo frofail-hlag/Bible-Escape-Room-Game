@@ -1,23 +1,17 @@
-# Bibel Escape Room V3.2.5 — Bibel-Challenge Pilot
+# Bibel Escape Room V3.2.5 — Separate Activity Modes
 
-## Deployment
-All files belong in the root of the GitHub Pages repository. The PWA service worker caches the HTML, CSS, JavaScript and image assets, so it may take a refresh or a moment for an installed PWA to activate the new cache after deployment.
-
-## New in V3.2.5
-- Adds a second student mode: **Bibel-Challenge / تحدي الكتاب المقدس**, alongside the existing Bibel Escape Room.
-- Teachers can create, edit, preview, publish and archive self-paced Bible-reading activities.
-- Each challenge contains a title, Bible passage, German and Arabic instructions, and 3–4 questions.
-- Question types reuse the current engine: True/False, ordering, multiple choice, open answer, number and Bible search.
-- Questions support German and Arabic text, answers, optional hints, points and bilingual explanations.
-- Students enter a name, can reopen the relevant Bible chapter during every question, see feedback/explanations, and review the answers at the end.
-- Challenge results can be reviewed in the teacher area on the same device.
-- Bible.com links attempt to open the selected book/chapter in SCH2000 and AVD. If embedding is blocked by Bible.com, the existing “open in new tab” buttons remain available.
-- No AI/API calls are included.
+## New in this update
+- After selecting **Sonntagsschüler/in**, students first choose between **Bibel Escape Room** and **Bibel-Challenge**. Each opens on a separate page.
+- The three Escape Room missions now appear only after the student selects Bibel Escape Room.
+- In the Lehrerbereich, teachers first choose between **Bibel Escape Room verwalten** and **Bibel-Challenges verwalten**; each management area opens separately.
+- Teachers can still enter a separate game-selection screen to play either type themselves.
+- Existing challenge editor, question types, bilingual German/Arabic content, feedback, explanations and local results remain intact.
+- Updated the service-worker cache key to load the current navigation and style files.
 
 ## Current prototype boundary
-**Bibel-Challenges and their results are currently stored in this browser's local storage.** Publishing a challenge on one device will not yet make it available on other devices. Shared publishing and shared results are the next step.
+Bibel-Challenges and their results are currently saved in this browser's local storage. A challenge created on one device will not yet automatically appear on students' other devices. Firebase shared publishing and results are a separate next step.
 
-The Firebase configuration in the Financial Money Plan belongs to that finance app and uses rules for private per-user data. To avoid exposing or mixing financial records, the Bible Escape Room should use a separate Firebase project (under the same Firebase account is fine), with Firebase Authentication and Firestore security rules specifically for teacher-managed challenges and student results. Do not copy a service-account key into the PWA.
+The Financial Money Plan Firebase configuration and security rules should not be reused for Sunday School data. Use a dedicated Firebase project/database with rules designed for teacher-managed challenges and student results. No AI/API calls are included.
 
 ## Demo teacher login
 Username: `Lehrer`
