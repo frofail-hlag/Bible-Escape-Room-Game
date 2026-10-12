@@ -1,3 +1,3 @@
-Bibel Escape Room V3.2.5 — Separate Activity Modes (Teacher Navigation Fix)
+Bibel Escape Room V3.2.5 — Separate Activity Modes (Teacher Router Fix)
 
-Students choose between Bibel Escape Room and Bibel-Challenge before entering each separate mode. Teachers can choose between the Escape Room game editor and Bibel-Challenge management, with a return link to the teacher area selector. This update fixes the teacher-dashboard route so the challenge mode is available again. Shared Firebase publishing and AI remain out of scope.
+Student navigation remains: role choice → choose Bibel Escape Room or Bibel-Challenge → each mode opens separately. Teacher navigation is routed through an explicit hook so login always opens first, then the teacher chooses between the Escape Room management dashboard and Bibel-Challenge management. The three existing Escape Room missions and challenge editor remain unchanged. Firebase sharing and AI remain out of scope.
