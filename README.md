@@ -57,7 +57,7 @@ After successful Firebase teacher sign-in, the displayName returned from the Fir
 
 ## Teacher account cleanup (V3.2.8)
 
-The trusted Firebase Functions in `functions/index.js` add two cleanup paths:
+The trusted Firebase Functions in `functions/index.js` add two cleanup paths. Both run in `europe-west3` (Frankfurt), matching the project's Firestore location. The web app calls the callable function in that same region:
 
 - `cleanupTeacherDataOnAuthDelete` removes `teacherRequests/{uid}` and `teachers/{uid}` after an individual Firebase Authentication account is deleted. This runs only for deletions that occur after the function has been deployed.
 - `cleanupOrphanTeacherRecords` is callable only by an active admin. It compares the UIDs in Firebase Authentication with document IDs in `teacherRequests` and `teachers`, deleting only documents for which no Authentication account exists. Use the **🧹 Verwaiste Konten bereinigen** button in Lehrerverwaltung to clean up older leftovers, including test users deleted before the trigger was installed.
@@ -79,4 +79,4 @@ npm --prefix functions install
 firebase deploy --only functions
 ```
 
-The repository's `.firebaserc` targets project `bible-escape-room`. Verify that the selected project and billing account are correct before deployment. After deployment, sign in as the administrator, open **Lehrerverwaltung**, and click **🧹 Verwaiste Konten bereinigen**. The result message reports how many orphaned requests and teacher profiles were deleted. Do not manually delete Figo's remaining Firestore documents before this test if you want to verify the cleanup result.
+The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup functions are configured for `europe-west3` (Frankfurt), not `us-central1`. Verify the selected project and billing account before deployment. After deployment, sign in as the administrator, open **Lehrerverwaltung**, and click **🧹 Verwaiste Konten bereinigen**. The result message reports how many orphaned requests and teacher profiles were deleted. Do not manually delete Figo's remaining Firestore documents before this test if you want to verify the cleanup result.
