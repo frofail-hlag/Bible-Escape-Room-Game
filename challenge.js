@@ -472,7 +472,7 @@
       bi(c.instructions, c.instructionsAr) +
       "<div class='actions' style='justify-content:center;margin-top:18px'><button class='btn gold' onclick='openChallengeBible()'>📖 Bibelabschnitt erneut lesen / إعادة قراءة المقطع</button></div></section>" +
       "<section class='card setup'><h2>Wer löst die Challenge? / من سيحل التحدي؟</h2>" +
-      "<div class='field'><label>Name oder Team / الاسم أو الفريق</label><input id='challengeStudentName' maxlength='50' placeholder='Name eingeben / اكتب الاسم'></div>" +
+      "<div class='field'><label>Vorname oder Teamname (keinen Nachnamen) / الاسم الأول أو اسم الفريق (بدون اسم العائلة)</label><input id='challengeStudentName' maxlength='50' placeholder='Vorname / Teamname / الاسم الأول / اسم الفريق'></div>" +
       "<p class='small'>Lest den Bibeltext aufmerksam. Ihr dürft die Bibel während jeder Frage erneut öffnen.</p>" +
       "<button class='btn' onclick='startChallenge()'>Challenge starten / ابدأ التحدي →</button></section></main>";
   }
