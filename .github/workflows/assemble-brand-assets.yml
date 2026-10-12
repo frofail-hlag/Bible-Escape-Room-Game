@@ -1,0 +1,46 @@
+name: Assemble Bibelreise branding assets
+
+on:
+  push:
+    paths:
+      - "asset-staging/ready.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assemble image assets from temporary base64 chunks
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -f asset-staging/ready.txt ]]; then
+            echo "No pending asset staging found; nothing to assemble."
+            exit 0
+          fi
+          cat asset-staging/icon/chunk-*.txt | tr -d '\r\n ' | base64 --decode > icon.png
+          cat asset-staging/banner/chunk-*.txt | tr -d '\r\n ' | base64 --decode > welcome-banner.webp
+          file icon.png welcome-banner.webp
+          test "$(xxd -p -l 8 icon.png)" = "89504e470d0a1a0a"
+          test "$(xxd -p -l 4 welcome-banner.webp)" = "52494646"
+          test "$(dd if=welcome-banner.webp bs=1 skip=8 count=4 2>/dev/null)" = "WEBP"
+
+      - name: Commit assets and remove temporary staging files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf asset-staging
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add icon.png welcome-banner.webp asset-staging
+          git commit -m "Add Bibelreise app icon and welcome banner"
+          git push origin HEAD:main
