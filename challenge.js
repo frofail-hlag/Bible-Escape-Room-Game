@@ -678,7 +678,7 @@
   ];
   function bibleUrl(ref, version) {
     const clean = String(ref || "").replace(/[–—]/g, "-").trim();
-    const match = clean.match(/^(.+?)\s+(\d{1,3})(?:\s*[:,.]\s*\d+.*)?$/);
+    const match = clean.match(/^(.+?)\s+(\d{1,3})(?:\s*[:,.]\s*\d+.*|\s*-\s*\d+)?$/);
     if (!match) return version === "ar" ? "https://www.bible.com/de/bible/13/JHN.1.AVD" : "https://www.bible.com/de/bible/157/JHN.1.SCH2000";
     const book = norm(match[1]).replace(/\./g, "").trim();
     let code = "";
