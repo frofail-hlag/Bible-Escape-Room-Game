@@ -415,6 +415,8 @@
   function adminErrorMessage(error) {
     const message = String(error && error.message || "Unbekannter Fehler");
     if (message.includes("Admin-Freigabe erforderlich")) return "Dieses Konto hat keine Administratorrechte.";
+    if (message.includes("functions/not-found") || message.includes("FUNCTIONS_NOT_FOUND") || message.includes("NOT_FOUND")) return "Die Bereinigungsfunktion ist noch nicht bereitgestellt. Bitte deploye die Firebase Functions gemäß der Anleitung im Repository.";
+    if (message.includes("functions/permission-denied") || message.includes("Administratorkonto erforderlich")) return "Die Bereinigung ist nur mit einem aktiven Administratorkonto möglich. Prüfe in Firestore teachers/{deine UID}: active = true und admin = true (Boolean).";
     if (message.includes("permission-denied")) return "Firebase hat den Zugriff verweigert. Bitte veröffentliche die aktuelle firestore.rules und prüfe, ob dein teachers-Dokument admin = true (Boolean) enthält.";
     return message;
   }
@@ -434,8 +436,8 @@
         ">Freigeben</button><button class='btn danger' onclick='rejectTeacherSignup(\"" + esc(request.uid) + "\")'>Ablehnen</button></div></article>";
     }).join("");
     app.innerHTML = "<main class='app'>" + header("Lehrerverwaltung") +
-      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrerbereich</button><button class='btn secondary' onclick='refreshTeacherAdministration()'>↻ Aktualisieren</button><button class='btn secondary' onclick='teacherLogout()'>Abmelden</button></div>" +
-      "<section class='hero activity-mode-hero'><h1>👥 Lehrerverwaltung</h1><p>Prüfe neue Registrierungen und gib nur bekannten Sonntagsschul-Diener/innen Zugang. Die E-Mail-Adresse muss vor der Freigabe bestätigt sein.</p><p class='lang-ar' dir='rtl'>راجع طلبات التسجيل الجديدة وامنح الوصول فقط لخدام مدارس الأحد المعروفين. يجب تأكيد البريد الإلكتروني قبل الموافقة.</p></section>" +
+      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrerbereich</button><button class='btn secondary' onclick='refreshTeacherAdministration()'>↻ Aktualisieren</button><button class='btn gold' onclick='cleanupOrphanTeacherData()'>🧹 Verwaiste Konten bereinigen</button><button class='btn secondary' onclick='teacherLogout()'>Abmelden</button></div>" +
+      "<section class='hero activity-mode-hero'><h1>👥 Lehrerverwaltung</h1><p>Prüfe neue Registrierungen und gib nur bekannten Sonntagsschul-Diener/innen Zugang. Die E-Mail-Adresse muss vor der Freigabe bestätigt sein.</p><p class='small'>Die Bereinigung entfernt nur Lehrer-Anfragen und Lehrerprofile, für deren UID kein Konto mehr in Firebase Authentication existiert.</p><p class='lang-ar' dir='rtl'>راجع طلبات التسجيل الجديدة وامنح الوصول فقط لخدام مدارس الأحد المعروفين. يجب تأكيد البريد الإلكتروني قبل الموافقة.</p></section>" +
       cloudNoticeHtml() +
       (state.teacherAdminMessage ? "<div class='notice'>" + esc(state.teacherAdminMessage) + "</div>" : "") +
       "<section class='card'><div class='editor-head'><div><h2>Anfragen zur Freigabe</h2><p class='small'>Freigegebene Konten erhalten Diener/in-Rechte, aber keine Administratorrechte.</p></div><span class='badge'>" + requests.length + " offen</span></div>" +
@@ -488,6 +490,26 @@
       const api = await firebaseApi();
       await api.rejectTeacherRequest(uid);
       await refreshTeacherAdministration("Registrierungsanfrage abgelehnt.");
+    } catch (error) {
+      await refreshTeacherAdministration(adminErrorMessage(error));
+    }
+  }
+  async function cleanupOrphanTeacherData() {
+    const approved = confirm(
+      "Verwaiste Lehrer-Datensätze wirklich bereinigen? / Clean up orphaned teacher records?\n\n" +
+      "Es werden nur Dokumente in teachers und teacherRequests gelöscht, deren UID in Firebase Authentication nicht mehr existiert. Diese Aktion kann nicht rückgängig gemacht werden."
+    );
+    if (!approved) return;
+    try {
+      const api = await firebaseApi();
+      const result = await api.cleanupOrphanTeacherRecords();
+      const requests = Number(result.deletedTeacherRequests || 0);
+      const profiles = Number(result.deletedTeacherProfiles || 0);
+      const examined = Number(result.examined || 0);
+      await refreshTeacherAdministration(
+        "Bereinigung abgeschlossen: " + requests + " Registrierungsanfrage(n) und " +
+        profiles + " Lehrerprofil(e) gelöscht. Geprüfte Dokumente: " + examined + "."
+      );
     } catch (error) {
       await refreshTeacherAdministration(adminErrorMessage(error));
     }
@@ -1200,6 +1222,7 @@
     refreshTeacherAdministration: refreshTeacherAdministration,
     approveTeacherSignup: approveTeacherSignup,
     rejectTeacherSignup: rejectTeacherSignup,
+    cleanupOrphanTeacherData: cleanupOrphanTeacherData,
     teacherChallengeManagement: teacherChallengeManagement,
     teacherPlayModeSelect: teacherPlayModeSelect,
     openTeacherEscapePlay: openTeacherEscapePlay,
