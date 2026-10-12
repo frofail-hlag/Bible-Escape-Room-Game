@@ -114,7 +114,7 @@
 
   const originalHome = home;
   const originalChooseStudent = chooseStudent;
-  const originalTeacherDashboard = teacherDashboard;
+  const originalTeacherDashboard = window.teacherDashboard;
   const originalTeacherChallengeDashboard = teacherChallengeDashboard;
   const originalTeacherLogin = teacherLogin;
   const originalTeacherLogout = teacherLogout;
