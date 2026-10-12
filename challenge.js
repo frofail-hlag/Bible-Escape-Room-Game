@@ -22,7 +22,9 @@
     if (code.includes("permission-denied")) return "Firestore hat den Zugriff abgelehnt. Bitte die firestore.rules aus dem Repository im Firebase-Console-Bereich Firestore → Rules veröffentlichen.";
     if (code.includes("unauthenticated") || code.includes("auth/invalid-credential") || code.includes("auth/invalid-login-credentials")) return "E-Mail oder Passwort stimmen nicht. Bitte das Lehrer-Konto in Firebase Authentication prüfen.";
     if (code.includes("auth/unauthorized-domain")) return "Diese Domain ist in Firebase Authentication nicht freigeschaltet. Füge frofail-hlag.github.io unter Authentication → Settings → Authorized domains hinzu.";
-    if (code.includes("unavailable") || code.includes("network")) return "Firebase ist momentan nicht erreichbar. Prüfe die Internetverbindung und die Firestore-Datenbank.";
+    if (code.includes("auth/operation-not-allowed")) return "Die anonyme Anmeldung ist noch nicht aktiviert. Aktiviere in Firebase Authentication → Sign-in method den Anbieter Anonymous.";
+    if (code.includes("failed-precondition")) return "Cloud Firestore ist möglicherweise noch nicht eingerichtet. Erstelle die Firestore-Datenbank in der Firebase Console.";
+    if (code.includes("unavailable") || code.includes("network") || code.includes("auth/network-request-failed")) return "Firebase ist momentan nicht erreichbar. Prüfe die Internetverbindung und die Firestore-Datenbank.";
     if (error && error.message === "TEACHER_NOT_ALLOWED") return "Dieses Konto ist noch nicht als Diener/in freigeschaltet. Es benötigt ein aktives teachers-Dokument mit der Firebase-UID.";
     return String(error && error.message || "Unbekannter Firebase-Fehler").slice(0, 260);
   }
@@ -740,6 +742,7 @@
     const questions = c.questions.map(function (q, i) { return challengeQuestionEditor(c, q, i); }).join("");
     app.innerHTML = "<main class='app'>" + header("Bibel-Challenge bearbeiten") +
       "<div class='teacher-nav'><button class='btn secondary' onclick='teacherChallengeDashboard()'>← Challenges</button><button class='btn secondary' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Vorschau</button></div>" +
+      cloudNoticeHtml() +
       "<div class='two-col'><section><div class='card'><div class='editor-head'><div><h1>📖 Bibel-Challenge bearbeiten</h1><p class='small'>Die Aktivität wird erst für Schülerinnen und Schüler sichtbar, wenn sie veröffentlicht ist.</p></div><span class='badge " + (c.status === "published" ? "green" : "gray") + "'>" + (c.status === "published" ? "Veröffentlicht" : "Entwurf") + "</span></div>" +
       "<div class='bilingual-fields'>" + field("bc_title", "Titel (Deutsch)", c.title, false) + field("bc_titlear", "العنوان (العربية)", c.titleAr, true) + "</div>" +
       field("bc_passage", "Bibelstelle (z. B. Esther 4,1–17)", c.passage, false) +
