@@ -469,9 +469,9 @@
     }
     render();
   }
-  function teacherAdminDashboard() {
+  async function teacherAdminDashboard() {
     if (!isTeacher()) { teacherLogin(); return; }
-    refreshTeacherAdministration("");
+    return await refreshTeacherAdministration("");
   }
   async function approveTeacherSignup(uid) {
     try {
