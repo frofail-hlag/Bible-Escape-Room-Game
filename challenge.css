@@ -20,3 +20,12 @@
 #activityModeBack{margin:-3px 0 16px}
 #activityModeBack .btn{display:inline-flex}
 @media(max-width:700px){.activity-mode-grid{grid-template-columns:1fr}.activity-mode-card{min-height:230px;padding:20px}.activity-mode-card h2{font-size:21px}}
+
+
+.teacher-greeting{display:flex;align-items:center;gap:13px;margin:16px 0 20px;padding:15px 19px;border:1px solid #cbd8fb;border-radius:18px;background:linear-gradient(115deg,#eef3ff 0%,#fff 82%);box-shadow:0 8px 22px rgba(30,64,175,.07);color:var(--ink)}
+.teacher-greeting-icon{flex:0 0 42px;width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#fff;font-size:23px;box-shadow:0 3px 10px rgba(30,64,175,.08)}
+.teacher-greeting-copy{min-width:0;display:flex;flex-direction:column;gap:3px}
+.teacher-greeting-title{font-size:19px;font-weight:700;line-height:1.3;color:#1c3474}
+.teacher-greeting-title strong{font-weight:900}
+.teacher-greeting-subtitle{font-size:13px;color:var(--muted);line-height:1.45}
+@media(max-width:520px){.teacher-greeting{padding:13px 14px;margin:12px 0 16px}.teacher-greeting-title{font-size:17px}.teacher-greeting-subtitle{font-size:12px}}
