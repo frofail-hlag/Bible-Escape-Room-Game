@@ -29,3 +29,14 @@
 .teacher-greeting-title strong{font-weight:900}
 .teacher-greeting-subtitle{font-size:13px;color:var(--muted);line-height:1.45}
 @media(max-width:520px){.teacher-greeting{padding:13px 14px;margin:12px 0 16px}.teacher-greeting-title{font-size:17px}.teacher-greeting-subtitle{font-size:12px}}
+
+
+.teacher-request-list{display:grid;gap:12px;margin-top:18px}
+.teacher-request-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:17px;border:1px solid var(--line);border-radius:16px;background:#fbfcff}
+.teacher-request-main{min-width:0;flex:1}
+.teacher-request-name{font-size:18px;font-weight:850;color:var(--ink);overflow-wrap:anywhere}
+.teacher-request-email{margin-top:4px;color:var(--muted);overflow-wrap:anywhere}
+.teacher-request-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+.teacher-request-actions{flex-shrink:0}
+.teacher-request-actions .btn:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:620px){.teacher-request-card{align-items:stretch;flex-direction:column}.teacher-request-actions{width:100%}.teacher-request-actions .btn{flex:1}}
