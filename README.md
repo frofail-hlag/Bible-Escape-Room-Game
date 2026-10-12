@@ -37,3 +37,7 @@ Do not use permissive rules such as “allow read, write: if true”. Do not put
 - Bibel-Challenge: separate, self-paced bilingual reading activities, 3–4 questions, passage access, feedback, explanations and cross-device results.
 - Teacher login uses Firebase Email/Password and an explicit teacher allow-list.
 - AI Assistant V3.3 remains paused.
+
+
+## Personalized teacher greeting
+After successful Firebase teacher sign-in, the displayName returned from the Firestore teachers/{uid} profile is shown as a greeting across the teacher dashboard, activity selector, challenge manager, challenge editor and results page. The name is HTML-escaped before rendering.
