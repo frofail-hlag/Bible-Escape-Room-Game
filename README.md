@@ -1,4 +1,4 @@
-# Bibel Escape Room V3.2.6 — Firebase Challenge Sync
+# Bibel Escape Room V3.2.8 — Teacher Data Cleanup
 
 ## Hosting and Firebase
 The PWA remains hosted on GitHub Pages. Firebase is used only for teacher authentication, shared Bibel-Challenges, and shared student results. No AI/API features are included.
@@ -53,3 +53,30 @@ After successful Firebase teacher sign-in, the displayName returned from the Fir
 - For the first admin, edit the existing document at teachers/{your Firebase Auth UID} and add admin (Boolean) = true. Keep active (Boolean) = true, displayName and email. This account remains a regular teacher as well.
 - Publish the current firestore.rules from this repository in Firebase Console → Firestore Database → Rules before allowing new registrations. Enable Email/Password and ensure the GitHub Pages domain is in Auth authorized domains.
 - Firestore requests are stored in teacherRequests/{uid}. Approved teacher profiles are stored in teachers/{uid}. Requests and teacher records cannot be self-approved from the client.
+
+
+## Teacher account cleanup (V3.2.8)
+
+The trusted Firebase Functions in `functions/index.js` add two cleanup paths:
+
+- `cleanupTeacherDataOnAuthDelete` removes `teacherRequests/{uid}` and `teachers/{uid}` after an individual Firebase Authentication account is deleted. This runs only for deletions that occur after the function has been deployed.
+- `cleanupOrphanTeacherRecords` is callable only by an active admin. It compares the UIDs in Firebase Authentication with document IDs in `teacherRequests` and `teachers`, deleting only documents for which no Authentication account exists. Use the **🧹 Verwaiste Konten bereinigen** button in Lehrerverwaltung to clean up older leftovers, including test users deleted before the trigger was installed.
+
+The cleanup is deliberately limited to these two teacher-account collections; it does not delete Bible challenges or student results. The action is permanent and requires an administrator confirmation in the app.
+
+### Deploy the cleanup functions
+
+Cloud Functions for Firebase requires the project to be on the **Blaze** plan with a linked billing account. Firebase currently includes a no-cost Cloud Functions quota, but usage beyond no-cost quotas can be billed. Consider setting a budget alert before deployment. See the [official Firebase pricing information](https://firebase.google.com/pricing) and [Authentication deletion-trigger guide](https://firebase.google.com/docs/functions/1st-gen/auth-events).
+
+From Google Cloud Shell or a terminal with Node.js installed:
+
+```bash
+git clone https://github.com/frofail-hlag/Bible-Escape-Room-Game.git
+cd Bible-Escape-Room-Game
+npm install -g firebase-tools
+firebase login
+npm --prefix functions install
+firebase deploy --only functions
+```
+
+The repository's `.firebaserc` targets project `bible-escape-room`. Verify that the selected project and billing account are correct before deployment. After deployment, sign in as the administrator, open **Lehrerverwaltung**, and click **🧹 Verwaiste Konten bereinigen**. The result message reports how many orphaned requests and teacher profiles were deleted. Do not manually delete Figo's remaining Firestore documents before this test if you want to verify the cleanup result.
