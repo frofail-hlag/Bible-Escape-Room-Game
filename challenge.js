@@ -854,6 +854,13 @@
       q.accepted = splitAnswers(document.getElementById("bcq_accepted_" + i).value);
       q.acceptedAr = splitAnswers(document.getElementById("bcq_acceptedar_" + i).value);
     }
+    if (c.status === "published") {
+      const problem = readyToPublish(c);
+      if (problem) {
+        c.status = "draft";
+        alert("Die Challenge wurde als Entwurf zurückgesetzt, weil die geänderte Frage noch unvollständig ist. Prüfe beide Sprachen und veröffentliche sie erneut.");
+      }
+    }
     c.updatedAt = new Date().toISOString();
     saveChallenges(list);
     const saved = await persistChallengeToFirebase(c);
@@ -884,6 +891,10 @@
     const c = list.find(function (x) { return x.id === challengeId; });
     if (!c || c.questions.length >= 4) return alert("Maximal vier Fragen pro Challenge. / أربعة أسئلة كحد أقصى.");
     c.questions.push(newQuestion(c.questions.length + 1));
+    if (c.status === "published") {
+      c.status = "draft";
+      alert("Die Challenge wurde zum Entwurf zurückgesetzt. Fülle die neue Frage zweisprachig aus und veröffentliche die Challenge danach erneut.");
+    }
     c.updatedAt = new Date().toISOString();
     saveChallenges(list);
     await persistChallengeToFirebase(c);
@@ -895,6 +906,10 @@
     if (!c || c.questions.length <= 3) return alert("Eine Challenge braucht mindestens drei Fragen. / يجب أن يحتوي التحدي على ثلاثة أسئلة على الأقل.");
     if (!confirm("Diese Frage wirklich löschen? / هل تريد حذف هذا السؤال؟")) return;
     c.questions.splice(i, 1);
+    if (c.status === "published" && readyToPublish(c)) {
+      c.status = "draft";
+      alert("Die Challenge wurde zum Entwurf zurückgesetzt. Prüfe die verbleibenden Fragen und veröffentliche sie danach erneut.");
+    }
     c.updatedAt = new Date().toISOString();
     saveChallenges(list);
     await persistChallengeToFirebase(c);
