@@ -113,36 +113,168 @@
   };
 
   const originalHome = home;
-  home = function () {
-    originalHome();
-    if (state.view !== "home") return;
-    const anchor = document.querySelector(".student-tools");
-    if (!anchor || document.getElementById("bibelChallengeEntry")) return;
-    anchor.insertAdjacentHTML("afterend",
-      "<section id='bibelChallengeEntry' class='challenge-entry'>" +
-      "<div class='challenge-entry-icon'>📖</div><div class='challenge-entry-copy'>" +
-      "<span class='challenge-kicker'>NEU · BIBEL LESEN & ENTDECKEN</span>" +
-      "<h2>Bibel-Challenge / تحدّي الكتاب المقدس</h2>" +
-      "<p>Lest einen Bibelabschnitt, schaut bei Bedarf noch einmal nach und beantwortet 3–4 Fragen in Deutsch und Arabisch.</p>" +
-      "</div><button class='btn challenge-entry-button' onclick='studentChallenges()'>Challenges entdecken / اكتشف التحديات →</button></section>");
-  };
-
+  const originalChooseStudent = chooseStudent;
   const originalTeacherDashboard = teacherDashboard;
-  teacherDashboard = function () {
+  const originalTeacherLogin = teacherLogin;
+  const originalTeacherLogout = teacherLogout;
+
+  function renderActivityModeSelect(audience) {
+    clearInterval(state.timer);
+    const teacherPlay = audience === "teacherPlay";
+    state.view = teacherPlay ? "playModeSelect" : (audience === "teacher" ? "teacherModeSelect" : "studentModes");
+    const title = teacherPlay ? "Welche Art möchtest du spielen? / أي نوع تريد أن تلعب؟" :
+      audience === "teacher" ? "Lehrerbereich / منطقة الخدام" : "Was möchtest du spielen? / ماذا تريد أن تلعب؟";
+    const back = teacherPlay
+      ? "<button class='btn secondary back' onclick='teacherDashboard()'>← Zurück zum Lehrerbereich / العودة لمنطقة الخدام</button>"
+      : audience === "teacher"
+        ? "<div class='actions' style='margin:0 0 16px'><button class='btn secondary' onclick='teacherPlayModeSelect()'>🎮 Spiele spielen</button><button class='btn secondary' onclick='teacherLogout()'>Abmelden</button></div>"
+        : "<button class='btn secondary back' onclick='roleSelect()'>← Zur Rollenwahl / العودة لاختيار الدور</button>";
+    let firstAction, secondAction;
+    if (audience === "teacher") {
+      firstAction = "teacherEscapeManagement()";
+      secondAction = "teacherChallengeManagement()";
+    } else if (teacherPlay) {
+      firstAction = "openTeacherEscapePlay()";
+      secondAction = "openTeacherChallengePlay()";
+    } else {
+      firstAction = "openStudentEscapeMode()";
+      secondAction = "openStudentChallengeMode()";
+    }
+    const headingOne = audience === "teacher" ? "Bibel Escape Room verwalten" : "Bibel Escape Room";
+    const headingTwo = audience === "teacher" ? "Bibel-Challenge verwalten" : "Bibel-Challenge";
+    const descOne = audience === "teacher"
+      ? "Die drei vorhandenen Escape-Room-Spiele bearbeiten, Rätsel ändern, neue Abenteuer erstellen und testen."
+      : "Wähle eine biblische Mission, sammle Hinweise und löse das finale Rätsel.";
+    const descTwo = audience === "teacher"
+      ? "Leseaktivitäten erstellen, 3–4 Fragen zweisprachig bearbeiten, Vorschau öffnen und Ergebnisse ansehen."
+      : "Lies einen Bibelabschnitt, öffne ihn bei Bedarf erneut und beantworte 3–4 Fragen auf Deutsch und Arabisch.";
+    app.innerHTML = "<main class='app'>" + header(audience === "teacher" ? "Lehrerbereich" : "Bibel Escape Room") +
+      back +
+      "<section class='hero activity-mode-hero'><h1>" + title + "</h1><p>" +
+      (audience === "teacher" ? "Wähle aus, welchen Bereich du öffnen möchtest. Beide Bereiche bleiben getrennt verwaltbar." :
+        "Wähle eine Aktivität. Jede öffnet sich auf einer eigenen Seite.") +
+      "</p></section><div class='activity-mode-grid'>" +
+      "<article class='card activity-mode-card'><div class='activity-mode-icon'>🔐</div><div class='activity-mode-kicker'>ABENTEUER / مغامرة</div><h2>" + headingOne + "</h2><p>" + descOne + "</p><button class='btn' onclick='" + firstAction + "'>" +
+      (audience === "teacher" ? "Escape Rooms öffnen →" : "Escape Room öffnen →") + "</button></article>" +
+      "<article class='card activity-mode-card'><div class='activity-mode-icon'>📖</div><div class='activity-mode-kicker'>LESEN & ENTDECKEN / اقرأ واكتشف</div><h2>" + headingTwo + "</h2><p>" + descTwo + "</p><button class='btn' onclick='" + secondAction + "'>" +
+      (audience === "teacher" ? "Challenges öffnen →" : "Bibel-Challenge öffnen →") + "</button></article></div></main>";
+  }
+
+  function enhanceEscapeHome(audience) {
+    const modeBack = audience === "teacherPlay"
+      ? "<button class='btn secondary back' onclick='teacherPlayModeSelect()'>← Zur Spielauswahl / العودة لاختيار اللعبة</button>"
+      : "<button class='btn secondary back' onclick='studentModeSelect()'>← Zur Spielauswahl / العودة لاختيار اللعبة</button>";
+    const hero = document.querySelector(".app .hero");
+    if (hero && !document.getElementById("activityModeBack")) {
+      hero.insertAdjacentHTML("afterend", "<div id='activityModeBack'>" + modeBack + "</div>");
+    }
+    if (audience === "teacherPlay") {
+      document.querySelector(".teacher-entry")?.remove();
+      const roleNav = document.querySelector(".student-role-nav");
+      if (roleNav) roleNav.remove();
+    }
+  }
+
+  function studentModeSelect() {
+    state.role = "student";
+    state.playMode = null;
+    renderActivityModeSelect("student");
+  }
+  function openStudentEscapeMode() {
+    state.role = "student";
+    state.playMode = "escape";
+    originalHome();
+    enhanceEscapeHome("student");
+  }
+  function openStudentChallengeMode() {
+    state.role = "student";
+    state.playMode = "challenge";
+    studentChallenges();
+  }
+  function returnToModeSelection() {
+    if (state.role === "teacher" && String(state.playMode || "").startsWith("teacher-play")) {
+      teacherPlayModeSelect();
+    } else {
+      studentModeSelect();
+    }
+  }
+  function teacherDashboard() {
+    if (!isTeacher()) { teacherLogin(); return; }
+    if (state.teacherSection === "escape") {
+      originalTeacherDashboard();
+      const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
+        .find(function (button) { return button.textContent.includes("Spiele spielen"); });
+      if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
+      return;
+    }
+    renderActivityModeSelect("teacher");
+  }
+  function teacherEscapeManagement() {
+    if (!isTeacher()) { teacherLogin(); return; }
+    state.teacherSection = "escape";
+    state.playMode = null;
     originalTeacherDashboard();
-    if (!isTeacher()) return;
-    const nav = document.querySelector(".teacher-nav");
-    if (nav && !document.getElementById("teacherChallengeNav")) {
-      nav.insertAdjacentHTML("beforeend", "<button id='teacherChallengeNav' class='btn' onclick='teacherChallengeDashboard()'>📖 Bibel-Challenges</button>");
+    const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
+      .find(function (button) { return button.textContent.includes("Spiele spielen"); });
+    if (playButton) playButton.setAttribute("onclick", "teacherPlayModeSelect()");
+  }
+  function teacherChallengeManagement() {
+    if (!isTeacher()) { teacherLogin(); return; }
+    state.teacherSection = "challenge";
+    state.playMode = null;
+    teacherChallengeDashboard();
+  }
+  function teacherPlayModeSelect() {
+    state.role = "teacher";
+    state.playMode = "teacher-play";
+    renderActivityModeSelect("teacherPlay");
+  }
+  function openTeacherEscapePlay() {
+    state.role = "teacher";
+    state.playMode = "teacher-play-escape";
+    originalHome();
+    enhanceEscapeHome("teacherPlay");
+  }
+  function openTeacherChallengePlay() {
+    state.role = "teacher";
+    state.playMode = "teacher-play-challenge";
+    studentChallenges();
+  }
+  home = function () {
+    if (state.role === "student") {
+      if (state.playMode === "escape") {
+        originalHome();
+        enhanceEscapeHome("student");
+      } else {
+        renderActivityModeSelect("student");
+      }
+      return;
     }
-    const hero = document.querySelector(".teacher-nav + .hero");
-    if (hero && !document.getElementById("teacherChallengeShortcut")) {
-      hero.insertAdjacentHTML("afterend",
-        "<section id='teacherChallengeShortcut' class='challenge-entry teacher-challenge-shortcut'>" +
-        "<div class='challenge-entry-icon'>📚</div><div class='challenge-entry-copy'>" +
-        "<h2>Bibel-Challenges verwalten</h2><p>Veröffentlicht Leseaktivitäten mit 3–4 Fragen – unabhängig vom Escape-Room-Modus.</p></div>" +
-        "<button class='btn challenge-entry-button' onclick='teacherChallengeDashboard()'>Challenge-Verwaltung öffnen →</button></section>");
+    if (state.role === "teacher" && state.playMode === "teacher-play") {
+      renderActivityModeSelect("teacherPlay");
+      return;
     }
+    if (state.role === "teacher" && state.playMode === "teacher-play-escape") {
+      originalHome();
+      enhanceEscapeHome("teacherPlay");
+      return;
+    }
+    originalHome();
+  };
+  chooseStudent = function () {
+    state.playMode = null;
+    state.teacherSection = null;
+    originalChooseStudent();
+  };
+  teacherLogin = function () {
+    state.teacherSection = null;
+    state.playMode = null;
+    originalTeacherLogin();
+  };
+  teacherLogout = function () {
+    state.teacherSection = null;
+    state.playMode = null;
+    originalTeacherLogout();
   };
 
   function studentChallenges() {
@@ -160,7 +292,7 @@
         "<button class='btn' onclick='beginChallengeSetup(\"" + esc(c.id) + "\")'>Lesen & beantworten / اقرأ وأجب →</button></article>";
     }).join("");
     app.innerHTML = "<main class='app'>" + header("Bibel-Challenge / تحدي الكتاب المقدس") +
-      "<button class='btn secondary back' onclick='home()'>← Zur Startseite / العودة للرئيسية</button>" +
+      "<button class='btn secondary back' onclick='returnToModeSelection()'>← Zur Spielauswahl / العودة لاختيار اللعبة</button>" +
       "<section class='hero challenge-hero'><h1>📖 Bibel-Challenge</h1><p>Lest zuerst den angegebenen Bibelabschnitt. Ihr könnt den Text jederzeit wieder öffnen, bevor ihr antwortet.</p><p class='lang-ar' dir='rtl'>اقرأوا المقطع الكتابي أولًا. يمكنكم الرجوع إلى النص في أي وقت قبل الإجابة.</p></section>" +
       (published.length ? "<div class='challenge-list-grid'>" + cards + "</div>" :
         "<section class='card empty-challenge'><div style='font-size:42px'>📖</div><h2>Noch keine Challenge veröffentlicht</h2><p>Schaut später wieder vorbei. Eure Diener/innen veröffentlichen hier neue Bibel-Leseaktivitäten.</p><p class='lang-ar' dir='rtl'>لم يتم نشر أي تحدٍ بعد. عودوا لاحقًا للاطلاع على أنشطة قراءة الكتاب المقدس الجديدة.</p></section>") +
@@ -725,6 +857,15 @@
 
   Object.assign(window, {
     studentChallenges: studentChallenges,
+    studentModeSelect: studentModeSelect,
+    openStudentEscapeMode: openStudentEscapeMode,
+    openStudentChallengeMode: openStudentChallengeMode,
+    returnToModeSelection: returnToModeSelection,
+    teacherEscapeManagement: teacherEscapeManagement,
+    teacherChallengeManagement: teacherChallengeManagement,
+    teacherPlayModeSelect: teacherPlayModeSelect,
+    openTeacherEscapePlay: openTeacherEscapePlay,
+    openTeacherChallengePlay: openTeacherChallengePlay,
     beginChallengeSetup: beginChallengeSetup,
     startChallenge: startChallenge,
     chooseChallengeAnswer: chooseChallengeAnswer,
