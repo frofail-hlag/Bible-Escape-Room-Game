@@ -1,3 +1,6 @@
-Bibel Escape Room V3.2.8 — Teacher Data Cleanup (EU Frankfurt)
+Bibelreise V3.2.9 — App Branding & Icon (EU Frankfurt)
 
 Adds teacher self-registration with Firebase Email/Password, email verification and a resend-verification action. New registrations remain pending until the existing administrator approves them in the in-app Lehrerverwaltung screen. Admin rights are never granted through registration; the first admin is designated manually in Firestore. Approved teachers receive normal teacher access, not admin access. Updated Firestore rules protect teacher requests and role changes. Admin-only cleanup functions remove orphaned teacher request/profile documents after user deletion or during a manual reconciliation. Existing student, Escape Room and Bibel-Challenge flows are retained.
+
+
+Adds the new cross-and-open-Bible app icon, German/Arabic Bibelreise branding, and the German welcome banner. This release changes only visual branding, metadata, and cached assets; game logic, authentication, Firebase Functions, Firestore rules, and database structures are unchanged.
