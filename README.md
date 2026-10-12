@@ -18,3 +18,7 @@ Username: `Lehrer`
 Password: `1234`
 
 This is a local prototype login, not a secure multi-teacher account system.
+
+
+## Teacher navigation fix
+The prototype teacher login is shown when Diener/in is selected. Successful login routes to a separate selector for Escape Room management or Bibel-Challenge management.
