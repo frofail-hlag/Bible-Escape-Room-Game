@@ -1,9 +1,11 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, signOut, signInAnonymously
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  updateProfile, sendEmailVerification, reload, signOut, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc
+  getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc,
+  updateDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -27,7 +29,13 @@ async function authorizedTeacher(user = auth.currentUser) {
   if (!user) return null;
   const snap = await getDoc(teacherRef(user.uid));
   if (!snap.exists() || snap.data().active !== true) return null;
-  return { uid: user.uid, email: user.email || "", displayName: snap.data().displayName || user.displayName || "" };
+  return {
+    uid: user.uid,
+    email: user.email || "",
+    displayName: snap.data().displayName || user.displayName || "",
+    admin: snap.data().admin === true,
+    active: snap.data().active === true
+  };
 }
 async function requireTeacher() {
   const profile = await authorizedTeacher();
@@ -79,22 +87,161 @@ function cleanResult(result) {
   };
 }
 
-async function signInTeacher(email, password) {
-  const credential = await signInWithEmailAndPassword(auth, String(email || "").trim(), password || "");
+async function registerTeacher({ displayName, email, password }) {
+  const cleanName = String(displayName || "").trim().slice(0, 80);
+  const cleanEmail = String(email || "").trim().toLowerCase();
+  const cleanPassword = String(password || "");
+  if (cleanName.length < 2) throw new Error("Bitte gib einen gültigen Anzeigenamen ein.");
+  if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) throw new Error("Bitte gib eine gültige E-Mail-Adresse ein.");
+  if (cleanPassword.length < 8) throw new Error("Das Passwort muss mindestens 8 Zeichen haben.");
+
+  let user = null;
   try {
-    const profile = await authorizedTeacher(credential.user);
-    if (!profile) {
-      await signOut(auth);
-      throw new Error("TEACHER_NOT_ALLOWED");
-    }
-    return profile;
+    const credential = await createUserWithEmailAndPassword(auth, cleanEmail, cleanPassword);
+    user = credential.user;
+    await updateProfile(user, { displayName: cleanName });
+    const now = new Date().toISOString();
+    await setDoc(doc(db, "teacherRequests", user.uid), {
+      uid: user.uid,
+      email: cleanEmail,
+      displayName: cleanName,
+      status: "pending",
+      emailVerified: false,
+      createdAt: now,
+      updatedAt: now
+    });
+    await sendEmailVerification(user);
+    await signOut(auth);
+    return { uid: user.uid, email: cleanEmail, displayName: cleanName };
   } catch (error) {
-    if (error && error.message === "TEACHER_NOT_ALLOWED") {
-      throw new Error("Login erfolgreich, aber dieses Konto ist noch nicht freigeschaltet. In Firestore muss unter teachers ein Dokument mit der Benutzer-UID und active = true existieren.");
+    if (auth.currentUser) {
+      try { await signOut(auth); } catch (_) {}
     }
-    try { await signOut(auth); } catch (_) {}
+    if (error && error.code === "auth/email-already-in-use") {
+      throw new Error("Für diese E-Mail-Adresse existiert bereits ein Konto. Bitte melde dich an oder verwende die Passwort-zurücksetzen-Funktion.");
+    }
+    if (error && error.code === "permission-denied") {
+      throw new Error("Das Konto wurde möglicherweise erstellt, aber die Zugriffsanfrage konnte nicht gespeichert werden. Bitte prüfe, ob die aktuellen firestore.rules veröffentlicht wurden. Verwende bei einem erneuten Versuch dieselbe E-Mail-Adresse für die Anmeldung.");
+    }
     throw error;
   }
+}
+
+async function signInTeacher(email, password) {
+  const credential = await signInWithEmailAndPassword(auth, String(email || "").trim(), password || "");
+  const user = credential.user;
+  try {
+    await reload(user);
+    const profile = await authorizedTeacher(user);
+    // Existing approved teachers (including the first administrator) continue to work
+    // even if they were created before self-registration was introduced.
+    if (profile) return profile;
+
+    const requestRef = doc(db, "teacherRequests", user.uid);
+    const requestSnap = await getDoc(requestRef);
+    if (!user.emailVerified) {
+      await signOut(auth);
+      throw new Error("EMAIL_VERIFICATION_REQUIRED");
+    }
+    if (!requestSnap.exists()) {
+      await signOut(auth);
+      throw new Error("TEACHER_REQUEST_MISSING");
+    }
+    const requestData = requestSnap.data();
+    if (requestData.status === "rejected") {
+      await signOut(auth);
+      throw new Error("TEACHER_REQUEST_REJECTED");
+    }
+    if (requestData.status === "pending") {
+      await setDoc(requestRef, { emailVerified: true, updatedAt: new Date().toISOString() }, { merge: true });
+      await signOut(auth);
+      throw new Error("TEACHER_REQUEST_PENDING");
+    }
+    await signOut(auth);
+    throw new Error("TEACHER_NOT_ALLOWED");
+  } catch (error) {
+    if (error && error.message && error.message.startsWith("EMAIL_VERIFICATION_REQUIRED")) {
+      throw new Error("Bitte bestätige zuerst die E-Mail-Adresse über den Link in deiner Registrierungs-E-Mail. Danach kannst du dich erneut anmelden.");
+    }
+    if (error && error.message === "TEACHER_REQUEST_MISSING") {
+      throw new Error("Für dieses Konto liegt keine Registrierungsanfrage vor. Bitte nutze „Neues Konto erstellen“ oder kontaktiere den Admin.");
+    }
+    if (error && error.message === "TEACHER_REQUEST_REJECTED") {
+      throw new Error("Deine Anfrage wurde nicht freigegeben. Bitte sprich direkt mit dem Admin.");
+    }
+    if (error && error.message === "TEACHER_REQUEST_PENDING") {
+      throw new Error("Deine E-Mail-Adresse ist bestätigt. Dein Zugang wartet noch auf die Freigabe durch den Admin.");
+    }
+    if (error && error.message === "TEACHER_NOT_ALLOWED") {
+      throw new Error("Dieses Konto ist noch nicht als Diener/in freigeschaltet.");
+    }
+    try { if (auth.currentUser) await signOut(auth); } catch (_) {}
+    throw error;
+  }
+}
+
+async function listTeacherRequests() {
+  await requireAdmin();
+  const snap = await getDocs(query(collection(db, "teacherRequests"), where("status", "==", "pending")));
+  return snap.docs.map(item => ({ ...item.data(), uid: item.id }));
+}
+async function approveTeacherRequest(uid) {
+  const admin = await requireAdmin();
+  const requestRef = doc(db, "teacherRequests", String(uid));
+  const requestSnap = await getDoc(requestRef);
+  if (!requestSnap.exists()) throw new Error("Die Registrierungsanfrage wurde nicht gefunden.");
+  const requestData = requestSnap.data();
+  if (requestData.status !== "pending") throw new Error("Diese Anfrage wurde bereits bearbeitet.");
+  if (requestData.emailVerified !== true) throw new Error("Die Lehrkraft muss zuerst ihre E-Mail-Adresse bestätigen.");
+
+  const teacherRefDoc = doc(db, "teachers", String(uid));
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+  batch.set(teacherRefDoc, {
+    active: true,
+    admin: false,
+    email: String(requestData.email || ""),
+    displayName: String(requestData.displayName || ""),
+    createdAt: now
+  });
+  batch.update(requestRef, {
+    status: "approved",
+    reviewedBy: admin.uid,
+    updatedAt: now
+  });
+  await batch.commit();
+  return { uid, email: requestData.email, displayName: requestData.displayName };
+}
+async function rejectTeacherRequest(uid) {
+  const admin = await requireAdmin();
+  const requestRef = doc(db, "teacherRequests", String(uid));
+  const requestSnap = await getDoc(requestRef);
+  if (!requestSnap.exists()) throw new Error("Die Registrierungsanfrage wurde nicht gefunden.");
+  if (requestSnap.data().status !== "pending") throw new Error("Diese Anfrage wurde bereits bearbeitet.");
+  await updateDoc(requestRef, {
+    status: "rejected",
+    reviewedBy: admin.uid,
+    updatedAt: new Date().toISOString()
+  });
+  return true;
+}
+async function resendTeacherVerification(email, password) {
+  const credential = await signInWithEmailAndPassword(auth, String(email || "").trim(), password || "");
+  try {
+    await reload(credential.user);
+    if (credential.user.emailVerified) throw new Error("Diese E-Mail-Adresse ist bereits bestätigt. Du kannst dich normal anmelden.");
+    await sendEmailVerification(credential.user);
+  } finally {
+    if (auth.currentUser) {
+      try { await signOut(auth); } catch (_) {}
+    }
+  }
+  return true;
+}
+async function requireAdmin() {
+  const profile = await authorizedTeacher();
+  if (!profile || profile.admin !== true) throw new Error("Für diese Funktion ist eine Admin-Freigabe erforderlich.");
+  return profile;
 }
 async function signOutTeacher() {
   if (auth.currentUser) await signOut(auth);
@@ -140,6 +287,11 @@ async function saveStudentResult(result) {
 window.bibleFirebaseReady = Promise.resolve({
   projectId: firebaseConfig.projectId,
   signInTeacher,
+  registerTeacher,
+  resendTeacherVerification,
+  listTeacherRequests,
+  approveTeacherRequest,
+  rejectTeacherRequest,
   signOutTeacher,
   loadChallenges,
   saveChallenge,
