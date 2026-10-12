@@ -1,3 +1,3 @@
-Bibel Escape Room V3.2.5 — Separate Activity Modes (Teacher Router Fix)
+Bibel Escape Room V3.2.6 — Firebase Challenge Sync
 
-Student navigation remains: role choice → choose Bibel Escape Room or Bibel-Challenge → each mode opens separately. Teacher navigation is routed through an explicit hook so login always opens first, then the teacher chooses between the Escape Room management dashboard and Bibel-Challenge management. The three existing Escape Room missions and challenge editor remain unchanged. Firebase sharing and AI remain out of scope.
+Adds Firebase Email/Password authentication for authorized teachers, shared Firestore storage for Bibel-Challenges, public read access to published challenges, anonymous-authenticated student result submissions, shared result review, and local fallback warnings. Firebase setup requires Firestore rules, Email/Password + Anonymous providers, authorized GitHub Pages domain, and teachers/{uid} allow-list documents. AI remains paused.
