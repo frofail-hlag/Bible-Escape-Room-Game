@@ -233,6 +233,32 @@
   const originalTeacherChallengeDashboard = teacherChallengeDashboard;
   const originalTeacherLogin = teacherLogin;
   const originalTeacherLogout = teacherLogout;
+  const originalTeacherEditGame = window.teacherEditGame;
+
+  function insertTeacherGreeting() {
+    if (state.role !== "teacher") return;
+    const name = String(state.firebaseTeacherName || localStorage.getItem("bibleEscapeTeacherDisplayName") || "").trim();
+    if (!name) return;
+    const root = app.querySelector(".app");
+    const top = root && root.querySelector(".top");
+    if (!root || !top) return;
+    let greeting = root.querySelector(".teacher-greeting");
+    if (!greeting) {
+      greeting = document.createElement("section");
+      greeting.className = "teacher-greeting";
+      greeting.setAttribute("aria-label", "Lehrerbegrüßung");
+      top.insertAdjacentElement("afterend", greeting);
+    }
+    greeting.innerHTML = "<div class='teacher-greeting-icon' aria-hidden='true'>👋</div>" +
+      "<div class='teacher-greeting-copy'><div class='teacher-greeting-title'>Hallo, <strong>" + esc(name) + "!</strong></div>" +
+      "<div class='teacher-greeting-subtitle'>Willkommen im Lehrerbereich · أهلاً بك في منطقة الخدام</div></div>";
+  }
+  if (typeof originalTeacherEditGame === "function") {
+    window.teacherEditGame = function (gameId) {
+      originalTeacherEditGame(gameId);
+      insertTeacherGreeting();
+    };
+  }
 
   function renderActivityModeSelect(audience) {
     clearInterval(state.timer);
@@ -274,6 +300,7 @@
       (audience === "teacher" ? "Escape Rooms öffnen →" : "Escape Room öffnen →") + "</button></article>" +
       "<article class='card activity-mode-card'><div class='activity-mode-icon'>📖</div><div class='activity-mode-kicker'>LESEN & ENTDECKEN / اقرأ واكتشف</div><h2>" + headingTwo + "</h2><p>" + descTwo + "</p><button class='btn' onclick='" + secondAction + "'>" +
       (audience === "teacher" ? "Challenges öffnen →" : "Bibel-Challenge öffnen →") + "</button></article></div></main>";
+    if (audience === "teacher" || teacherPlay) insertTeacherGreeting();
   }
 
   function enhanceEscapeHome(audience) {
@@ -333,6 +360,7 @@
     if (!isTeacher()) { teacherLogin(); return; }
     if (state.teacherSection === "escape") {
       originalTeacherDashboard();
+      insertTeacherGreeting();
       ensureTeacherAreaBack();
       const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
         .find(function (button) { return button.textContent.includes("Spiele spielen"); });
@@ -346,6 +374,7 @@
     state.teacherSection = "escape";
     state.playMode = null;
     originalTeacherDashboard();
+    insertTeacherGreeting();
     ensureTeacherAreaBack();
     const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
       .find(function (button) { return button.textContent.includes("Spiele spielen"); });
@@ -363,6 +392,7 @@
     await syncResultsFromFirebase();
     originalTeacherChallengeDashboard();
     if (!isTeacher()) return;
+    insertTeacherGreeting();
     ensureTeacherAreaBack();
     const playButton = Array.from(document.querySelectorAll(".teacher-nav button"))
       .find(function (button) { return button.textContent.includes("Spiele spielen"); });
@@ -716,6 +746,7 @@
       (challenges.length ? "<div style='overflow:auto'><table class='data-table'><thead><tr><th>Challenge</th><th>Status</th><th>Fragen</th><th>Ergebnisse</th><th>Aktionen</th></tr></thead><tbody>" + rows + "</tbody></table></div>" :
         "<div class='empty'><h3>Noch keine Bibel-Challenges</h3><p>Erstelle die erste Aktivität für eure tägliche Bibellektüre.</p><button class='btn' onclick='newBibleChallenge()'>➕ Erste Challenge erstellen</button></div>") +
       "</section></main>";
+    insertTeacherGreeting();
   }
   async function newBibleChallenge() {
     if (!isTeacher()) { teacherLogin(); return; }
@@ -754,6 +785,7 @@
       "<button class='btn' onclick='addBibleChallengeQuestion(\"" + esc(c.id) + "\")' " + (c.questions.length >= 4 ? "disabled" : "") + ">➕ Frage hinzufügen</button></div>" +
       questions + "</section></section><aside class='sticky'><section class='card'><h2>📖 Passage erneut lesen</h2><p class='small'>Teste, ob die angegebene Stelle in der zweisprachigen Bibel gut auffindbar ist.</p><button class='btn secondary' style='width:100%' onclick='previewChallengeBible(\"" + esc(c.id) + "\")'>Bibel öffnen</button></section>" +
       "<section class='card' style='margin-top:14px'><h2>🧭 Veröffentlichungs-Check</h2><p class='small'>Vor dem Veröffentlichen prüfen wir automatisch, ob die Aktivität 3–4 zweisprachige Fragen und Antworten enthält.</p><div class='muted-box'><strong>Wichtig</strong><br><span class='small'>Bitte Antworten und Erklärungen am angegebenen Bibeltext ausrichten. AI bleibt deaktiviert.</span></div></section></aside></div></main>";
+    insertTeacherGreeting();
   }
   function challengeQuestionEditor(c, q, i) {
     let type = "<div class='field'><label>Fragetyp</label><select id='bcq_type_" + i + "' onchange='changeBibleChallengeQuestionType(\"" + esc(c.id) + "\"," + i + ",this.value)'>" +
@@ -974,6 +1006,7 @@
       (results.length ? "<section class='card'><div style='overflow:auto'><table class='data-table'><thead><tr><th>Name</th><th>Punkte</th><th>Richtig</th><th>Zeit</th><th>Datum</th></tr></thead><tbody>" +
         results.map(function (r) { return "<tr><td>" + esc(r.studentName) + "</td><td>" + r.score + "/" + r.totalPoints + "</td><td>" + r.correctCount + "/" + r.questionCount + "</td><td>" + Math.floor(r.elapsedSeconds / 60) + ":" + String(r.elapsedSeconds % 60).padStart(2, "0") + "</td><td>" + new Date(r.completedAt).toLocaleDateString("de-DE") + "</td></tr>"; }).join("") +
         "</tbody></table></div></section>" : "<section class='card empty'>Noch keine Ergebnisse auf diesem Gerät. / لا توجد نتائج على هذا الجهاز بعد.</section>") + "</main>";
+    insertTeacherGreeting();
   }
 
   const BOOKS = [
