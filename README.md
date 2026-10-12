@@ -1,4 +1,4 @@
-# Bibel Escape Room V3.2.8 — Teacher Data Cleanup
+# Bibelreise V3.2.9 — App Branding & Teacher Data Cleanup
 
 ## Hosting and Firebase
 The PWA remains hosted on GitHub Pages. Firebase is used only for teacher authentication, shared Bibel-Challenges, and shared student results. No AI/API features are included.
@@ -80,3 +80,11 @@ firebase deploy --only functions
 ```
 
 The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup functions are configured for `europe-west3` (Frankfurt), not `us-central1`. Verify the selected project and billing account before deployment. After deployment, sign in as the administrator, open **Lehrerverwaltung**, and click **🧹 Verwaiste Konten bereinigen**. The result message reports how many orphaned requests and teacher profiles were deleted. Do not manually delete Figo's remaining Firestore documents before this test if you want to verify the cleanup result.
+
+
+## Bibelreise branding (V3.2.9)
+
+- The PWA is branded as **Bibelreise · رحلة في الكتاب المقدس** to represent the broader Sunday School app beyond the original Escape Room game.
+- `icon.png` is the app icon (cross, open Bible, and a journey path).
+- `welcome-banner.webp` is displayed on the role-selection welcome screen, with the English heading translated into German while retaining the Arabic title.
+- The PWA manifest, browser icon, Apple touch icon, app header and service-worker cache have been updated. Game logic, Firebase Functions, authentication, Firestore rules and database collections are unchanged.
