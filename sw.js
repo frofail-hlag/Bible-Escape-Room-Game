@@ -1,5 +1,5 @@
-const CACHE='bibel-escape-v3-2-8-teacher-data-cleanup-eu-frankfurt';
-const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./background-bible.png','./challenge.js','./challenge.css','./firebase-config.js','./firebase-service.js'];
+const CACHE='bibel-escape-v3-2-9-bibelreise-branding-eu-frankfurt';
+const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon.png','./welcome-banner.webp','./background-bible.png','./challenge.js','./challenge.css','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
