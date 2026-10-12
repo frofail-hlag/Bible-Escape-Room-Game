@@ -498,7 +498,7 @@
       textareaField("bcq_explanationar_" + i, "الشرح (العربية، اختياري)", q.explanationAr || "", true) +
       "</div><div class='bilingual-fields'>" +
       field("bcq_hint_" + i, "Hinweis (Deutsch, optional)", q.hint || "", false) +
-      field("bcq_h intar_" + i, "التلميح (العربية، اختياري)", q.hintAr || "", true).replace("bcq_h intar_", "bcq_hintar_") +
+      field("bcq_hintar_" + i, "التلميح (العربية، اختياري)", q.hintAr || "", true) +
       "</div><div class='field-row'><div class='field'><label>Punkte</label><input id='bcq_points_" + i + "' type='number' min='0' value='" + Number(q.points || 100) + "'></div></div>" +
       "<button class='btn' onclick='saveBibleChallengeQuestion(\"" + esc(c.id) + "\"," + i + ")'>💾 Frage speichern</button></article>";
   }
@@ -625,6 +625,7 @@
     const c = challengeById(challengeId);
     if (!c) return;
     state.activeChallenge = JSON.parse(JSON.stringify(c));
+    state.teacherChallengeId = challengeId;
     state.challengeScreen = "editor";
     openChallengeBible();
   }
@@ -652,21 +653,21 @@
   }
 
   const BOOKS = [
-    [["1 mose","genesis"],"GEN"], [["2 mose","exodus"],"EXO"], [["3 mose","levitikus","leviticus"],"LEV"],
-    [["4 mose","numeri","numbers"],"NUM"], [["5 mose","deuteronomium","deuteronomy"],"DEU"],
-    [["josua","joshua"],"JOS"], [["richter","judges"],"JDG"], [["rut","ruth"],"RUT"],
+    [["1 mose","genesis","التكوين","سفر التكوين"],"GEN"], [["2 mose","exodus","الخروج","سفر الخروج"],"EXO"], [["3 mose","levitikus","leviticus","اللاويين"],"LEV"],
+    [["4 mose","numeri","numbers","العدد","سفر العدد"],"NUM"], [["5 mose","deuteronomium","deuteronomy","التثنية"],"DEU"],
+    [["josua","joshua","يشوع"],"JOS"], [["richter","judges","القضاة"],"JDG"], [["rut","ruth","راعوث"],"RUT"],
     [["1 samuel","1 sam","1 samuelbuch"],"1SA"], [["2 samuel","2 sam"],"2SA"],
     [["1 konige","1 könige","1 kings"],"1KI"], [["2 konige","2 könige","2 kings"],"2KI"],
     [["1 chronik","1 chronicles"],"1CH"], [["2 chronik","2 chronicles"],"2CH"],
-    [["esra","ezra"],"EZR"], [["nehemia","nehemiah"],"NEH"], [["esther","ester"],"EST"],
-    [["hiob","job"],"JOB"], [["psalmen","psalm","psalms"],"PSA"], [["spruche","sprüche","proverbs"],"PRO"],
+    [["esra","ezra"],"EZR"], [["nehemia","nehemiah"],"NEH"], [["esther","ester","أستير","استير","سفر أستير"],"EST"],
+    [["hiob","job","أيوب"],"JOB"], [["psalmen","psalm","psalms","المزامير","مزمور"],"PSA"], [["spruche","sprüche","proverbs"],"PRO"],
     [["prediger","ecclesiastes"],"ECC"], [["hohelied","song of solomon"],"SNG"], [["jesaja","isaiah"],"ISA"],
     [["jeremia","jeremiah"],"JER"], [["klagelieder","lamentations"],"LAM"], [["hesekiel","hesekiel","ezekiel"],"EZK"],
     [["daniel"],"DAN"], [["hosea"],"HOS"], [["joel"],"JOL"], [["amos"],"AMO"], [["obadja","obadiah"],"OBA"],
     [["jona","jonah"],"JON"], [[" Micha ","mi cha","micha","micah"],"MIC"], [["nahum"],"NAM"], [["habakuk","habakkuk"],"HAB"],
     [["zephanja","zephaniah"],"ZEP"], [["haggai"],"HAG"], [["sacharja","zechariah"],"ZEC"], [["maleachi","malachi"],"MAL"],
-    [["matthaus","matthäus","matthew"],"MAT"], [["markus","mark"],"MRK"], [["lukas","luke"],"LUK"], [["johannes","john"],"JHN"],
-    [["apostelgeschichte","acts"],"ACT"], [["romer","römer","romans"],"ROM"], [["1 korinther","1 corinthians"],"1CO"],
+    [["matthaus","matthäus","matthew","متى","إنجيل متى"],"MAT"], [["markus","mark","مرقس","إنجيل مرقس"],"MRK"], [["lukas","luke","لوقا","إنجيل لوقا"],"LUK"], [["johannes","john","يوحنا","إنجيل يوحنا"],"JHN"],
+    [["apostelgeschichte","acts","أعمال الرسل"],"ACT"], [["romer","römer","romans"],"ROM"], [["1 korinther","1 corinthians"],"1CO"],
     [["2 korinther","2 corinthians"],"2CO"], [["galater","galatians"],"GAL"], [["epheser","ephesians"],"EPH"],
     [["philipper","philippians"],"PHP"], [["kolosser","colossians"],"COL"], [["1 thessalonicher","1 thessalonians"],"1TH"],
     [["2 thessalonicher","2 thessalonians"],"2TH"], [["1 timotheus","1 timothy"],"1TI"], [["2 timotheus","2 timothy"],"2TI"],
@@ -715,7 +716,7 @@
   const originalCloseBible = closeBible;
   closeBible = function () {
     if (state.bibleReturn === "challenge") {
-      state.view = state.challengeReturnScreen === "question" ? "challengeQuestion" : "challengeIntro";
+      state.view = state.challengeReturnScreen === "question" ? "challengeQuestion" : (state.challengeReturnScreen === "editor" ? "teacherChallengeEdit" : "challengeIntro");
       render();
       return;
     }
