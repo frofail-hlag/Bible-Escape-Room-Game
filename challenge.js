@@ -294,7 +294,7 @@
     const descTwo = audience === "teacher"
       ? "Leseaktivitäten erstellen, 3–4 Fragen zweisprachig bearbeiten, Vorschau öffnen und Ergebnisse ansehen."
       : "Lies einen Bibelabschnitt, öffne ihn bei Bedarf erneut und beantworte 3–4 Fragen auf Deutsch und Arabisch.";
-    app.innerHTML = "<main class='app'>" + header(audience === "teacher" ? "Lehrerbereich" : "Bibel Escape Room") +
+    app.innerHTML = "<main class='app'>" + header(audience === "teacher" ? "Lehrerbereich" : "Bibelreise · رحلة في الكتاب المقدس") +
       back +
       "<section class='hero activity-mode-hero'><h1>" + title + "</h1><p>" +
       (audience === "teacher" ? "Wähle aus, welchen Bereich du öffnen möchtest. Beide Bereiche bleiben getrennt verwaltbar." :
