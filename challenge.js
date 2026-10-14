@@ -597,6 +597,7 @@
     }).join("");
     app.innerHTML = "<main class='app'>" + header("Bibel-Challenge / تحدي الكتاب المقدس") +
       "<button class='btn secondary back' onclick='returnToModeSelection()'>← Zur Spielauswahl / العودة لاختيار اللعبة</button>" +
+      "<div class='student-tools'><button class='btn secondary' onclick='openChallengeBibleFromList()'>📖 Bibel öffnen / افتح الكتاب المقدس</button></div>" +
       "<section class='hero challenge-hero'><h1>📖 Bibel-Challenge</h1><p>Lest zuerst den angegebenen Bibelabschnitt. Ihr könnt den Text jederzeit wieder öffnen, bevor ihr antwortet.</p><p class='lang-ar' dir='rtl'>اقرأوا المقطع الكتابي أولًا. يمكنكم الرجوع إلى النص في أي وقت قبل الإجابة.</p></section>" +
       (state.firebaseSyncMessage ? cloudNoticeHtml() : "") +
       (published.length ? "<div class='challenge-list-grid'>" + cards + "</div>" :
@@ -870,7 +871,7 @@
         "<button class='btn danger' onclick='archiveBibleChallenge(\"" + esc(c.id) + "\")'>Archivieren</button></div></td></tr>";
     }).join("");
     app.innerHTML = "<main class='app'>" + header("Lehrerbereich · Bibel-Challenges") +
-      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrer-Dashboard</button><button class='btn' onclick='newBibleChallenge()'>➕ Neue Bibel-Challenge</button><button class='btn secondary' onclick='state.role=\"teacher\";home()'>🎮 Spiele spielen</button></div>" +
+      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrer-Dashboard</button><button class='btn' onclick='newBibleChallenge()'>➕ Neue Bibel-Challenge</button><button class='btn secondary' onclick='state.role=\"teacher\";home()'>🎮 Spiele spielen</button><button class='btn gold' id='bibelreiseAiImportButton' type='button'>📥 JSON-Entwurf importieren</button></div>" +
       "<section class='hero challenge-hero'><h1>📖 Bibel-Challenges</h1><p>Erstellt Leseaktivitäten mit einer Bibelstelle und 3–4 Fragen. Schülerinnen und Schüler können den Bibeltext jederzeit erneut öffnen.</p><p class='lang-ar' dir='rtl'>أنشئوا أنشطة قراءة مع مقطع كتابي وثلاثة أو أربعة أسئلة. يمكن للطلاب الرجوع إلى النص في أي وقت.</p></section>" +
       cloudNoticeHtml() +
       "<section class='card'><div class='editor-head'><div><h2>Meine Bibel-Challenges</h2><p class='small'>Titel, Bibelstelle, Anweisungen und Fragen können zweisprachig bearbeitet werden.</p></div><button class='btn' onclick='newBibleChallenge()'>➕ Neue Challenge</button></div>" +
@@ -905,7 +906,7 @@
     if (!c) return teacherChallengeDashboard();
     const questions = c.questions.map(function (q, i) { return challengeQuestionEditor(c, q, i); }).join("");
     app.innerHTML = "<main class='app'>" + header("Bibel-Challenge bearbeiten") +
-      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherChallengeDashboard()'>← Challenges</button><button class='btn secondary' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Vorschau</button></div>" +
+      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherChallengeDashboard()'>← Challenges</button><button class='btn secondary' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Vorschau</button><button class='btn gold' id='bibelreiseAiImportButton' type='button'>📥 JSON-Entwurf importieren</button></div>" +
       cloudNoticeHtml() +
       "<div class='two-col'><section><div class='card'><div class='editor-head'><div><h1>📖 Bibel-Challenge bearbeiten</h1><p class='small'>Die Aktivität wird erst für Schülerinnen und Schüler sichtbar, wenn sie veröffentlicht ist.</p></div><span class='badge " + (c.status === "published" ? "green" : "gray") + "'>" + (c.status === "published" ? "Veröffentlicht" : "Entwurf") + "</span></div>" +
       "<div class='bilingual-fields'>" + field("bc_title", "Titel (Deutsch)", c.title, false) + field("bc_titlear", "العنوان (العربية)", c.titleAr, true) + "</div>" +
@@ -1122,6 +1123,10 @@
     state.challengeReturnScreen = state.challengeScreen || "intro";
     openBible("challenge");
   }
+  function openChallengeBibleFromList() {
+    state.challengeReturnScreen = "list";
+    openBible("challenge-list");
+  }
   async function viewBibleChallengeResults(challengeId) {
     await syncResultsFromFirebase();
     state.teacherChallengeId = challengeId;
@@ -1222,6 +1227,11 @@
   };
   const originalCloseBible = closeBible;
   closeBible = function () {
+    if (state.bibleReturn === "challenge-list") {
+      state.view = "challengeList";
+      render();
+      return;
+    }
     if (state.bibleReturn === "challenge") {
       state.view = state.challengeReturnScreen === "question" ? "challengeQuestion" : (state.challengeReturnScreen === "editor" ? "teacherChallengeEdit" : "challengeIntro");
       render();
@@ -1269,6 +1279,7 @@
     previewBibleChallenge: previewBibleChallenge,
     previewChallengeBible: previewChallengeBible,
     openChallengeBible: openChallengeBible,
+    openChallengeBibleFromList: openChallengeBibleFromList,
     viewBibleChallengeResults: viewBibleChallengeResults
   });
 })();
