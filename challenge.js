@@ -919,6 +919,7 @@
       "<section class='card' style='margin-top:14px'><h2>🧭 Veröffentlichungs-Check</h2><p class='small'>Vor dem Veröffentlichen prüfen wir automatisch, ob die Aktivität 3–4 zweisprachige Fragen und Antworten enthält.</p><div class='muted-box'><strong>Wichtig</strong><br><span class='small'>Bitte Antworten und Erklärungen am angegebenen Bibeltext ausrichten. AI bleibt deaktiviert.</span></div></section></aside></div></main>";
     insertTeacherGreeting();
     if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
+    if (typeof window.bibelreiseInjectTeacherImportPanel === "function") window.bibelreiseInjectTeacherImportPanel("bibel-challenge");
   }
   function challengeQuestionEditor(c, q, i) {
     let type = "<div class='field'><label>Fragetyp</label><select id='bcq_type_" + i + "' onchange='changeBibleChallengeQuestionType(\"" + esc(c.id) + "\"," + i + ",this.value)'>" +
