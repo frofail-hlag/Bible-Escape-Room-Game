@@ -254,6 +254,11 @@
     activePromptLanguage = lang;
     const L = function (de, ar, en) { return lang === "ar" ? ar : (lang === "en" ? en : de); };
     const typeLabel = L("Bibel Escape Room", "غرفة الهروب الكتابية", "Bible Escape Room");
+    const difficultyLabel = ({
+      "Einfach": L("Einfach", "سهل", "Easy"),
+      "Mittel": L("Mittel", "متوسط", "Medium"),
+      "Schwer": L("Schwer", "صعب", "Hard")
+    })[fields.difficulty] || L("Mittel", "متوسط", "Medium");
     const example = isEscape ? {
       schemaVersion: "bibelreise-ai-v1",
       gameType: "escape-room",
@@ -328,7 +333,7 @@
       "- " + L("Bibelgeschichte/Thema", "القصة أو الموضوع الكتابي", "Bible story/topic") + ": " + String(fields.topic || ""),
       "- " + L("Vorgegebene Bibelstelle", "المرجع الكتابي المحدد", "Required Bible passage") + ": " + String(fields.passage || ""),
       "- " + L("Lernziel", "الهدف التعليمي", "Learning objective") + ": " + String(fields.objective || L("Leite ein passendes Lernziel aus Thema und Bibelstelle ab.", "استنتج هدفًا تعليميًا مناسبًا من الموضوع والمرجع الكتابي.", "Derive a suitable learning objective from the topic and Bible passage.")),
-      "- " + L("Schwierigkeit", "مستوى الصعوبة", "Difficulty") + ": " + String(fields.difficulty || "Mittel"),
+      "- " + L("Schwierigkeit", "مستوى الصعوبة", "Difficulty") + ": " + difficultyLabel,
       "- " + L("Gewünschte Anzahl", "العدد المطلوب", "Requested count") + ": " + count + (isEscape ? " " + L("Rätsel", "ألغاز", "puzzles") : " " + L("Fragen", "أسئلة", "questions")),
       "- " + L("Zusätzliche Hinweise der Lehrkraft", "ملاحظات إضافية من الخادم/الخادمة", "Additional teacher notes") + ": " + String(fields.notes || L("Keine", "لا توجد", "None")),
       "",
