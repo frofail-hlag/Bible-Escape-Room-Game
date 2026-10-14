@@ -1,6 +1,6 @@
 # Bibelreise AI Assistant — Prompt and Import Specification (Draft)
 
-**Status:** Planning draft only. This document does not change the live app, game logic, Firebase configuration, Firestore rules, or database.
+**Status:** Living implementation specification. The PWA now includes a manual JSON import panel in the teacher dashboards, structural validation, a review preview, draft-only import for both game types, and direct German/Arabic Bible reading links in Bibel-Challenge. The ChatGPT button and any API-based generation are not implemented.
 
 **Purpose:** Define a predictable bilingual content format for AI-assisted authoring of both existing game types. A teacher must review a generated draft before it is saved or published.
 
@@ -143,9 +143,11 @@ The current Bibel-Challenge editor uses:
 >
 > The example above shows the shape only; the actual response must contain 3 or 4 questions. For `truefalse`, `a` must be the string `"true"` or `"false"`. For `order`, include aligned `items` and `itemsAr` arrays in the intended correct order. For `text`, `number`, and `bible`, provide `a`, `aAr`, `accepted`, and `acceptedAr` as appropriate. For `choice`, `a` is the zero-based correct option index. Keep `status` as `draft`.
 
-## 5. Importer validation requirements (future implementation)
+## 5. Initial importer implementation and validation requirements
 
-The future import UI should reject or ask the teacher to correct the draft if:
+The initial in-app importer is implemented in `ai-assistant.js`. It is available from the Escape Room and Bibel-Challenge teacher dashboards. The teacher pastes JSON, validates it, reviews a preview, and explicitly chooses to import it as a new draft. The importer creates local IDs and timestamps, forces draft status, and never publishes or overwrites an existing game automatically. Escape Room drafts are stored in the existing local game list. Bibel-Challenge drafts are stored locally and the importer attempts to save the draft to Firebase; if that fails, the local draft remains and normal teacher sync can retry.
+
+The importer rejects or asks the teacher to correct the draft if:
 - JSON is invalid, has the wrong `schemaVersion` or wrong `gameType`, or lacks the `draft` object.
 - Required German or Arabic content is empty.
 - Escape Room puzzle count does not match the teacher's selection (3–6, default 4); a question uses an unsupported type; choice arrays differ in length; the correct choice index is out of range; or concatenated clue fragments do not match `final`.
@@ -165,10 +167,12 @@ There are three different technical capabilities; they must not be conflated:
 
 No route should have silent fallback to paid API usage. If no-cost plan usage is not authorized or reaches its limit, the feature must stop and explain that the user can retry later or use the manual copy/paste workflow.
 
-## 7. Suggested build order after approval
+## 7. Current progress and next steps
 
-1. Finalize input choices (including the number of Escape Room puzzles) and confirm one representative output for each game type.
-2. Build a parser/validator and preview as a standalone test, using sample JSON. No storage changes yet.
-3. Test manual copy/paste and import using locally stored draft data, then test game preview.
-4. Separately pursue the OpenAI integration eligibility/approval path.
-5. Add the AI button to the editor only when the import and preview path is stable.
+1. **Complete:** Finalize prompt inputs and create one example for each game type.
+2. **Complete:** Standalone validator/preview page with Daniel sample fixtures.
+3. **Implemented, needs hands-on verification:** In-app manual JSON import from both teacher dashboards, with validation, preview, generated IDs, and draft-only saving.
+4. **Implemented:** Direct German SCH2000 and Arabic AVD Bible.com links are displayed on the Bibel-Challenge list, introduction and each question. The existing in-app two-language Bible reader remains available as well. Unrecognized references now fall back to Bible.com rather than incorrectly opening John 1.
+5. **Next:** Test importing both sample JSON files through the actual app, verify editor preview and gameplay, then test Challenge draft sync and the two direct Bible links on desktop and mobile.
+6. **Separate track:** Confirm the eligibility path for ChatGPT-plan usage or direct ChatGPT-to-app integration. Do not add an API key, paid fallback, or silent credits.
+7. Add the eventual AI-assistance button/form only after these manual import checks pass and the no-additional-cost integration path is confirmed.
