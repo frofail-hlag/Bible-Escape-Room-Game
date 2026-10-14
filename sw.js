@@ -1,4 +1,4 @@
-const CACHE='bibelreise-v3-5-5-readable-json-hint';;;;;;
+const CACHE='bibelreise-v3-5-6-json-codeblock-import';;;;;;
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon.png','./welcome-banner.webp','./background-bible.png','./challenge.js','./challenge.css','./ai-assistant.js','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
