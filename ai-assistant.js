@@ -63,7 +63,7 @@
       });
       if (!["Einfach", "Mittel", "Schwer"].includes(d.difficulty)) result.warnings.push("Die Schwierigkeit ist nicht als Einfach/Mittel/Schwer erkannt; beim Import wird „Mittel“ verwendet.");
       const puzzles = asArray(d.puzzles);
-      if (puzzles.length < 3 || puzzles.length > 6) result.errors.push("Ein Escape Room benötigt 3 bis 6 Rätsel.");
+      if (puzzles.length < 3 || puzzles.length > 10) result.errors.push("Ein Escape Room benötigt 3 bis 10 Rätsel. Die Prompt-Auswahl bietet 3, 4, 6, 7 oder 10.");
       puzzles.forEach(function (p, i) {
         const n = i + 1;
         if (!p || typeof p !== "object") { result.errors.push("Rätsel " + n + " ist kein Objekt."); return; }
@@ -93,7 +93,7 @@
         if (!String(d[key] || "").trim()) result.errors.push("Bibel-Challenge: Pflichtfeld „" + key + "“ fehlt.");
       });
       const questions = asArray(d.questions);
-      if (questions.length < 3 || questions.length > 4) result.errors.push("Eine Bibel-Challenge benötigt 3 oder 4 Fragen.");
+      if (questions.length < 3 || questions.length > 10) result.errors.push("Eine Bibel-Challenge benötigt 3 bis 10 Fragen. Die Prompt-Auswahl bietet 3, 4, 6, 7 oder 10.");
       questions.forEach(function (q, i) {
         const n = i + 1;
         if (!q || typeof q !== "object") { result.errors.push("Frage " + n + " ist kein Objekt."); return; }
@@ -243,33 +243,40 @@
   }
 
 
+  let activePromptLanguage = "de";
+  const ALLOWED_PROMPT_COUNTS = [3, 4, 6, 7, 10];
+
   function buildGuidedPrompt(kind, fields) {
     const isEscape = kind === "escape-room";
-    const count = Number(fields.count);
-    const typeLabel = isEscape ? "Bibel Escape Room" : "Bibel-Challenge";
+    const asked = Number(fields.count);
+    const count = ALLOWED_PROMPT_COUNTS.includes(asked) ? asked : 4;
+    const lang = ["de", "ar", "en"].includes(fields.language) ? fields.language : "de";
+    activePromptLanguage = lang;
+    const L = function (de, ar, en) { return lang === "ar" ? ar : (lang === "en" ? en : de); };
+    const typeLabel = L("Bibel Escape Room", "غرفة الهروب الكتابية", "Bible Escape Room");
     const example = isEscape ? {
       schemaVersion: "bibelreise-ai-v1",
       gameType: "escape-room",
       reviewNotes: [],
       draft: {
-        title: "Deutscher Titel",
-        titleAr: "عنوان عربي",
+        title: "Titel auf Deutsch",
+        titleAr: "عنوان باللغة العربية",
         ref: "Bibelstelle",
-        intro: "Deutsche Einführung",
-        introAr: "مقدمة عربية",
+        intro: "Einführung auf Deutsch",
+        introAr: "مقدمة باللغة العربية",
         color: "📖",
         duration: 15,
-        difficulty: fields.difficulty,
+        difficulty: fields.difficulty || "Mittel",
         status: "draft",
         puzzles: [{
           type: "choice",
-          q: "Deutsche Frage",
-          qAr: "السؤال بالعربية",
-          opts: ["Option A", "Option B", "Option C"],
-          optsAr: ["الخيار أ", "الخيار ب", "الخيار ج"],
+          q: "Frage auf Deutsch",
+          qAr: "السؤال باللغة العربية",
+          opts: ["Deutsche Option A", "Deutsche Option B", "Deutsche Option C"],
+          optsAr: ["الخيار العربي أ", "الخيار العربي ب", "الخيار العربي ج"],
           a: 0,
-          hint: "Deutscher Hinweis",
-          hintAr: "تلميح عربي",
+          hint: "Hinweis auf Deutsch",
+          hintAr: "تلميح باللغة العربية",
           points: 100,
           clue: "A"
         }],
@@ -280,77 +287,210 @@
       gameType: "bibel-challenge",
       reviewNotes: [],
       draft: {
-        title: "Deutscher Titel",
-        titleAr: "عنوان عربي",
+        title: "Titel auf Deutsch",
+        titleAr: "عنوان باللغة العربية",
         passage: fields.passage,
-        instructions: "Deutsche Leseanweisung",
-        instructionsAr: "تعليمات القراءة بالعربية",
+        instructions: "Leseanweisung auf Deutsch",
+        instructionsAr: "تعليمات القراءة باللغة العربية",
         status: "draft",
         questions: [{
           type: "choice",
-          q: "Deutsche Frage",
-          qAr: "السؤال بالعربية",
-          opts: ["Option A", "Option B", "Option C"],
-          optsAr: ["الخيار أ", "الخيار ب", "الخيار ج"],
+          q: "Frage auf Deutsch",
+          qAr: "السؤال باللغة العربية",
+          opts: ["Deutsche Option A", "Deutsche Option B", "Deutsche Option C"],
+          optsAr: ["الخيار العربي أ", "الخيار العربي ب", "الخيار العربي ج"],
           a: 0,
-          hint: "Deutscher Hinweis",
-          hintAr: "تلميح عربي",
-          explanation: "Deutsche Erklärung",
-          explanationAr: "شرح عربي",
+          hint: "Hinweis auf Deutsch",
+          hintAr: "تلميح باللغة العربية",
+          explanation: "Erklärung auf Deutsch",
+          explanationAr: "شرح باللغة العربية",
           points: 100,
           accepted: [],
           acceptedAr: []
         }]
       }
     };
+    const difficultyRule = L(
+      "Der Wert von difficulty muss genau Einfach, Mittel oder Schwer sein, da die App diese festen Werte erwartet.",
+      "يجب أن تكون قيمة difficulty واحدة بالضبط من Einfach أو Mittel أو Schwer لأن التطبيق يتطلب هذه القيم المحددة.",
+      "The difficulty value must be exactly Einfach, Mittel, or Schwer because the app expects these fixed enum values."
+    );
     const lines = [
-      "Du bist eine sorgfältige Fachperson für zweisprachige Inhalte einer koptisch-orthodoxen Sonntagsschule und erstellst Material für Bibelreise (رحلة في الكتاب المقدس).",
+      L(
+        "Du bist eine sorgfältige Fachperson für zweisprachige Inhalte einer koptisch-orthodoxen Sonntagsschule und erstellst Material für Bibelreise (رحلة في الكتاب المقدس).",
+        "أنت متخصص دقيق في إعداد محتوى ثنائي اللغة لمدارس الأحد القبطية الأرثوذكسية، وتُعد مواد لتطبيق Bibelreise (رحلة في الكتاب المقدس).",
+        "You are a careful bilingual content designer for a Coptic Orthodox Sunday School creating material for Bibelreise (رحلة في الكتاب المقدس)."
+      ),
       "",
-      "AUFGABE UND RAHMEN",
-      "- Aktivitätstyp: " + typeLabel,
-      "- Altersgruppe: " + fields.age,
-      "- Bibelgeschichte/Thema: " + fields.topic,
-      "- Vorgegebene Bibelstelle: " + fields.passage,
-      "- Lernziel: " + (fields.objective || "Leite ein passendes, klares Lernziel aus Thema und Bibelstelle ab."),
-      "- Schwierigkeit: " + fields.difficulty,
-      "- Gewünschte Anzahl: " + count + (isEscape ? " Rätsel" : " Fragen"),
-      "- Zusätzliche Hinweise der Lehrkraft: " + (fields.notes || "Keine"),
+      L("AUFGABE UND RAHMEN", "المهمة والإطار", "TASK AND BRIEF"),
+      "- " + L("Aktivitätstyp", "نوع النشاط", "Activity type") + ": " + typeLabel,
+      "- " + L("Altersgruppe", "الفئة العمرية", "Age group") + ": " + String(fields.age || ""),
+      "- " + L("Bibelgeschichte/Thema", "القصة أو الموضوع الكتابي", "Bible story/topic") + ": " + String(fields.topic || ""),
+      "- " + L("Vorgegebene Bibelstelle", "المرجع الكتابي المحدد", "Required Bible passage") + ": " + String(fields.passage || ""),
+      "- " + L("Lernziel", "الهدف التعليمي", "Learning objective") + ": " + String(fields.objective || L("Leite ein passendes Lernziel aus Thema und Bibelstelle ab.", "استنتج هدفًا تعليميًا مناسبًا من الموضوع والمرجع الكتابي.", "Derive a suitable learning objective from the topic and Bible passage.")),
+      "- " + L("Schwierigkeit", "مستوى الصعوبة", "Difficulty") + ": " + String(fields.difficulty || "Mittel"),
+      "- " + L("Gewünschte Anzahl", "العدد المطلوب", "Requested count") + ": " + count + (isEscape ? " " + L("Rätsel", "ألغاز", "puzzles") : " " + L("Fragen", "أسئلة", "questions")),
+      "- " + L("Zusätzliche Hinweise der Lehrkraft", "ملاحظات إضافية من الخادم/الخادمة", "Additional teacher notes") + ": " + String(fields.notes || L("Keine", "لا توجد", "None")),
       "",
-      "QUALITÄTSREGELN",
-      "- Schreibe alle Inhalte für Kinder/Jugendliche der angegebenen Altersgruppe verständlich und altersgerecht.",
-      "- Erstelle vollständige, sinngleiche deutsche und arabische Texte. Verwende natürliches Deutsch und klares Hocharabisch (Modern Standard Arabic).",
-      "- Verankere alle Fakten, richtigen Antworten und Erklärungen in der angegebenen Bibelstelle. Erfinde keine Bibelverse oder Verweise.",
-      "- Verwende keine mehrdeutigen Fangfragen. Falsche Antwortoptionen müssen eindeutig falsch sein.",
-      "- Gib kurze, hilfreiche Hinweise, die die Antwort nicht direkt verraten.",
-      "- Falls ein Detail unsicher ist oder die Bibelstelle nicht genügend Informationen bietet, notiere dies in reviewNotes, statt etwas zu erfinden.",
-      "- Gib nur Felder aus, die im vorgegebenen Schema unterstützt werden. Erfinde keine IDs, Zeitstempel oder zusätzlichen Eigenschaften.",
-      "- Der Status muss draft sein. Veröffentliche die Aktivität nicht.",
+      L("VERBINDLICHE SPRACHREGEL", "قاعدة اللغة الإلزامية", "MANDATORY LANGUAGE RULE"),
+      L(
+        "- Obwohl dieser Prompt auf Deutsch geschrieben ist, müssen alle Inhalte für Kinder/Jugendliche IMMER vollständig auf Deutsch UND Arabisch vorliegen.",
+        "- رغم أن هذا الطلب مكتوب باللغة العربية، يجب أن يكون كل المحتوى الموجّه للأطفال والشباب دائمًا كاملًا بالألمانية والعربية معًا.",
+        "- Although this prompt is written in English, all student-facing content MUST always be complete in both German AND Arabic."
+      ),
+      L(
+        "- Verwende natürliches, altersgerechtes Deutsch in deutschen Feldern und klares Hocharabisch (Modern Standard Arabic) in arabischen Feldern. Beide Fassungen müssen inhaltlich gleichwertig sein.",
+        "- استخدم الألمانية الطبيعية المناسبة للعمر في الحقول الألمانية والعربية الفصحى الواضحة في الحقول العربية. يجب أن تتطابق النسختان في المعنى.",
+        "- Use natural age-appropriate German for German fields and clear Modern Standard Arabic for Arabic fields. Both versions must have equivalent meaning."
+      ),
+      L(
+        "- Verstehe die Eingaben der Lehrkraft auch dann, wenn sie in einer anderen Sprache formuliert wurden; die Ausgabe bleibt dennoch immer Deutsch UND Arabisch. Erzeuge alle vorgesehenen Sprachfelder.",
+        "- افهم مدخلات الخادم/الخادمة حتى إن كُتبت بلغة أخرى؛ لكن يجب أن يظل الإخراج دائمًا بالألمانية والعربية معًا. أنشئ جميع الحقول اللغوية المطلوبة.",
+        "- Interpret the teacher's inputs even if they were entered in another language; the output must still always be German AND Arabic. Include all required language fields."
+      ),
       "",
-      isEscape ? "ESCAPE-ROOM-REGELN" : "BIBEL-CHALLENGE-REGELN",
+      L("QUALITÄTSREGELN", "قواعد الجودة", "QUALITY RULES"),
+      L(
+        "- Schreibe altersgerecht, biblisch fundiert und ohne mehrdeutige Fangfragen. Falsche Antwortoptionen müssen eindeutig falsch sein.",
+        "- اكتب محتوى مناسبًا للعمر ومستندًا إلى الكتاب المقدس، وتجنّب الأسئلة الخادعة أو الغامضة. يجب أن تكون الخيارات الخاطئة غير صحيحة بوضوح.",
+        "- Make the content age-appropriate and grounded in the Bible. Avoid ambiguous trick questions and ensure wrong answer options are clearly wrong."
+      ),
+      L(
+        "- Verankere Fakten, richtige Antworten und Erklärungen in der angegebenen Bibelstelle. Erfinde keine Verse oder Verweise.",
+        "- اجعل الحقائق والإجابات الصحيحة والتفسيرات مستندة إلى المرجع الكتابي المحدد. لا تخترع آيات أو مراجع.",
+        "- Ground facts, correct answers and explanations in the specified passage. Never invent verses or references."
+      ),
+      L("- Gib kurze, hilfreiche Hinweise, die die Antwort nicht direkt verraten.", "- قدّم تلميحات قصيرة ومفيدة لا تكشف الإجابة مباشرة.", "- Give concise, helpful hints without revealing the answer directly."),
+      L(
+        "- Notiere unsichere oder nicht belegbare Details in reviewNotes, statt etwas zu erfinden.",
+        "- دوّن التفاصيل غير المؤكدة أو غير المدعومة في reviewNotes بدلًا من اختلاقها.",
+        "- Record uncertain or unsupported details in reviewNotes instead of inventing them."
+      ),
+      L(
+        "- Erfinde keine IDs oder Zeitstempel und füge keine nicht unterstützten Felder hinzu. Der Status muss draft sein; veröffentliche niemals automatisch.",
+        "- لا تنشئ معرّفات أو طوابع زمنية ولا تضف حقولًا غير مدعومة. يجب أن تكون الحالة draft ولا تنشر النشاط تلقائيًا أبدًا.",
+        "- Do not invent IDs or timestamps or add unsupported fields. The status must be draft; never publish automatically."
+      ),
+      difficultyRule,
+      "",
+      L("REGELN FÜR DEN ESCAPE ROOM", "قواعد غرفة الهروب", "ESCAPE ROOM RULES") + (isEscape ? "" : " — " + L("nicht zutreffend", "لا ينطبق", "not applicable")),
       ...(isEscape ? [
-        "- Erstelle genau " + count + " zusammenhängende Rätsel als sinnvolle Lernreise, mit einer geeigneten Mischung aus choice, truefalse, order, text, number und bible.",
-        "- Jedes Rätsel braucht ein kurzes clue-Fragment aus Großbuchstaben A–Z oder Ziffern. Die Fragmente in Reihenfolge müssen exakt den Wert von final ergeben, ohne Leerzeichen oder Satzzeichen.",
-        "- Bei choice ist a der nullbasierte Index der richtigen Option; opts und optsAr müssen gleich lang und Index für Index bedeutungsgleich sein.",
-        "- Bei truefalse muss a der String true oder false sein.",
-        "- Bei order sind items und itemsAr parallel angeordnete Listen, und correctItems entspricht exakt der richtigen deutschen Reihenfolge in items.",
-        "- Bei text, number und bible gib a und aAr sowie bei Bedarf accepted und acceptedAr als Listen alternativer Antworten an."
-      ] : [
-        "- Erstelle genau " + count + " Fragen zur angegebenen Bibelstelle. Beginne mit klaren zweisprachigen Leseanweisungen.",
-        "- Jede Frage benötigt einen richtigen Antwortwert und eine kurze Erklärung sowohl auf Deutsch als auch auf Arabisch.",
-        "- Bei choice ist a der nullbasierte Index der richtigen Option; opts und optsAr müssen gleich lang sein und in beiden Sprachen übereinstimmen.",
-        "- Bei truefalse muss a der String true oder false sein.",
-        "- Bei order müssen items und itemsAr gleich lange, sinngleiche Listen der korrekten Reihenfolge sein.",
-        "- Bei text, number und bible gib a, aAr sowie bei Bedarf accepted und acceptedAr als Listen alternativer Antworten an."
-      ]),
+        L(
+          "- Erstelle genau " + count + " zusammenhängende Rätsel als sinnvolle Lernreise und nutze eine passende Mischung aus choice, truefalse, order, text, number und bible.",
+          "- أنشئ بالضبط " + count + " ألغاز مترابطة تشكّل رحلة تعليمية هادفة، مع تنويع مناسب بين choice وtruefalse وorder وtext وnumber وbible.",
+          "- Create exactly " + count + " connected puzzles that form a meaningful learning journey, using a suitable mix of choice, truefalse, order, text, number and bible."
+        ),
+        L(
+          "- Jedes Rätsel braucht ein kurzes clue-Fragment aus Großbuchstaben A–Z oder Ziffern. Aneinandergereiht müssen alle Fragmente exakt final ergeben, ohne Leerzeichen oder Satzzeichen.",
+          "- يجب أن ينتج كل لغز جزءًا قصيرًا من clue باستخدام الأحرف اللاتينية الكبيرة A–Z أو الأرقام. يجب أن تكوّن الأجزاء مجتمعة قيمة final تمامًا دون مسافات أو علامات ترقيم.",
+          "- Every puzzle needs a short clue fragment using uppercase Latin letters A–Z or digits. Concatenating the fragments must equal final exactly, with no spaces or punctuation."
+        ),
+        L(
+          "- Bei choice ist a der nullbasierte Index der richtigen Option; opts und optsAr müssen gleich lang und bedeutungsgleich sein.",
+          "- في choice تمثل a فهرس الخيار الصحيح بدءًا من الصفر؛ ويجب أن تكون opts وoptsAr متساويتين في الطول ومتطابقتين في المعنى.",
+          "- For choice, a is the zero-based index of the correct option; opts and optsAr must have equal lengths and equivalent meaning."
+        ),
+        L(
+          "- Bei truefalse muss a genau der String true oder false sein. Bei order müssen items, itemsAr und correctItems die richtige Reihenfolge wiedergeben.",
+          "- في truefalse يجب أن تكون a هي النص true أو false حرفيًا. وفي order يجب أن تعبّر items وitemsAr وcorrectItems عن الترتيب الصحيح.",
+          "- For truefalse, a must be exactly the string true or false. For order, items, itemsAr and correctItems must represent the correct sequence."
+        ),
+        L(
+          "- Bei text, number und bible gib a und aAr sowie bei Bedarf accepted und acceptedAr an.",
+          "- في text وnumber وbible أدرج a وaAr، وأضف accepted وacceptedAr عند الحاجة.",
+          "- For text, number and bible, provide a and aAr and include accepted and acceptedAr where useful."
+        )
+      ] : []),
       "",
-      "AUSGABEFORMAT",
-      "Gib genau ein vollständiges, gültiges JSON-Objekt zurück. Keine Markdown-Codezäune, keine Kommentare und keinen erklärenden Text außerhalb des JSON.",
-      "Die folgende Struktur zeigt die unterstützte Feldform. Erstelle in der tatsächlichen Antwort genau " + count + (isEscape ? " puzzles-Elemente." : " questions-Elemente.") + " und fülle alle notwendigen Inhalte aus:",
+      L("REGELN FÜR DIE BIBEL-CHALLENGE", "قواعد التحدي الكتابي", "BIBLE CHALLENGE RULES") + (isEscape ? " — " + L("nicht zutreffend", "لا ينطبق", "not applicable") : ""),
+      ...(!isEscape ? [
+        L(
+          "- Erstelle genau " + count + " Fragen zur angegebenen Bibelstelle. Formuliere klare Leseanweisungen auf Deutsch und Arabisch.",
+          "- أنشئ بالضبط " + count + " أسئلة حول المرجع الكتابي المحدد، مع تعليمات قراءة واضحة بالألمانية والعربية.",
+          "- Create exactly " + count + " questions about the specified passage, with clear reading instructions in German and Arabic."
+        ),
+        L(
+          "- Jede Frage benötigt eine richtige Antwort sowie eine kurze Erklärung auf Deutsch und Arabisch.",
+          "- يحتاج كل سؤال إلى إجابة صحيحة وتفسير قصير بالألمانية والعربية.",
+          "- Each question requires a correct answer and a short explanation in German and Arabic."
+        ),
+        L(
+          "- Bei choice ist a der nullbasierte Index der richtigen Option; opts und optsAr müssen gleich lang und bedeutungsgleich sein.",
+          "- في choice تمثل a فهرس الخيار الصحيح بدءًا من الصفر؛ ويجب أن تكون opts وoptsAr متساويتين في الطول ومتطابقتين في المعنى.",
+          "- For choice, a is the zero-based index of the correct option; opts and optsAr must have equal lengths and equivalent meaning."
+        ),
+        L(
+          "- Bei truefalse muss a genau der String true oder false sein. Bei order müssen items und itemsAr gleich lange, sinngleiche Listen sein.",
+          "- في truefalse يجب أن تكون a هي النص true أو false حرفيًا. وفي order يجب أن تكون items وitemsAr قائمتين متساويتين في الطول ومتطابقتين في المعنى.",
+          "- For truefalse, a must be exactly the string true or false. For order, items and itemsAr must be equivalent arrays of equal length."
+        ),
+        L(
+          "- Bei text, number und bible gib a, aAr sowie bei Bedarf accepted und acceptedAr an.",
+          "- في text وnumber وbible أدرج a وaAr، وأضف accepted وacceptedAr عند الحاجة.",
+          "- For text, number and bible, provide a and aAr and include accepted and acceptedAr where useful."
+        )
+      ] : []),
+      "",
+      L("STRIKTE JSON-FORMATREGELN", "قواعد JSON الصارمة", "STRICT JSON FORMATTING RULES"),
+      L(
+        "- Gib genau EIN vollständiges JSON-Objekt zurück. Keine Markdown-Codezäune, Kommentare, Auslassungspunkte wie ... oder Texte außerhalb des JSON.",
+        "- أخرج كائن JSON كاملًا واحدًا فقط. لا تستخدم كتل Markdown البرمجية أو التعليقات أو نقاط الحذف مثل ... أو أي نص خارج JSON.",
+        "- Return exactly ONE complete JSON object. No Markdown code fences, comments, ellipses such as ..., or text outside the JSON."
+      ),
+      L(
+        "- Verwende doppelte Anführungszeichen für JSON-Schlüssel und Textwerte. Setze NIEMALS ein Komma direkt vor } oder ].",
+        "- استخدم علامتي اقتباس مزدوجتين لمفاتيح JSON والقيم النصية. لا تضع فاصلة أبدًا مباشرة قبل } أو ].",
+        "- Use double quotes for JSON keys and string values. NEVER place a comma immediately before } or ]."
+      ),
+      L(
+        "- Prüfe vor der Ausgabe alle öffnenden/schließenden Klammern und Kommas. Nutze true, false und null ohne Anführungszeichen, wenn diese JSON-Werte gemeint sind.",
+        "- قبل الإخراج، راجع جميع الأقواس الافتتاحية والختامية والفواصل. استخدم true وfalse وnull دون علامات اقتباس عندما تكون هذه قيم JSON المقصودة.",
+        "- Before responding, check all opening and closing brackets and commas. Use true, false and null without quotes when those JSON values are intended."
+      ),
+      L(
+        "- Verwende keine undefinierten Werte, NaN oder zusätzlichen Kommata. Das Ergebnis muss direkt mit JSON.parse funktionieren.",
+        "- لا تستخدم قيمًا غير معرّفة أو NaN أو فواصل زائدة. يجب أن تعمل النتيجة مباشرة مع JSON.parse.",
+        "- Do not use undefined values, NaN or trailing commas. The result must work directly with JSON.parse."
+      ),
+      "",
+      L("UNTERSTÜTZTE JSON-STRUKTUR", "بنية JSON المدعومة", "SUPPORTED JSON STRUCTURE"),
+      L(
+        "Die Struktur zeigt nur Feldnamen und Datentypen. Erweitere puzzles bzw. questions in der echten Antwort auf genau " + count + " vollständige Elemente.",
+        "تعرض البنية أسماء الحقول وأنواع البيانات فقط. وسّع puzzles أو questions في الإجابة الفعلية إلى " + count + " عناصر كاملة بالضبط.",
+        "The structure only demonstrates field names and data types. Expand puzzles or questions in the actual response to exactly " + count + " complete items."
+      ),
       JSON.stringify(example, null, 2),
       "",
-      "Wichtig: Der Importer prüft die Struktur, nicht automatisch die theologische Richtigkeit. Lass reviewNotes als leere Liste, wenn es keine konkreten Prüfhinweise gibt. Die Lehrkraft prüft den Entwurf vor einer späteren Veröffentlichung."
+      L(
+        "Abschließende Kontrolle: Zähle alle Rätsel/Fragen und kontrolliere, dass jedes deutsche und arabische Feld vorhanden ist. Lass reviewNotes als [] wenn es keine konkrete Unsicherheit gibt. Die Lehrkraft prüft den Entwurf vor einer späteren Veröffentlichung.",
+        "التحقق النهائي: احسب جميع الألغاز/الأسئلة وتأكد من وجود كل حقل ألماني وعربي. اترك reviewNotes فارغة [] إذا لم توجد نقطة غير مؤكدة. يجب على الخادم/الخادمة مراجعة المسودة قبل نشرها لاحقًا.",
+        "Final check: count every puzzle/question and confirm each German and Arabic field is present. Keep reviewNotes as [] if no specific uncertainty exists. The teacher must review the draft before any later publication."
+      )
     ];
     return lines.join("\n");
+  }
+
+  function buildJsonRepairPrompt(rawJson, expectedType, language) {
+    const lang = ["de", "ar", "en"].includes(language) ? language : "de";
+    const L = function (de, ar, en) { return lang === "ar" ? ar : (lang === "en" ? en : de); };
+    const expected = expectedType === "escape-room" ? "escape-room" : "bibel-challenge";
+    return [
+      L("Bitte korrigiere ausschließlich die JSON-Syntax des folgenden Bibelreise-Entwurfs.",
+        "يرجى تصحيح صياغة JSON فقط في مسودة Bibelreise التالية.",
+        "Please correct only the JSON syntax of the following Bibelreise draft."),
+      L("WICHTIG: Ändere, übersetze, kürze, erweitere, sortiere oder paraphrasiere keine Inhalte. Bewahre alle deutschen und arabischen Textwerte, Fragen, Antworten, Hinweise, Erklärungen, Reihenfolgen und Bedeutungen unverändert. Alle deutschen und arabischen Felder müssen erhalten bleiben.",
+        "مهم: لا تغيّر أو تترجم أو تختصر أو توسّع أو تعيد ترتيب أو تعيد صياغة أي محتوى. احتفظ بجميع النصوص الألمانية والعربية والأسئلة والإجابات والتلميحات والتفسيرات والترتيبات والمعاني دون تغيير. يجب الحفاظ على جميع الحقول الألمانية والعربية.",
+        "IMPORTANT: Do not change, translate, shorten, expand, reorder or paraphrase any content. Preserve all German and Arabic text values, questions, answers, hints, explanations, ordering and meanings unchanged. Keep every German and Arabic field."),
+      L("Behebe nur Syntaxfehler wie überflüssige Kommata vor } oder ], fehlende Kommata, fehlerhafte Anführungszeichen oder nicht geschlossene Klammern. Ändere keine Schema-Schlüssel. gameType muss " + expected + " und schemaVersion muss bibelreise-ai-v1 bleiben.",
+        "أصلح أخطاء الصياغة فقط، مثل الفواصل الزائدة قبل } أو ] أو الفواصل المفقودة أو علامات الاقتباس الخاطئة أو الأقواس غير المغلقة. لا تغيّر مفاتيح البنية. يجب أن تبقى gameType هي " + expected + " وأن تبقى schemaVersion هي bibelreise-ai-v1.",
+        "Fix syntax errors only, such as trailing commas before } or ], missing commas, malformed quotation marks or unclosed brackets. Do not change schema keys. Keep gameType as " + expected + " and schemaVersion as bibelreise-ai-v1."),
+      L("Gib genau ein vollständiges, parsebares JSON-Objekt zurück, ohne Markdown-Codezaun, Kommentare, Auslassungspunkte oder Zusatztext. Keine trailing commas. Anzahl und Reihenfolge der Rätsel/Fragen bleiben unverändert.",
+        "أخرج كائن JSON كاملًا واحدًا قابلًا للتحليل فقط، دون كتل Markdown أو تعليقات أو نقاط حذف أو نص إضافي. لا تستخدم فواصل زائدة. يجب الحفاظ على عدد الألغاز/الأسئلة وترتيبها كما هو.",
+        "Return exactly one complete parseable JSON object, with no Markdown fences, comments, ellipses or extra text. No trailing commas. Preserve the number and order of puzzles/questions."),
+      "",
+      L("JSON mit Syntaxfehlern:", "JSON الذي يحتوي على أخطاء:", "JSON WITH SYNTAX ERRORS:"),
+      String(rawJson || "")
+    ].join("\n");
   }
 
   function injectPromptBuilder(kind, specificTriggerId) {
@@ -392,12 +532,14 @@
     panel.hidden = true;
     panel.style.cssText = "margin:0 0 18px;border:2px solid #b6c9f5";
     const isEscape = kind === "escape-room";
-    const countOptions = isEscape
-      ? "<option value='3'>3 Rätsel</option><option value='4' selected>4 Rätsel</option><option value='5'>5 Rätsel</option><option value='6'>6 Rätsel</option>"
-      : "<option value='3'>3 Fragen</option><option value='4' selected>4 Fragen</option>";
+    const countOptions = [3, 4, 6, 7, 10].map(function (count) {
+      return "<option value='" + count + "' " + (count === 4 ? "selected" : "") + ">" + count + (isEscape ? " Rätsel" : " Fragen") + "</option>";
+    }).join("");
     panel.innerHTML =
       "<div class='editor-head'><div><h2>🧠 ChatGPT-Prompt erstellen / إعداد طلب ChatGPT</h2>" +
-      "<p class='small'>Fülle den kurzen Auftrag aus. Bibelreise erstellt daraus einen Prompt zum Kopieren in deine ChatGPT-Unterhaltung. Es erfolgt kein KI/API-Aufruf.</p></div></div>" +
+      "<p class='small'>Wähle die Sprache des generierten Prompts. Das Spiel selbst bleibt immer Deutsch und Arabisch. Kein KI/API-Aufruf.</p></div></div>" +
+      "<div class='field'><label for='bibelreisePromptLanguage'>Sprache des ChatGPT-Prompts / لغة الطلب</label><select id='bibelreisePromptLanguage'>" +
+      "<option value='de'>Deutsch</option><option value='ar'>العربية</option><option value='en'>English</option></select></div>" +
       "<div class='field'><label for='bibelreisePromptAge'>Altersgruppe / الفئة العمرية</label><input id='bibelreisePromptAge' required maxlength='60' value='9–15 Jahre' placeholder='z. B. 9–15 Jahre'></div>" +
       "<div class='field'><label for='bibelreisePromptTopic'>Bibelgeschichte oder Thema / القصة أو الموضوع الكتابي *</label><input id='bibelreisePromptTopic' required maxlength='180' placeholder='z. B. Daniel in der Löwengrube'></div>" +
       "<div class='field'><label for='bibelreisePromptPassage'>Bibelstelle / المرجع الكتابي *</label><input id='bibelreisePromptPassage' required maxlength='120' placeholder='z. B. Daniel 6,1–29'></div>" +
@@ -412,6 +554,9 @@
       "<p class='small'>Ablauf: Prompt kopieren → in ChatGPT einfügen und verfeinern → das vollständige JSON kopieren → hier im JSON-Import prüfen und als Entwurf übernehmen. Kein API-Schlüssel, keine automatische Veröffentlichung.</p>";
     nav.insertAdjacentElement("afterend", panel);
 
+    const languageInput = panel.querySelector("#bibelreisePromptLanguage");
+    languageInput.value = activePromptLanguage;
+    languageInput.addEventListener("change", function () { activePromptLanguage = languageInput.value; });
     const ageInput = panel.querySelector("#bibelreisePromptAge");
     const topicInput = panel.querySelector("#bibelreisePromptTopic");
     const passageInput = panel.querySelector("#bibelreisePromptPassage");
@@ -432,6 +577,7 @@
         return;
       }
       const prompt = buildGuidedPrompt(kind, {
+        language: languageInput.value,
         age: age,
         topic: topic,
         passage: passage,
@@ -451,6 +597,8 @@
       passageInput.value = "";
       objectiveInput.value = "";
       notesInput.value = "";
+      languageInput.value = "de";
+      activePromptLanguage = "de";
       output.value = "";
       copyButton.disabled = true;
       feedback.textContent = "";
@@ -529,12 +677,20 @@
       "<div class='field'><label for='bibelreiseAiJson'>JSON aus ChatGPT / بيانات JSON من ChatGPT</label><textarea id='bibelreiseAiJson' spellcheck='false' placeholder='Hier das vollständige JSON-Objekt einfügen…' style='min-height:210px;font-family:ui-monospace,Consolas,monospace'></textarea></div>" +
       "<div class='actions'><button class='btn' id='bibelreiseAiValidate' type='button'>Prüfen & Vorschau / تحقّق واعرض المعاينة</button><button class='btn secondary' id='bibelreiseAiClear' type='button'>Leeren</button><button class='btn success' id='bibelreiseAiImport' type='button' disabled>Als neuen Entwurf übernehmen / استيراد كمسودة</button></div>" +
       "<div id='bibelreiseAiMessages' aria-live='polite'></div><div id='bibelreiseAiPreview'></div>" +
+      "<section id='bibelreiseAiRepairBox' class='card' hidden style='margin-top:14px;border:2px solid #e5c77d'>" +
+      "<h3>🛠️ JSON-Syntax korrigieren / إصلاح صياغة JSON</h3>" +
+      "<p class='small'>Der Korrekturprompt fordert ChatGPT auf, nur die Syntax zu reparieren und alle deutschen und arabischen Inhalte unverändert zu lassen. Bibelreise ändert JSON nicht automatisch.</p>" +
+      "<div class='field'><label for='bibelreiseAiRepairPrompt'>Korrekturprompt für ChatGPT</label><textarea id='bibelreiseAiRepairPrompt' spellcheck='false' style='min-height:230px;font-family:ui-monospace,Consolas,monospace'></textarea></div>" +
+      "<div class='actions'><button class='btn gold' id='bibelreiseAiRepairCopy' type='button'>📋 Korrekturprompt kopieren / نسخ طلب التصحيح</button></div></section>" +
       "<p class='small'>Kein KI/API-Aufruf. Die Antwort wird nur nach deiner ausdrücklichen Bestätigung in Bibelreise gespeichert. Der Lehrer muss Antworten und Bibelstellen vor dem Veröffentlichen prüfen.</p>";
     nav.insertAdjacentElement("afterend", panel);
 
     const textArea = panel.querySelector("#bibelreiseAiJson");
     const messages = panel.querySelector("#bibelreiseAiMessages");
     const preview = panel.querySelector("#bibelreiseAiPreview");
+    const repairBox = panel.querySelector("#bibelreiseAiRepairBox");
+    const repairPromptArea = panel.querySelector("#bibelreiseAiRepairPrompt");
+    const repairCopyButton = panel.querySelector("#bibelreiseAiRepairCopy");
     const validateButton = panel.querySelector("#bibelreiseAiValidate");
     const clearButton = panel.querySelector("#bibelreiseAiClear");
     const importButton = panel.querySelector("#bibelreiseAiImport");
@@ -546,6 +702,8 @@
       importButton.disabled = true;
       messages.innerHTML = "";
       preview.innerHTML = "";
+      repairBox.hidden = true;
+      repairPromptArea.value = "";
     }
     textArea.addEventListener("input", reset);
     clearButton.addEventListener("click", function () {
@@ -553,12 +711,38 @@
       reset();
       textArea.focus();
     });
+    repairCopyButton.addEventListener("click", async function () {
+      if (!repairPromptArea.value.trim()) return;
+      try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(repairPromptArea.value);
+          messages.innerHTML = "<div class='feedback ok'>Korrekturprompt kopiert. Füge ihn in ChatGPT ein und kopiere danach das korrigierte JSON zurück.</div>";
+          return;
+        }
+      } catch (_) {}
+      repairPromptArea.focus();
+      repairPromptArea.select();
+      let copied = false;
+      try { copied = document.execCommand("copy"); } catch (_) {}
+      messages.innerHTML = copied
+        ? "<div class='feedback ok'>Korrekturprompt kopiert. Füge ihn in ChatGPT ein und kopiere danach das korrigierte JSON zurück.</div>"
+        : "<div class='notice'>Automatisches Kopieren wurde blockiert. Markiere den Korrekturprompt und kopiere ihn manuell.</div>";
+    });
     validateButton.addEventListener("click", function () {
       reset();
       const checked = validateEnvelope(textArea.value, currentKind);
       if (checked.errors.length) {
         messages.innerHTML = "<div class='notice' style='background:#fff0f1;border-color:#f3b6bf;color:#8b1f2d'><strong>Bitte korrigiere " + checked.errors.length + " Problem(e):</strong><ul>" +
           checked.errors.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>";
+        const hasSyntaxError = checked.errors.some(function (x) { return x.startsWith("Das JSON ist ungültig:"); });
+        if (hasSyntaxError) {
+          messages.insertAdjacentHTML("beforeend", "<button class='btn secondary' id='bibelreiseAiCreateRepairPrompt' type='button' style='margin-top:10px'>🛠️ Korrekturprompt für ChatGPT erstellen / إعداد طلب التصحيح</button>");
+          panel.querySelector("#bibelreiseAiCreateRepairPrompt").addEventListener("click", function () {
+            repairPromptArea.value = buildJsonRepairPrompt(textArea.value, currentKind, activePromptLanguage);
+            repairBox.hidden = false;
+            repairPromptArea.focus();
+          });
+        }
         return;
       }
       currentEnvelope = checked.envelope;
