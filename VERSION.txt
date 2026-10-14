@@ -1,4 +1,4 @@
-Bibelreise V3.5.7 — Flexible Question Counts & Multiple Bible Passages
+Bibelreise V3.5.8 — JSON Repair Code Block Output
 
 Current release summary
 - Guided prompts support German, Arabic, and English; the prompt follows the selected language.
@@ -6,6 +6,7 @@ Current release summary
 - Escape Room puzzles and Bibel-Challenge questions offer every count from 3 through 10 inclusive (default: 4).
 - Adds the direct, concise quality-rule instruction “Write it in a readable JSON format” in the selected prompt language, before the more detailed JSON formatting rules. This wording mirrors the teacher's successful test.
 - The importer strips one optional outer json Markdown code fence before parsing, while leaving the JSON content unchanged.
+- The JSON syntax-repair prompt now requests exactly one readable json Markdown code block, matching the initial activity-generation prompt. The syntax-only preservation instructions remain in force.
 - The Bible-reference form supports multi-line input for an entire book/all chapters, a chapter range, or selected verse ranges from multiple chapters/books; ChatGPT is instructed to use the complete reading scope.
 - Bible reading links support multiple semicolon/newline-separated references and chapter ranges. Whole-book requests open at chapter 1; all specified passages remain listed in the activity.
 - Detailed instructions continue to require readable two-space indentation, straight ASCII double quotes, complete arrays, valid values for every key, no trailing commas, and a final syntax check. ChatGPT is now asked to wrap the JSON in one json Markdown code block.
@@ -14,4 +15,4 @@ Current release summary
 - No direct AI/API request or OpenAI API key is used.
 
 Deployment note
-GitHub Pages must deploy the updated files. The service-worker cache has been bumped to V3.5.7 so installed PWAs can retrieve the revised prompt.
+GitHub Pages must deploy the updated files. The service-worker cache has been bumped to V3.5.8 so installed PWAs can retrieve the revised repair prompt.
