@@ -33,7 +33,7 @@ The web configuration is stored in firebase-config.js. It contains Firebase Web 
 Do not use permissive rules such as “allow read, write: if true”. Do not put service-account keys in this repository. The browser Firebase config is public by design; Firestore Rules enforce access. The separate Financial Money Plan Firebase project/database is not used by this app.
 
 ## Current versions
-- Bibel Escape Room: existing game engine and three starter missions retained.
+- Bibel Escape Room: existing game engine and three starter missions retained; the prompt offers 3, 4, 6, 7 or 10 puzzles, and the add-puzzle function prevents exceeding 10.
 - Bibel-Challenge: separate, self-paced bilingual reading activities, 3–10 questions, passage access, feedback, explanations and cross-device results.
 - Teacher login uses Firebase Email/Password and an explicit teacher allow-list.
 - Direct AI/API integration remains paused; V3.5.0 adds manual prompts in German, Arabic or English, with German/Arabic game output and a copyable JSON syntax-repair prompt.
