@@ -1,4 +1,4 @@
-# Bibelreise V3.5.0 — Multilingual Prompt, Flexible Counts & JSON Repair
+# Bibelreise V3.5.6 — Robust ChatGPT JSON Import
 
 ## Hosting and Firebase
 The PWA remains hosted on GitHub Pages. Firebase is used only for teacher authentication, shared Bibel-Challenges, and shared student results. No AI/API features are included.
@@ -99,6 +99,14 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Bibelreise makes no AI/API request in this workflow and needs no OpenAI API key. The existing validation, preview, and explicit draft import flow remain in place. Activities are never published automatically.
 - Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
 
+
+## ChatGPT JSON code-block output and paste handling (V3.5.6)
+
+- The guided prompt now asks ChatGPT to return exactly one complete JSON object inside a single Markdown code block labelled json, with no commentary before or after it.
+- Teachers should use ChatGPT's **Copy code** control when available, then paste the JSON code into Bibelreise's importer.
+- The importer accepts either the copied JSON body or one outer json code fence. It removes only that outer wrapper and trims whitespace; it does not rewrite JSON values, German/Arabic text, arrays, or question order.
+- Invalid JSON still fails validation and can use the existing syntax-repair prompt. This change does not add direct AI/API access, API keys, or API billing.
+- This version supersedes the older prompt instruction that forbade Markdown code fences.
 
 ## Explicit readable JSON reminder (V3.5.5)
 
