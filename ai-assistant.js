@@ -452,8 +452,8 @@
         "- Pretty-print the JSON in a readable, indented format like a formatted code example: use exactly two spaces for indentation, with each property and array item on its own line. Do not return minified one-line JSON."
       ),
       L(
-        "- Verwende ausschließlich gerade ASCII-Anführungszeichen (", Zeichen U+0022) als JSON-Begrenzer. Verwende niemals typografische/geschwungene Anführungszeichen wie “ ” oder „ “ für Schlüssel oder Textbegrenzungen.",
-        "- استخدم علامات الاقتباس المستقيمة ASCII فقط ("، الرمز U+0022) لتحديد مفاتيح JSON والقيم النصية. لا تستخدم أبدًا علامات الاقتباس الطباعية أو المنحنية مثل “ ” أو „ “ كفواصل للنص.",
+        "- Verwende ausschließlich gerade ASCII-Doppelanführungszeichen (Codepunkt U+0022) als JSON-Begrenzer. Verwende niemals typografische/geschwungene Anführungszeichen wie “ ” oder „ “ für Schlüssel oder Textbegrenzungen.",
+        "- استخدم علامات الاقتباس المزدوجة المستقيمة من ASCII فقط (رمز U+0022) لتحديد مفاتيح JSON والقيم النصية. لا تستخدم أبدًا علامات الاقتباس الطباعية أو المنحنية مثل “ ” أو „ “ كفواصل للنص.",
         "- Use only straight ASCII double quotes (\u0022, character U+0022) as JSON delimiters. Never use curly or typographic quotation marks such as “ ” or „ “ to delimit keys or string values."
       ),
       L(
