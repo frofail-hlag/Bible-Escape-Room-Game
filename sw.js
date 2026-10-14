@@ -1,4 +1,4 @@
-const CACHE='bibelreise-v3-5-2-final-prompt-rules';;;;;;
+const CACHE='bibelreise-v3-5-3-json-repair-diagnostics';;;;;;
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon.png','./welcome-banner.webp','./background-bible.png','./challenge.js','./challenge.css','./ai-assistant.js','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
