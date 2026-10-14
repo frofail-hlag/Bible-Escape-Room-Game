@@ -1,15 +1,17 @@
-Bibelreise V3.5.6 — Robust ChatGPT JSON Import
+Bibelreise V3.5.7 — Flexible Question Counts & Multiple Bible Passages
 
 Current release summary
 - Guided prompts support German, Arabic, and English; the prompt follows the selected language.
 - All student-facing activity content must remain bilingual in German and Arabic.
-- Escape Room puzzles and Bibel-Challenge questions offer 3, 4, 6, 7, or 10 items (default: 4).
+- Escape Room puzzles and Bibel-Challenge questions offer every count from 3 through 10 inclusive (default: 4).
 - Adds the direct, concise quality-rule instruction “Write it in a readable JSON format” in the selected prompt language, before the more detailed JSON formatting rules. This wording mirrors the teacher's successful test.
 - The importer strips one optional outer json Markdown code fence before parsing, while leaving the JSON content unchanged.
+- The Bible-reference form supports multi-line input for an entire book/all chapters, a chapter range, or selected verse ranges from multiple chapters/books; ChatGPT is instructed to use the complete reading scope.
+- Bible reading links support multiple semicolon/newline-separated references and chapter ranges. Whole-book requests open at chapter 1; all specified passages remain listed in the activity.
 - Detailed instructions continue to require readable two-space indentation, straight ASCII double quotes, complete arrays, valid values for every key, no trailing commas, and a final syntax check. ChatGPT is now asked to wrap the JSON in one json Markdown code block.
 - Imported content is validated and previewed before it can be saved as a draft; activities are never automatically published.
 - Bibel-Challenge validation, student-result serialization, and Firestore rules support up to 10 questions and corresponding answers.
 - No direct AI/API request or OpenAI API key is used.
 
 Deployment note
-GitHub Pages must deploy the updated files. The service-worker cache has been bumped to V3.5.6 so installed PWAs can retrieve the revised prompt.
+GitHub Pages must deploy the updated files. The service-worker cache has been bumped to V3.5.7 so installed PWAs can retrieve the revised prompt.
