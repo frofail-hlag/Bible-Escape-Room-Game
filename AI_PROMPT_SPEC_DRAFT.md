@@ -28,7 +28,7 @@ The future AI panel should collect these inputs before preparing the prompt:
 | Learning objective | Recommended | What the children should understand or remember |
 | Difficulty | Yes | Einfach, Mittel, Schwer |
 | Special teacher notes | No | Lesson emphasis, classroom context, restrictions |
-| Question count | Yes | Escape Room: choose 3–6 puzzles, default 4; Bibel-Challenge: choose 3 or 4 questions |
+| Question count | Yes | Both game types: choose 3, 4, 6, 7 or 10 items (default 4) |
 
 ### Shared prompt instructions
 
@@ -52,7 +52,7 @@ The current Escape Room editor uses this game structure:
 
 ### Escape Room-specific prompt
 
-> Create the selected number of connected Escape Room puzzles (3–6; default 4) for the requested Bible story and age group. Use a meaningful mix of the currently supported puzzle types: choice, truefalse, order, text, number, and bible. The puzzles should form a coherent learning journey, not random trivia. Each puzzle awards 100 points unless the brief says otherwise.
+> Create the selected number of connected Escape Room puzzles (3, 4, 6, 7 or 10; default 4) for the requested Bible story and age group. Use a meaningful mix of the currently supported puzzle types: choice, truefalse, order, text, number, and bible. The puzzles should form a coherent learning journey, not random trivia. Each puzzle awards 100 points unless the brief says otherwise.
 >
 > Give each puzzle one short clue fragment. Concatenating the clue fragments in order must produce exactly the `final` value after removing spaces and punctuation and ignoring letter case. Use only simple uppercase Latin letters or digits for the fragments and final code. Do not put the full final code in any clue or hint.
 >
@@ -92,7 +92,7 @@ The current Escape Room editor uses this game structure:
 > }
 > ```
 >
-> The example above shows the shape only; the actual response must contain the selected number of well-written puzzles (3–6, default 4). Include only the answer fields relevant to each puzzle type. For non-choice puzzles, use the correct type-specific fields listed above. Keep `status` as `draft`.
+> The example above shows the shape only; the actual response must contain the selected number of well-written puzzles (3, 4, 6, 7 or 10; default 4). Include only the answer fields relevant to each puzzle type. For non-choice puzzles, use the correct type-specific fields listed above. Keep `status` as `draft`.
 
 ## 4. Bibel-Challenge output contract
 
@@ -100,11 +100,11 @@ The current Bibel-Challenge editor uses:
 - Metadata: `title`, `titleAr`, `passage`, `instructions`, `instructionsAr`, `status`, `questions`.
 - Each question has `type`, `q`, `qAr`, `hint`, `hintAr`, `explanation`, `explanationAr`, `points`, and type-specific answer fields.
 - Supported types: `choice`, `truefalse`, `order`, `text`, `number`, `bible`.
-- Published challenges require 3–4 questions, so imported output must have 3 or 4; new drafts stay unpublished.
+- Bibel-Challenges support 3–10 questions; the prompt form offers 3, 4, 6, 7 or 10. New drafts stay unpublished.
 
 ### Bibel-Challenge-specific prompt
 
-> Create a reading-based Bible Challenge with 3 or 4 questions, strictly based on the specified Bible passage. Start with clear bilingual instructions to read the passage. Use a useful mix of supported question types only when they suit the passage. Each question needs a correct answer and a short, age-appropriate explanation in German and Arabic. Distractors must be clearly wrong and not misleading.
+> Create a reading-based Bible Challenge with exactly the teacher-selected count (3, 4, 6, 7 or 10) questions, strictly based on the specified Bible passage. Start with clear bilingual instructions to read the passage. Use a useful mix of supported question types only when they suit the passage. Each question needs a correct answer and a short, age-appropriate explanation in German and Arabic. Distractors must be clearly wrong and not misleading.
 >
 > Return this envelope:
 >
@@ -141,7 +141,7 @@ The current Bibel-Challenge editor uses:
 > }
 > ```
 >
-> The example above shows the shape only; the actual response must contain 3 or 4 questions. For `truefalse`, `a` must be the string `"true"` or `"false"`. For `order`, include aligned `items` and `itemsAr` arrays in the intended correct order. For `text`, `number`, and `bible`, provide `a`, `aAr`, `accepted`, and `acceptedAr` as appropriate. For `choice`, `a` is the zero-based correct option index. Keep `status` as `draft`.
+> The example above shows the shape only; the actual response must contain the exact selected count (3, 4, 6, 7 or 10) of questions. For `truefalse`, `a` must be the string `"true"` or `"false"`. For `order`, include aligned `items` and `itemsAr` arrays in the intended correct order. For `text`, `number`, and `bible`, provide `a`, `aAr`, `accepted`, and `acceptedAr` as appropriate. For `choice`, `a` is the zero-based correct option index. Keep `status` as `draft`.
 
 ## 5. Initial importer implementation and validation requirements
 
@@ -150,7 +150,7 @@ The initial in-app importer is implemented in `ai-assistant.js`. It is available
 The importer rejects or asks the teacher to correct the draft if:
 - JSON is invalid, has the wrong `schemaVersion` or wrong `gameType`, or lacks the `draft` object.
 - Required German or Arabic content is empty.
-- Escape Room puzzle count does not match the teacher's selection (3–6, default 4); a question uses an unsupported type; choice arrays differ in length; the correct choice index is out of range; or concatenated clue fragments do not match `final`.
+- Escape Room puzzle count is outside 3–10 or does not match the selected count (3, 4, 6, 7 or 10); a question uses an unsupported type; choice arrays differ in length; the correct choice index is out of range; or concatenated clue fragments do not match `final`.
 - Bibel-Challenge has fewer than 3 or more than 4 questions; required text/options/answers are missing; choice arrays differ in length; the correct choice index is invalid; order arrays differ in length; or a correct answer cannot be identified.
 - A Bible reference does not match the topic/passage or has a possible factual/theological ambiguity. These should be warnings for teacher review, not silently changed.
 - The output sets `status` to anything other than `draft`. The importer should force draft status regardless.
