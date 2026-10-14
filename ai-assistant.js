@@ -380,6 +380,11 @@
         "- لا تنشئ معرّفات أو طوابع زمنية ولا تضف حقولًا غير مدعومة. يجب أن تكون الحالة draft ولا تنشر النشاط تلقائيًا أبدًا.",
         "- Do not invent IDs or timestamps or add unsupported fields. The status must be draft; never publish automatically."
       ),
+      L(
+        "- Schreibe das JSON in einem gut lesbaren, formatierten Format.",
+        "- اكتب JSON بتنسيق واضح وسهل القراءة.",
+        "- Write it in a readable JSON format."
+      ),
       difficultyRule,
       "",
       L("REGELN FÜR DEN ESCAPE ROOM", "قواعد غرفة الهروب", "ESCAPE ROOM RULES") + (isEscape ? "" : " — " + L("nicht zutreffend", "لا ينطبق", "not applicable")),
