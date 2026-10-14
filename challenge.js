@@ -1164,16 +1164,17 @@
   function bibleUrl(ref, version) {
     const clean = String(ref || "").replace(/[–—]/g, "-").trim();
     const match = clean.match(/^(.+?)\s+(\d{1,3})(?:\s*[:,.]\s*\d+.*|\s*-\s*\d+)?$/);
-    if (!match) return version === "ar" ? "https://www.bible.com/de/bible/13/JHN.1.AVD" : "https://www.bible.com/de/bible/157/JHN.1.SCH2000";
+    if (!match) return "https://www.bible.com/";
     const book = norm(match[1]).replace(/\./g, "").trim();
     let code = "";
     for (let i = 0; i < BOOKS.length && !code; i++) {
       if (BOOKS[i][0].some(function (alias) { return norm(alias).replace(/\./g, "").trim() === book; })) code = BOOKS[i][1];
     }
-    if (!code) return version === "ar" ? "https://www.bible.com/de/bible/13/JHN.1.AVD" : "https://www.bible.com/de/bible/157/JHN.1.SCH2000";
+    if (!code) return "https://www.bible.com/";
     return version === "ar" ? "https://www.bible.com/de/bible/13/" + code + "." + match[2] + ".AVD" :
       "https://www.bible.com/de/bible/157/" + code + "." + match[2] + ".SCH2000";
   }
+  window.bibelreiseBibleUrl = function (ref, version) { return bibleUrl(ref, version); };
   const originalOpenBible = openBible;
   openBible = function (from) {
     if (from !== "challenge") return originalOpenBible(from);
