@@ -73,11 +73,11 @@ function cleanResult(result) {
     studentName: String(result.studentName || "").trim().slice(0, 50),
     score: Math.round(Number(result.score) || 0),
     totalPoints: Math.round(Number(result.totalPoints) || 0),
-    correctCount: Math.max(0, Math.min(4, Number(result.correctCount) || 0)),
-    questionCount: Math.max(3, Math.min(4, Number(result.questionCount) || 3)),
+    correctCount: Math.max(0, Math.min(10, Number(result.correctCount) || 0)),
+    questionCount: Math.max(3, Math.min(10, Number(result.questionCount) || 3)),
     elapsedSeconds: Math.max(0, Math.min(86400, Math.round(Number(result.elapsedSeconds) || 0))),
     completedAt: String(result.completedAt || new Date().toISOString()),
-    answers: (Array.isArray(result.answers) ? result.answers : []).slice(0, 4).map(a => ({
+    answers: (Array.isArray(result.answers) ? result.answers : []).slice(0, 10).map(a => ({
       questionId: String(a.questionId || ""),
       question: String(a.question || "").slice(0, 500),
       questionAr: String(a.questionAr || "").slice(0, 500),
