@@ -1,4 +1,4 @@
-const CACHE='bibelreise-v3-3-0-ai-draft-import-bible-links';
+const CACHE='bibelreise-v3-3-1-ai-import-multi-chapter-bible-links';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon.png','./welcome-banner.webp','./background-bible.png','./challenge.js','./challenge.css','./ai-assistant.js','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
