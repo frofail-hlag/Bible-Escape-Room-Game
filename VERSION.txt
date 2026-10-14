@@ -1,16 +1,14 @@
-Bibelreise V3.5.4 — Pretty-Printed JSON Prompts
+Bibelreise V3.5.5 — Explicit Readable JSON Reminder
 
 Current release summary
-- Guided prompts are available in German, Arabic, and English; the prompt follows the selected language.
-- All student-facing content must remain bilingual in German and Arabic.
+- Guided prompts support German, Arabic, and English; the prompt follows the selected language.
+- All student-facing activity content must remain bilingual in German and Arabic.
 - Escape Room puzzles and Bibel-Challenge questions offer 3, 4, 6, 7, or 10 items (default: 4).
-- Prompts explicitly request readable JSON with exactly two spaces of indentation, each property and array item on its own line, and straight ASCII double quotes only.
-- Prompts forbid curly quotation marks as JSON delimiters, missing values, trailing commas, malformed arrays, and any text outside the JSON object.
-- Empty review notes and optional accepted-answer lists must use [].
-- ChatGPT is instructed to check the entire object for correct brackets, commas, values, arrays, and parseability before returning it.
-- The importer validates and previews generated content before saving it as a draft. Activities are never automatically published.
+- Adds the direct, concise quality-rule instruction “Write it in a readable JSON format” in the selected prompt language, before the more detailed JSON formatting rules. This wording mirrors the teacher's successful test.
+- Detailed instructions continue to require readable two-space indentation, straight ASCII double quotes, complete arrays, valid values for every key, no trailing commas, no Markdown fences, and a final syntax check.
+- Imported content is validated and previewed before it can be saved as a draft; activities are never automatically published.
 - Bibel-Challenge validation, student-result serialization, and Firestore rules support up to 10 questions and corresponding answers.
 - No direct AI/API request or OpenAI API key is used.
 
 Deployment note
-GitHub Pages must deploy the updated files. The service-worker cache was bumped to V3.5.4 to help installed PWAs retrieve the new prompt instructions. Firebase Firestore rules are managed separately and should already be updated to support up to 10 questions and answers.
+GitHub Pages must deploy the updated files. The service-worker cache has been bumped to V3.5.5 so installed PWAs can retrieve the revised prompt.
