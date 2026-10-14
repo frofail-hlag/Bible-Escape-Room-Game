@@ -145,7 +145,7 @@ The current Bibel-Challenge editor uses:
 
 ## 5. Initial importer implementation and validation requirements
 
-The initial in-app importer is implemented in `ai-assistant.js`. It is available from the Escape Room and Bibel-Challenge teacher dashboards. The teacher pastes JSON, validates it, reviews a preview, and explicitly chooses to import it as a new draft. The importer creates local IDs and timestamps, forces draft status, and never publishes or overwrites an existing game automatically. Escape Room drafts are stored in the existing local game list. Bibel-Challenge drafts are stored locally and the importer attempts to save the draft to Firebase; if that fails, the local draft remains and normal teacher sync can retry.
+The initial in-app importer is implemented in `ai-assistant.js`. It is available from the Escape Room teacher dashboard and from both the Bibel-Challenge teacher dashboard and editor. Challenge Bible-link injection is called directly after its relevant screens render to avoid asynchronous-render timing issues. The teacher pastes JSON, validates it, reviews a preview, and explicitly chooses to import it as a new draft. The importer creates local IDs and timestamps, forces draft status, and never publishes or overwrites an existing game automatically. Escape Room drafts are stored in the existing local game list. Bibel-Challenge drafts are stored locally and the importer attempts to save the draft to Firebase; if that fails, the local draft remains and normal teacher sync can retry.
 
 The importer rejects or asks the teacher to correct the draft if:
 - JSON is invalid, has the wrong `schemaVersion` or wrong `gameType`, or lacks the `draft` object.
