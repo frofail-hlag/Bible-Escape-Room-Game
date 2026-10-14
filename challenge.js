@@ -1194,34 +1194,56 @@
     [["2 johannes","2 john"],"2JN"], [["3 johannes","3 john"],"3JN"], [["judas","jude","jude"],"JUD"],
     [["offenbarung","offenbarung des johannes","revelation"],"REV"]
   ];
-  function bibleUrl(ref, version) {
-    const clean = String(ref || "").replace(/[–—]/g, "-").trim();
-    const match = clean.match(/^(.+?)\s+(\d{1,3})(?:\s*[:,.]\s*\d+.*|\s*-\s*\d+)?$/);
-    if (!match) return "https://www.bible.com/";
-    const book = norm(match[1]).replace(/\./g, "").trim();
-    let code = "";
-    for (let i = 0; i < BOOKS.length && !code; i++) {
-      if (BOOKS[i][0].some(function (alias) { return norm(alias).replace(/\./g, "").trim() === book; })) code = BOOKS[i][1];
+  function splitBibleReferences(ref) {
+    return String(ref || "").split(/[;\n|]+/).map(function (item) {
+      return item.trim();
+    }).filter(Boolean);
+  }
+  function findBibleBookCode(bookName) {
+    const book = norm(String(bookName || "")).replace(/\./g, "").trim();
+    for (let i = 0; i < BOOKS.length; i++) {
+      if (BOOKS[i][0].some(function (alias) { return norm(alias).replace(/\./g, "").trim() === book; })) return BOOKS[i][1];
     }
+    return "";
+  }
+  function bibleUrl(ref, version) {
+    const firstReference = splitBibleReferences(ref)[0] || "";
+    const clean = firstReference.replace(/[–—]/g, "-").trim();
+    const wholeBook = clean.match(/^(.+?)(?:\s*-\s*|\s+)(?:all chapters(?: of (?:the )?book)?|alle kapitel(?: des buches)?|das ganze buch|das gesamte buch|gesamtes buch|كل الإصحاحات|جميع الإصحاحات)$/i);
+    const match = clean.match(/^(.+?)\s+(\d{1,3})(?:\s*[:,.]\s*\d+.*|\s*-\s*\d+)?$/);
+    const bookName = wholeBook ? wholeBook[1] : (match ? match[1] : "");
+    const chapterNumber = wholeBook ? "1" : (match ? match[2] : "");
+    if (!bookName || !chapterNumber) return "https://www.bible.com/";
+    const code = findBibleBookCode(bookName);
     if (!code) return "https://www.bible.com/";
-    return version === "ar" ? "https://www.bible.com/de/bible/13/" + code + "." + match[2] + ".AVD" :
-      "https://www.bible.com/de/bible/157/" + code + "." + match[2] + ".SCH2000";
+    return version === "ar" ? "https://www.bible.com/de/bible/13/" + code + "." + chapterNumber + ".AVD" :
+      "https://www.bible.com/de/bible/157/" + code + "." + chapterNumber + ".SCH2000";
   }
   window.bibelreiseBibleUrl = function (ref, version) { return bibleUrl(ref, version); };
   window.bibelreiseBibleUrls = function (ref, version) {
-    const clean = String(ref || "").replace(/[–—]/g, "-").trim();
-    const range = clean.match(/^(.+?)\s+(\d{1,3})\s*-\s*(\d{1,3})$/);
-    if (range) {
-      const first = Number(range[2]), last = Number(range[3]);
-      if (last >= first && last - first <= 11) {
-        return Array.from({ length: last - first + 1 }, function (_, index) {
-          const chapter = first + index;
-          return { chapter: chapter, url: bibleUrl(range[1] + " " + chapter, version) };
-        });
+    const references = splitBibleReferences(ref).slice(0, 40);
+    const links = [];
+    references.forEach(function (reference) {
+      const clean = reference.replace(/[–—]/g, "-").trim();
+      const wholeBook = clean.match(/^(.+?)(?:\s*-\s*|\s+)(?:all chapters(?: of (?:the )?book)?|alle kapitel(?: des buches)?|das ganze buch|das gesamte buch|gesamtes buch|كل الإصحاحات|جميع الإصحاحات)$/i);
+      if (wholeBook) {
+        links.push({ chapter: null, url: bibleUrl(reference, version) });
+        return;
       }
-    }
-    const single = clean.match(/^(.+?)\s+(\d{1,3})/);
-    return [{ chapter: single ? Number(single[2]) : null, url: bibleUrl(clean, version) }];
+      const range = clean.match(/^(.+?)\s+(\d{1,3})\s*-\s*(\d{1,3})$/);
+      if (range) {
+        const first = Number(range[2]), last = Number(range[3]);
+        if (last >= first && last - first <= 11) {
+          for (let chapter = first; chapter <= last; chapter++) {
+            links.push({ chapter: chapter, url: bibleUrl(range[1] + " " + chapter, version) });
+          }
+          return;
+        }
+      }
+      const single = clean.match(/^(.+?)\s+(\d{1,3})/);
+      links.push({ chapter: single ? Number(single[2]) : null, url: bibleUrl(reference, version) });
+    });
+    return links.length ? links : [{ chapter: null, url: "https://www.bible.com/" }];
   };
   const originalOpenBible = openBible;
   openBible = function (from) {
@@ -1243,7 +1265,7 @@
     const note = document.createElement("div");
     note.className = "challenge-passage-note";
     note.innerHTML = "<strong>Aktuelle Lesestelle / المقطع المطلوب:</strong> " + esc(c.passage) +
-      "<p class='small'>Die Bibel öffnet das passende Kapitel, sofern die Stelle erkannt wird. Bitte prüft die Stellenangabe beim Erstellen der Challenge.</p>";
+      "<p class='small'>Die Bibel öffnet die erste erkannte Stelle. Weitere angegebene Lesestellen könnt ihr über die Links bei der Challenge öffnen. Bitte prüft die Stellenangaben beim Erstellen der Challenge. / يفتح الكتاب المقدس أول مرجع معروف. يمكن فتح بقية المقاطع من الروابط الموجودة في التحدي. يرجى مراجعة المراجع عند إعداد النشاط.</p>";
     const bibleGrid = document.querySelector(".bible-grid");
     if (bibleGrid) bibleGrid.parentNode.insertBefore(note, bibleGrid);
   };
