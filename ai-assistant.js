@@ -249,7 +249,11 @@
       trigger.className = "btn gold";
       trigger.type = "button";
       trigger.textContent = "📥 JSON-Entwurf importieren";
-      nav.appendChild(trigger);
+    }
+    // The Challenge screens render this visible button themselves. Reattach it to the current navigation and bind it once.
+    if (trigger.parentNode !== nav) nav.appendChild(trigger);
+    if (trigger.dataset.bibelreiseImportBound !== "true") {
+      trigger.dataset.bibelreiseImportBound = "true";
       trigger.addEventListener("click", function () {
         const panel = document.getElementById(PANEL_ID);
         if (!panel) return;
