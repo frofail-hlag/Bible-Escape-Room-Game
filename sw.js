@@ -1,4 +1,4 @@
-const CACHE='bibelreise-v3-3-6-explicit-challenge-controls';;;;;
+const CACHE='bibelreise-v3-3-7-challenge-editor-import-control';;;;;;
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon.png','./welcome-banner.webp','./background-bible.png','./challenge.js','./challenge.css','./ai-assistant.js','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
