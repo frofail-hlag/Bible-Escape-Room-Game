@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "bibelreise-ai-v1",
+  "gameType": "escape-room",
+  "reviewNotes": [],
+  "draft": {
+    "title": "Daniel bleibt Gott treu!",
+    "titleAr": "دانيال أمين لله!",
+    "ref": "Daniel 6 – Daniel in der Löwengrube",
+    "intro": "Daniel vertraut Gott, auch als ein ungerechtes Gesetz ihn unter Druck setzt. Löse die vier Rätsel, sammle die Hinweise und entdecke das Lösungswort.",
+    "introAr": "دانيال يثق بالله حتى عندما يواجه أمرًا ظالمًا. حلّ الألغاز الأربعة، واجمع التلميحات واكتشف كلمة السر.",
+    "color": "🦁",
+    "duration": 15,
+    "difficulty": "Mittel",
+    "status": "draft",
+    "puzzles": [
+      {
+        "type": "choice",
+        "q": "Warum wollten einige Beamte Daniel anklagen?",
+        "qAr": "لماذا أراد بعض المسؤولين اتهام دانيال؟",
+        "opts": [
+          "Sie waren neidisch und suchten einen Grund, ihn anzuklagen.",
+          "Daniel wollte selbst König werden.",
+          "Daniel hatte den König beleidigt."
+        ],
+        "optsAr": [
+          "حسدوه وبحثوا عن سبب لاتهامه.",
+          "أراد دانيال أن يصبح ملكًا.",
+          "أهان دانيال الملك."
+        ],
+        "a": 0,
+        "hint": "Überlege, ob Daniel seine Arbeit schlecht machte oder ob die Beamten etwas gegen ihn hatten.",
+        "hintAr": "فكّر: هل كان دانيال مقصّرًا في عمله، أم أن المسؤولين كانوا يحملون عليه؟",
+        "points": 100,
+        "clue": "T"
+      },
+      {
+        "type": "truefalse",
+        "q": "Daniel hörte wegen des königlichen Verbots auf, zu Gott zu beten.",
+        "qAr": "توقّف دانيال عن الصلاة لله بسبب أمر الملك.",
+        "a": "false",
+        "hint": "Denk daran, was Daniel tat, als er von dem neuen Gesetz erfuhr.",
+        "hintAr": "تذكّر ما فعله دانيال عندما عرف بالأمر الجديد.",
+        "points": 100,
+        "clue": "R"
+      },
+      {
+        "type": "number",
+        "q": "Wie oft betete Daniel jeden Tag wie gewohnt zu Gott?",
+        "qAr": "كم مرة كان دانيال يصلّي لله كل يوم كعادته؟",
+        "a": "3",
+        "aAr": "3",
+        "accepted": [
+          "dreimal",
+          "drei Mal",
+          "3-mal"
+        ],
+        "acceptedAr": [
+          "ثلاث مرات",
+          "٣"
+        ],
+        "hint": "Im Bericht wird eine Zahl genannt, die zeigt, dass Daniel regelmäßig betete.",
+        "hintAr": "يذكر النص عددًا يوضّح أن دانيال كان يصلّي بانتظام.",
+        "points": 100,
+        "clue": "E"
+      },
+      {
+        "type": "order",
+        "q": "Bringe die Ereignisse in die richtige Reihenfolge.",
+        "qAr": "رتّب الأحداث بالترتيب الصحيح.",
+        "items": [
+          "Der König unterschreibt das Verbot.",
+          "Daniel betet wie gewohnt zu Gott.",
+          "Daniel wird in die Löwengrube geworfen.",
+          "Gott sendet einen Engel, der den Löwen den Rachen verschließt."
+        ],
+        "itemsAr": [
+          "يوقّع الملك على الأمر.",
+          "يصلّي دانيال لله كعادته.",
+          "يُلقى دانيال في جب الأسود.",
+          "يرسل الله ملاكًا فيغلق أفواه الأسود."
+        ],
+        "correctItems": [
+          "Der König unterschreibt das Verbot.",
+          "Daniel betet wie gewohnt zu Gott.",
+          "Daniel wird in die Löwengrube geworfen.",
+          "Gott sendet einen Engel, der den Löwen den Rachen verschließt."
+        ],
+        "hint": "Beginne mit dem Gesetz und ende damit, wie Gott Daniel beschützt.",
+        "hintAr": "ابدأ بالأمر، واختتم بما فعله الله لحماية دانيال.",
+        "points": 100,
+        "clue": "U"
+      }
+    ],
+    "final": "TREU"
+  }
+}
