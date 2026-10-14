@@ -1181,7 +1181,7 @@
     [["hiob","job","أيوب"],"JOB"], [["psalmen","psalm","psalms","المزامير","مزمور"],"PSA"], [["spruche","sprüche","proverbs"],"PRO"],
     [["prediger","ecclesiastes"],"ECC"], [["hohelied","song of solomon"],"SNG"], [["jesaja","isaiah"],"ISA"],
     [["jeremia","jeremiah"],"JER"], [["klagelieder","lamentations"],"LAM"], [["hesekiel","hesekiel","ezekiel"],"EZK"],
-    [["daniel"],"DAN"], [["hosea"],"HOS"], [["joel"],"JOL"], [["amos"],"AMO"], [["obadja","obadiah"],"OBA"],
+    [["daniel","دانيال"],"DAN"], [["hosea"],"HOS"], [["joel"],"JOL"], [["amos"],"AMO"], [["obadja","obadiah"],"OBA"],
     [["jona","jonah"],"JON"], [[" Micha ","mi cha","micha","micah"],"MIC"], [["nahum"],"NAM"], [["habakuk","habakkuk"],"HAB"],
     [["zephanja","zephaniah"],"ZEP"], [["haggai"],"HAG"], [["sacharja","zechariah"],"ZEC"], [["maleachi","malachi"],"MAL"],
     [["matthaus","matthäus","matthew","متى","إنجيل متى"],"MAT"], [["markus","mark","مرقس","إنجيل مرقس"],"MRK"], [["lukas","luke","لوقا","إنجيل لوقا"],"LUK"], [["johannes","john","يوحنا","إنجيل يوحنا"],"JHN"],
