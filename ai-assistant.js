@@ -3,6 +3,10 @@
 
   const PANEL_ID = "bibelreiseAiImportPanel";
   const BUTTON_ID = "bibelreiseAiImportButton";
+  const PROMPT_PANEL_ID = "bibelreiseAiPromptPanel";
+  const PROMPT_BUTTON_ID = "bibelreiseAiPromptButton";
+  const PROMPT_ESCAPE_EDITOR_BUTTON_ID = "bibelreiseAiPromptEscapeEditorButton";
+  const PROMPT_CHALLENGE_EDITOR_BUTTON_ID = "bibelreiseAiPromptChallengeEditorButton";
   const CHALLENGE_KEY = "bibleEscapeReadingChallengesV1";
 
   function esc(value) {
@@ -238,6 +242,251 @@
     };
   }
 
+
+  function buildGuidedPrompt(kind, fields) {
+    const isEscape = kind === "escape-room";
+    const count = Number(fields.count);
+    const typeLabel = isEscape ? "Bibel Escape Room" : "Bibel-Challenge";
+    const example = isEscape ? {
+      schemaVersion: "bibelreise-ai-v1",
+      gameType: "escape-room",
+      reviewNotes: [],
+      draft: {
+        title: "Deutscher Titel",
+        titleAr: "عنوان عربي",
+        ref: "Bibelstelle",
+        intro: "Deutsche Einführung",
+        introAr: "مقدمة عربية",
+        color: "📖",
+        duration: 15,
+        difficulty: fields.difficulty,
+        status: "draft",
+        puzzles: [{
+          type: "choice",
+          q: "Deutsche Frage",
+          qAr: "السؤال بالعربية",
+          opts: ["Option A", "Option B", "Option C"],
+          optsAr: ["الخيار أ", "الخيار ب", "الخيار ج"],
+          a: 0,
+          hint: "Deutscher Hinweis",
+          hintAr: "تلميح عربي",
+          points: 100,
+          clue: "A"
+        }],
+        final: "ABCD"
+      }
+    } : {
+      schemaVersion: "bibelreise-ai-v1",
+      gameType: "bibel-challenge",
+      reviewNotes: [],
+      draft: {
+        title: "Deutscher Titel",
+        titleAr: "عنوان عربي",
+        passage: fields.passage,
+        instructions: "Deutsche Leseanweisung",
+        instructionsAr: "تعليمات القراءة بالعربية",
+        status: "draft",
+        questions: [{
+          type: "choice",
+          q: "Deutsche Frage",
+          qAr: "السؤال بالعربية",
+          opts: ["Option A", "Option B", "Option C"],
+          optsAr: ["الخيار أ", "الخيار ب", "الخيار ج"],
+          a: 0,
+          hint: "Deutscher Hinweis",
+          hintAr: "تلميح عربي",
+          explanation: "Deutsche Erklärung",
+          explanationAr: "شرح عربي",
+          points: 100,
+          accepted: [],
+          acceptedAr: []
+        }]
+      }
+    };
+    const lines = [
+      "Du bist eine sorgfältige Fachperson für zweisprachige Inhalte einer koptisch-orthodoxen Sonntagsschule und erstellst Material für Bibelreise (رحلة في الكتاب المقدس).",
+      "",
+      "AUFGABE UND RAHMEN",
+      "- Aktivitätstyp: " + typeLabel,
+      "- Altersgruppe: " + fields.age,
+      "- Bibelgeschichte/Thema: " + fields.topic,
+      "- Vorgegebene Bibelstelle: " + fields.passage,
+      "- Lernziel: " + (fields.objective || "Leite ein passendes, klares Lernziel aus Thema und Bibelstelle ab."),
+      "- Schwierigkeit: " + fields.difficulty,
+      "- Gewünschte Anzahl: " + count + (isEscape ? " Rätsel" : " Fragen"),
+      "- Zusätzliche Hinweise der Lehrkraft: " + (fields.notes || "Keine"),
+      "",
+      "QUALITÄTSREGELN",
+      "- Schreibe alle Inhalte für Kinder/Jugendliche der angegebenen Altersgruppe verständlich und altersgerecht.",
+      "- Erstelle vollständige, sinngleiche deutsche und arabische Texte. Verwende natürliches Deutsch und klares Hocharabisch (Modern Standard Arabic).",
+      "- Verankere alle Fakten, richtigen Antworten und Erklärungen in der angegebenen Bibelstelle. Erfinde keine Bibelverse oder Verweise.",
+      "- Verwende keine mehrdeutigen Fangfragen. Falsche Antwortoptionen müssen eindeutig falsch sein.",
+      "- Gib kurze, hilfreiche Hinweise, die die Antwort nicht direkt verraten.",
+      "- Falls ein Detail unsicher ist oder die Bibelstelle nicht genügend Informationen bietet, notiere dies in reviewNotes, statt etwas zu erfinden.",
+      "- Gib nur Felder aus, die im vorgegebenen Schema unterstützt werden. Erfinde keine IDs, Zeitstempel oder zusätzlichen Eigenschaften.",
+      "- Der Status muss draft sein. Veröffentliche die Aktivität nicht.",
+      "",
+      isEscape ? "ESCAPE-ROOM-REGELN" : "BIBEL-CHALLENGE-REGELN",
+      ...(isEscape ? [
+        "- Erstelle genau " + count + " zusammenhängende Rätsel als sinnvolle Lernreise, mit einer geeigneten Mischung aus choice, truefalse, order, text, number und bible.",
+        "- Jedes Rätsel braucht ein kurzes clue-Fragment aus Großbuchstaben A–Z oder Ziffern. Die Fragmente in Reihenfolge müssen exakt den Wert von final ergeben, ohne Leerzeichen oder Satzzeichen.",
+        "- Bei choice ist a der nullbasierte Index der richtigen Option; opts und optsAr müssen gleich lang und Index für Index bedeutungsgleich sein.",
+        "- Bei truefalse muss a der String true oder false sein.",
+        "- Bei order sind items und itemsAr parallel angeordnete Listen, und correctItems entspricht exakt der richtigen deutschen Reihenfolge in items.",
+        "- Bei text, number und bible gib a und aAr sowie bei Bedarf accepted und acceptedAr als Listen alternativer Antworten an."
+      ] : [
+        "- Erstelle genau " + count + " Fragen zur angegebenen Bibelstelle. Beginne mit klaren zweisprachigen Leseanweisungen.",
+        "- Jede Frage benötigt einen richtigen Antwortwert und eine kurze Erklärung sowohl auf Deutsch als auch auf Arabisch.",
+        "- Bei choice ist a der nullbasierte Index der richtigen Option; opts und optsAr müssen gleich lang sein und in beiden Sprachen übereinstimmen.",
+        "- Bei truefalse muss a der String true oder false sein.",
+        "- Bei order müssen items und itemsAr gleich lange, sinngleiche Listen der korrekten Reihenfolge sein.",
+        "- Bei text, number und bible gib a, aAr sowie bei Bedarf accepted und acceptedAr als Listen alternativer Antworten an."
+      ]),
+      "",
+      "AUSGABEFORMAT",
+      "Gib genau ein vollständiges, gültiges JSON-Objekt zurück. Keine Markdown-Codezäune, keine Kommentare und keinen erklärenden Text außerhalb des JSON.",
+      "Die folgende Struktur zeigt die unterstützte Feldform. Erstelle in der tatsächlichen Antwort genau " + count + (isEscape ? " puzzles-Elemente." : " questions-Elemente.") + " und fülle alle notwendigen Inhalte aus:",
+      JSON.stringify(example, null, 2),
+      "",
+      "Wichtig: Der Importer prüft die Struktur, nicht automatisch die theologische Richtigkeit. Lass reviewNotes als leere Liste, wenn es keine konkreten Prüfhinweise gibt. Die Lehrkraft prüft den Entwurf vor einer späteren Veröffentlichung."
+    ];
+    return lines.join("\n");
+  }
+
+  function injectPromptBuilder(kind, specificTriggerId) {
+    const root = document.querySelector(".app");
+    const nav = root && root.querySelector(".teacher-nav");
+    if (!root || !nav) return;
+    const targetId = specificTriggerId || PROMPT_BUTTON_ID;
+    let trigger = document.getElementById(targetId);
+    if (!trigger && !specificTriggerId) {
+      trigger = document.createElement("button");
+      trigger.id = targetId;
+      trigger.className = "btn gold";
+      trigger.type = "button";
+      trigger.textContent = "🧠 ChatGPT-Prompt erstellen / إعداد طلب ChatGPT";
+      nav.appendChild(trigger);
+    }
+    if (!trigger) return;
+    if (!specificTriggerId && trigger.parentNode !== nav) nav.appendChild(trigger);
+    if (trigger.dataset.bibelreisePromptBound !== "true") {
+      trigger.dataset.bibelreisePromptBound = "true";
+      trigger.addEventListener("click", function () {
+        const panel = document.getElementById(PROMPT_PANEL_ID);
+        if (!panel) return;
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) {
+          const importPanel = document.getElementById(PANEL_ID);
+          if (importPanel) importPanel.hidden = true;
+          const age = panel.querySelector("#bibelreisePromptAge");
+          if (age) age.focus();
+        }
+      });
+    }
+
+    let panel = document.getElementById(PROMPT_PANEL_ID);
+    if (panel) panel.remove();
+    panel = document.createElement("section");
+    panel.id = PROMPT_PANEL_ID;
+    panel.className = "card";
+    panel.hidden = true;
+    panel.style.cssText = "margin:0 0 18px;border:2px solid #b6c9f5";
+    const isEscape = kind === "escape-room";
+    const countOptions = isEscape
+      ? "<option value='3'>3 Rätsel</option><option value='4' selected>4 Rätsel</option><option value='5'>5 Rätsel</option><option value='6'>6 Rätsel</option>"
+      : "<option value='3'>3 Fragen</option><option value='4' selected>4 Fragen</option>";
+    panel.innerHTML =
+      "<div class='editor-head'><div><h2>🧠 ChatGPT-Prompt erstellen / إعداد طلب ChatGPT</h2>" +
+      "<p class='small'>Fülle den kurzen Auftrag aus. Bibelreise erstellt daraus einen Prompt zum Kopieren in deine ChatGPT-Unterhaltung. Es erfolgt kein KI/API-Aufruf.</p></div></div>" +
+      "<div class='field'><label for='bibelreisePromptAge'>Altersgruppe / الفئة العمرية</label><input id='bibelreisePromptAge' required maxlength='60' value='9–15 Jahre' placeholder='z. B. 9–15 Jahre'></div>" +
+      "<div class='field'><label for='bibelreisePromptTopic'>Bibelgeschichte oder Thema / القصة أو الموضوع الكتابي *</label><input id='bibelreisePromptTopic' required maxlength='180' placeholder='z. B. Daniel in der Löwengrube'></div>" +
+      "<div class='field'><label for='bibelreisePromptPassage'>Bibelstelle / المرجع الكتابي *</label><input id='bibelreisePromptPassage' required maxlength='120' placeholder='z. B. Daniel 6,1–29'></div>" +
+      "<div class='field'><label for='bibelreisePromptObjective'>Lernziel (empfohlen) / الهدف التعليمي</label><textarea id='bibelreisePromptObjective' rows='2' maxlength='500' placeholder='Was sollen die Kinder verstehen oder behalten?'></textarea></div>" +
+      "<div class='field-row'><div class='field'><label for='bibelreisePromptDifficulty'>Schwierigkeit / مستوى الصعوبة</label><select id='bibelreisePromptDifficulty'><option>Einfach</option><option selected>Mittel</option><option>Schwer</option></select></div>" +
+      "<div class='field'><label for='bibelreisePromptCount'>" + (isEscape ? "Anzahl Rätsel / عدد الألغاز" : "Anzahl Fragen / عدد الأسئلة") + "</label><select id='bibelreisePromptCount'>" + countOptions + "</select></div></div>" +
+      "<div class='field'><label for='bibelreisePromptNotes'>Zusätzliche Hinweise (optional) / ملاحظات إضافية</label><textarea id='bibelreisePromptNotes' rows='3' maxlength='1000' placeholder='z. B. Schwerpunkt, Unterrichtskontext oder gewünschte Bibelbotschaft'></textarea></div>" +
+      "<div class='actions'><button class='btn' id='bibelreisePromptGenerate' type='button'>Prompt erstellen / إنشاء الطلب</button><button class='btn secondary' id='bibelreisePromptClear' type='button'>Leeren</button></div>" +
+      "<div id='bibelreisePromptFeedback' aria-live='polite'></div>" +
+      "<div class='field'><label for='bibelreisePromptOutput'>Fertiger Prompt für ChatGPT / الطلب الجاهز لـ ChatGPT</label><textarea id='bibelreisePromptOutput' spellcheck='false' rows='14' placeholder='Hier erscheint der fertige Prompt…' style='min-height:260px;font-family:ui-monospace,Consolas,monospace'></textarea></div>" +
+      "<div class='actions'><button class='btn gold' id='bibelreisePromptCopy' type='button' disabled>📋 Prompt kopieren / نسخ الطلب</button><button class='btn secondary' id='bibelreisePromptOpenImporter' type='button'>Zum JSON-Import / الانتقال إلى استيراد JSON</button></div>" +
+      "<p class='small'>Ablauf: Prompt kopieren → in ChatGPT einfügen und verfeinern → das vollständige JSON kopieren → hier im JSON-Import prüfen und als Entwurf übernehmen. Kein API-Schlüssel, keine automatische Veröffentlichung.</p>";
+    nav.insertAdjacentElement("afterend", panel);
+
+    const ageInput = panel.querySelector("#bibelreisePromptAge");
+    const topicInput = panel.querySelector("#bibelreisePromptTopic");
+    const passageInput = panel.querySelector("#bibelreisePromptPassage");
+    const objectiveInput = panel.querySelector("#bibelreisePromptObjective");
+    const difficultyInput = panel.querySelector("#bibelreisePromptDifficulty");
+    const countInput = panel.querySelector("#bibelreisePromptCount");
+    const notesInput = panel.querySelector("#bibelreisePromptNotes");
+    const output = panel.querySelector("#bibelreisePromptOutput");
+    const feedback = panel.querySelector("#bibelreisePromptFeedback");
+    const copyButton = panel.querySelector("#bibelreisePromptCopy");
+
+    panel.querySelector("#bibelreisePromptGenerate").addEventListener("click", function () {
+      const age = ageInput.value.trim();
+      const topic = topicInput.value.trim();
+      const passage = passageInput.value.trim();
+      if (!age || !topic || !passage) {
+        feedback.innerHTML = "<div class='notice'>Bitte fülle Altersgruppe, Bibelgeschichte/Thema und Bibelstelle aus, bevor du den Prompt erstellst.</div>";
+        return;
+      }
+      const prompt = buildGuidedPrompt(kind, {
+        age: age,
+        topic: topic,
+        passage: passage,
+        objective: objectiveInput.value.trim(),
+        difficulty: difficultyInput.value,
+        count: countInput.value,
+        notes: notesInput.value.trim()
+      });
+      output.value = prompt;
+      copyButton.disabled = false;
+      feedback.innerHTML = "<div class='feedback ok'>Prompt erstellt. Kopiere ihn jetzt in deine ChatGPT-Unterhaltung. / تم إنشاء الطلب. انسخه الآن إلى محادثة ChatGPT.</div>";
+      output.focus();
+    });
+
+    panel.querySelector("#bibelreisePromptClear").addEventListener("click", function () {
+      topicInput.value = "";
+      passageInput.value = "";
+      objectiveInput.value = "";
+      notesInput.value = "";
+      output.value = "";
+      copyButton.disabled = true;
+      feedback.textContent = "";
+      topicInput.focus();
+    });
+
+    copyButton.addEventListener("click", async function () {
+      if (!output.value.trim()) return;
+      try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+          await navigator.clipboard.writeText(output.value);
+          feedback.innerHTML = "<div class='feedback ok'>Prompt in die Zwischenablage kopiert. / تم نسخ الطلب.</div>";
+          return;
+        }
+      } catch (_) {}
+      output.focus();
+      output.select();
+      let copied = false;
+      try { copied = document.execCommand("copy"); } catch (_) {}
+      feedback.innerHTML = copied
+        ? "<div class='feedback ok'>Prompt in die Zwischenablage kopiert. / تم نسخ الطلب.</div>"
+        : "<div class='notice'>Automatisches Kopieren wurde vom Browser blockiert. Markiere den Text im Feld und kopiere ihn manuell.</div>";
+    });
+
+    panel.querySelector("#bibelreisePromptOpenImporter").addEventListener("click", function () {
+      panel.hidden = true;
+      const importPanel = document.getElementById(PANEL_ID);
+      if (importPanel) {
+        importPanel.hidden = false;
+        const json = importPanel.querySelector("#bibelreiseAiJson");
+        if (json) json.focus();
+      }
+    });
+  }
+
+
   function injectImportPanel(kind, specificTriggerId) {
     const root = document.querySelector(".app");
     const nav = root && root.querySelector(".teacher-nav");
@@ -261,6 +510,8 @@
         if (!panel) return;
         panel.hidden = !panel.hidden;
         if (!panel.hidden) {
+          const promptPanel = document.getElementById(PROMPT_PANEL_ID);
+          if (promptPanel) promptPanel.hidden = true;
           const input = panel.querySelector("textarea");
           if (input) input.focus();
         }
@@ -365,6 +616,10 @@
         messages.innerHTML = "<div class='notice'><strong>Import fehlgeschlagen.</strong><br>" + esc(error && error.message || error) + "</div>";
       }
     });
+    const promptTriggerId = specificTriggerId
+      ? (kind === "escape-room" ? PROMPT_ESCAPE_EDITOR_BUTTON_ID : PROMPT_CHALLENGE_EDITOR_BUTTON_ID)
+      : null;
+    injectPromptBuilder(kind, promptTriggerId);
   }
 
   function safeBibleLinksMarkup(passage) {
@@ -473,4 +728,5 @@
   window.bibelreiseValidateAiEnvelope = validateEnvelope;
   window.bibelreiseInjectChallengeBibleLinks = injectBibleLinks;
   window.bibelreiseInjectTeacherImportPanel = injectImportPanel;
+  window.bibelreiseBuildGuidedPrompt = buildGuidedPrompt;
 })();
