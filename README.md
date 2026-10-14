@@ -1,4 +1,4 @@
-# Bibelreise V3.4.0 — Guided ChatGPT Prompt Builder
+# Bibelreise V3.5.0 — Multilingual Prompt, Flexible Counts & JSON Repair
 
 ## Hosting and Firebase
 The PWA remains hosted on GitHub Pages. Firebase is used only for teacher authentication, shared Bibel-Challenges, and shared student results. No AI/API features are included.
@@ -34,9 +34,9 @@ Do not use permissive rules such as “allow read, write: if true”. Do not put
 
 ## Current versions
 - Bibel Escape Room: existing game engine and three starter missions retained.
-- Bibel-Challenge: separate, self-paced bilingual reading activities, 3–4 questions, passage access, feedback, explanations and cross-device results.
+- Bibel-Challenge: separate, self-paced bilingual reading activities, 3–10 questions, passage access, feedback, explanations and cross-device results.
 - Teacher login uses Firebase Email/Password and an explicit teacher allow-list.
-- Direct AI/API integration remains paused; V3.4.0 adds a manual guided prompt builder only.
+- Direct AI/API integration remains paused; V3.5.0 adds manual prompts in German, Arabic or English, with German/Arabic game output and a copyable JSON syntax-repair prompt.
 
 
 ## Personalized teacher greeting
@@ -98,3 +98,12 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Teachers copy the prompt into their own ChatGPT conversation, refine it as needed, then paste ChatGPT's JSON into **📥 JSON-Entwurf importieren**.
 - Bibelreise makes no AI/API request in this workflow and needs no OpenAI API key. The existing validation, preview, and explicit draft import flow remain in place. Activities are never published automatically.
 - Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
+
+
+## Multilingual prompt builder, selectable counts and JSON recovery (V3.5.0)
+
+- Prompt language selector: Deutsch, العربية, English. Prompt instructions follow the selected language; the generated game always retains the German/Arabic JSON fields.
+- Both game types offer exactly 3, 4, 6, 7, or 10 as prompt count choices. Import validation and the Bibel-Challenge editor support up to 10 questions.
+- Prompt instructions require strict JSON and forbid trailing commas, comments, Markdown fences, ellipses, and text outside the object.
+- When JSON parsing fails, the importer can generate and copy a syntax-repair prompt in the selected language. It explicitly preserves German and Arabic content and asks ChatGPT to fix syntax only. Pasted JSON is never silently rewritten by the app.
+- No API key, OpenAI API request, or direct account connection has been added.
