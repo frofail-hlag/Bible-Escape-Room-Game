@@ -497,7 +497,7 @@
         "أخرج كائن JSON كاملًا واحدًا قابلًا للتحليل فقط، دون كتل Markdown أو تعليقات أو نقاط حذف أو نص إضافي. لا تستخدم فواصل زائدة. يجب الحفاظ على عدد الألغاز/الأسئلة وترتيبها كما هو.",
         "Return exactly one complete parseable JSON object, with no Markdown fences, comments, ellipses or extra text. No trailing commas. Preserve the number and order of puzzles/questions."),
       L("Wenn ein Wert fehlt – insbesondere bei \"reviewNotes\": , – ergänze einen gültigen, schema-konformen JSON-Wert. Für reviewNotes verwende [] wenn keine Hinweise vorhanden sind; entferne das Feld nicht. Prüfe jede Eigenschaft auf einen gültigen Wert nach dem Doppelpunkt.",
-        "إذا كانت قيمة مفقودة، وخصوصًا في \"reviewNotes\": ، فأكمل قيمة JSON صحيحة ومتوافقة مع البنية. استخدم [] للحقل reviewNotes إذا لم توجد ملاحظات، ولا تحذف الحقل. تحقّق من وجود قيمة صحيحة بعد النقطتين لكل مفتاح.",
+        "إذا كانت قيمة مفقودة، وخصوصًا في \"reviewNotes\": , فأكمل قيمة JSON صحيحة ومتوافقة مع البنية. استخدم [] للحقل reviewNotes إذا لم توجد ملاحظات، ولا تحذف الحقل. تحقّق من وجود قيمة صحيحة بعد النقطتين لكل مفتاح.",
         "If a value is missing—especially \"reviewNotes\": ,—supply a valid JSON value that matches the schema. Use [] for reviewNotes when there are no notes; do not remove the field. Check that every property has a valid value after its colon."),
       "",
       L("JSON mit Syntaxfehlern:", "JSON الذي يحتوي على أخطاء:", "JSON WITH SYNTAX ERRORS:"),
