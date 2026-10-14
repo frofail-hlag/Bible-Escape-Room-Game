@@ -172,7 +172,7 @@ No route should have silent fallback to paid API usage. If no-cost plan usage is
 1. **Complete:** Finalize prompt inputs and create one example for each game type.
 2. **Complete:** Standalone validator/preview page with Daniel sample fixtures.
 3. **Implemented, needs hands-on verification:** In-app manual JSON import from both teacher dashboards, with validation, preview, generated IDs, and draft-only saving.
-4. **Implemented:** Direct German SCH2000 and Arabic AVD Bible.com links are displayed on the Bibel-Challenge list, introduction and each question. The existing in-app two-language Bible reader remains available as well. Unrecognized references now fall back to Bible.com rather than incorrectly opening John 1.
+4. **Implemented:** Direct German SCH2000 and Arabic AVD Bible.com links are displayed on the Bibel-Challenge list, introduction and each question. Multi-chapter references such as Esther 4–7 offer a separate link for each chapter in both languages. The existing in-app two-language Bible reader remains available as well. Unrecognized references now fall back to Bible.com rather than incorrectly opening John 1.
 5. **Next:** Test importing both sample JSON files through the actual app, verify editor preview and gameplay, then test Challenge draft sync and the two direct Bible links on desktop and mobile.
 6. **Separate track:** Confirm the eligibility path for ChatGPT-plan usage or direct ChatGPT-to-app integration. Do not add an API key, paid fallback, or silent credits.
 7. Add the eventual AI-assistance button/form only after these manual import checks pass and the no-additional-cost integration path is confirmed.
