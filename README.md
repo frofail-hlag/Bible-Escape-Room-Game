@@ -100,6 +100,13 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
 
 
+## Pretty-printed JSON prompts (V3.5.4)
+
+- Guided prompts in German, Arabic, and English now require pretty-printed JSON with exactly two spaces of indentation, with each property and array item on its own line.
+- The model is told to use straight ASCII double quotes (U+0022), never curly quotation marks as JSON delimiters.
+- Every key must have a valid value. Empty review notes and optional answer lists must use `[]`; German and Arabic option arrays must both be bracketed and have matching item counts.
+- The generated prompt instructs ChatGPT to check brackets, commas, values, arrays, and overall parseability before returning the JSON, without Markdown fences or extra commentary.
+
 ## JSON missing-value diagnostics (V3.5.3)
 
 - The importer now detects the specific malformed pattern `"reviewNotes": ,` and tells the teacher to use `"reviewNotes": []` when there are no notes.
