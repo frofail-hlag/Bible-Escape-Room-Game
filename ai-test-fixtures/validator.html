@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bibelreise · AI Draft Validator</title>
+<style>
+:root{color-scheme:light;--ink:#1e293b;--muted:#64748b;--paper:#f6f7fb;--card:#fff;--line:#dbe2ea;--blue:#244b73;--gold:#c39a4b;--good:#166534;--bad:#991b1b;--warn:#92400e}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1050px;margin:0 auto;padding:24px 16px 56px}.eyebrow{color:var(--blue);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:.78rem}
+h1{margin:.2rem 0 .4rem;font-size:clamp(1.75rem,4vw,2.6rem);line-height:1.15}h2{margin:.2rem 0 .8rem;font-size:1.35rem}h3{margin:.2rem 0 .5rem;font-size:1.05rem}
+p{margin:.35rem 0 .75rem}.muted,.small{color:var(--muted)}.small{font-size:.9rem}
+.panel,.meta,.item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:16px;box-shadow:0 2px 12px #17255408}
+textarea{display:block;width:100%;min-height:245px;resize:vertical;padding:12px;border:1px solid #b9c5d3;border-radius:10px;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;background:#fbfdff;color:#0f172a}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.btn{appearance:none;cursor:pointer;border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;font-weight:700}.btn.secondary{background:#e7edf4;color:var(--ink);border:1px solid var(--line)}.btn.gold{background:#f4e8cc;color:#5b4214;border:1px solid #e6d3a7}
+.message{border-radius:10px;padding:12px 14px;margin-top:14px}.message.good{background:#ecfdf3;color:var(--good);border:1px solid #bbf7d0}.message.bad{background:#fff1f2;color:var(--bad);border:1px solid #fecdd3}.message.warn{background:#fffbeb;color:var(--warn);border:1px solid #fde68a}
+.list{margin:.4rem 0 .2rem;padding-left:1.3rem}.list li{margin:.25rem 0}.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}.meta-cell{border:1px solid var(--line);border-radius:10px;padding:10px}.meta-label{font-size:.76rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800}.meta-value{font-weight:700;overflow-wrap:anywhere}
+.ar{direction:rtl;text-align:right;font-family:Tahoma,Arial,sans-serif}.bilingual{display:grid;grid-template-columns:1fr 1fr;gap:12px}.lang{border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}.lang-label{font-size:.75rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.pill{display:inline-block;border-radius:999px;padding:3px 9px;background:#eef2f7;color:#334155;font-size:.8rem;font-weight:800}.ok{color:var(--good);font-weight:800}.wrong{color:var(--bad);font-weight:800}.answer{margin-top:10px;padding:9px 11px;background:#f8fafc;border-left:3px solid var(--gold);border-radius:5px}
+.option{padding:7px 9px;border:1px solid var(--line);border-radius:8px;margin:6px 0}.option.correct{border-color:#86c49b;background:#f0fdf4}.code{letter-spacing:.2em;font:900 1.4rem ui-monospace,monospace;color:var(--blue)}
+footer{padding:20px 4px;color:var(--muted);font-size:.86rem}
+@media(max-width:650px){main{padding:18px 11px 40px}.bilingual{grid-template-columns:1fr}.panel,.meta,.item{padding:14px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Bibelreise · رحلة في الكتاب المقدس</div>
+  <h1>AI draft validator</h1>
+  <p class="muted">A standalone test for the proposed manual ChatGPT → JSON → teacher review workflow.</p>
+  <div class="message warn"><strong>Test page only.</strong> It does not write to Bibelreise, local storage or Firebase; it does not publish games; it does not call an AI API. The preview includes answers for teacher review.</div>
+
+  <section class="panel">
+    <h2>1. Load a test fixture or paste JSON</h2>
+    <p class="small">Choose one of the saved Daniel examples, or paste another response matching <code>bibelreise-ai-v1</code>.</p>
+    <div class="actions">
+      <button class="btn gold" id="loadEscape">Load Escape Room sample</button>
+      <button class="btn gold" id="loadChallenge">Load Bibel-Challenge sample</button>
+      <button class="btn secondary" id="clear">Clear</button>
+    </div>
+    <label for="jsonInput"><strong>JSON draft</strong></label>
+    <textarea id="jsonInput" spellcheck="false" placeholder="Paste the complete JSON envelope here…"></textarea>
+    <div class="actions"><button class="btn" id="validate">Validate and preview</button></div>
+    <div id="validation" aria-live="polite"></div>
+  </section>
+  <section id="preview" aria-live="polite"></section>
+  <footer>Internal test fixture only · No automatic import or persistence · Bible content should be checked by the teacher before classroom use.</footer>
+</main>
+<script>
+(function(){
+  "use strict";
+  const input=document.getElementById("jsonInput");
+  const validation=document.getElementById("validation");
+  const preview=document.getElementById("preview");
+  const $=id=>document.getElementById(id);
+  function esc(value){
+    return String(value==null?"":value).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  }
+  function arr(x){return Array.isArray(x)?x:[];}
+  function addError(errors,msg){errors.push(msg);}
+  function validType(type){return ["choice","truefalse","order","text","number","bible"].includes(type);}
+  function validateDraft(data){
+    const errors=[],warnings=[];
+    if(!data||typeof data!=="object"||Array.isArray(data)){return {errors:["Top level must be a JSON object."],warnings:[]};}
+    if(data.schemaVersion!=="bibelreise-ai-v1")addError(errors,"schemaVersion must be \"bibelreise-ai-v1\".");
+    if(!["escape-room","bibel-challenge"].includes(data.gameType))addError(errors,"gameType must be \"escape-room\" or \"bibel-challenge\".");
+    if(!data.draft||typeof data.draft!=="object"||Array.isArray(data.draft)){addError(errors,"draft must be an object.");return {errors,warnings};}
+    const d=data.draft;
+    if(d.status!=="draft")addError(errors,"Draft status must be \"draft\". The real importer should force draft status.");
+    if(arr(data.reviewNotes).length)warnings.push(...data.reviewNotes.map(note=>"Teacher review note: "+String(note)));
+    if(data.gameType==="escape-room"){
+      ["title","titleAr","ref","intro","introAr","final"].forEach(k=>{if(!String(d[k]||"").trim())addError(errors,"Escape Room: required field is empty: "+k+".");});
+      const puzzles=arr(d.puzzles);
+      if(puzzles.length<3||puzzles.length>6)addError(errors,"Escape Room must contain 3–6 puzzles.");
+      puzzles.forEach((p,i)=>{
+        const n=i+1;
+        ["q","qAr","hint","hintAr","clue"].forEach(k=>{if(!String(p&&p[k]||"").trim())addError(errors,"Escape puzzle "+n+": missing "+k+".");});
+        if(!p||!validType(p.type)){addError(errors,"Escape puzzle "+n+": unsupported or missing type.");return;}
+        if(p.type==="choice"){
+          if(!Array.isArray(p.opts)||!Array.isArray(p.optsAr)||p.opts.length<2||p.opts.length!==p.optsAr.length)addError(errors,"Escape puzzle "+n+": German and Arabic options must have equal lengths (at least 2).");
+          if(!Number.isInteger(p.a)||p.a<0||p.a>=arr(p.opts).length)addError(errors,"Escape puzzle "+n+": correct choice index is invalid.");
+        }else if(p.type==="truefalse"){
+          if(p.a!=="true"&&p.a!=="false")addError(errors,"Escape puzzle "+n+": truefalse answer must be the string \"true\" or \"false\".");
+        }else if(p.type==="order"){
+          if(!Array.isArray(p.items)||!Array.isArray(p.itemsAr)||p.items.length<2||p.items.length!==p.itemsAr.length)addError(errors,"Escape puzzle "+n+": order arrays must match and contain at least 2 items.");
+          if(!Array.isArray(p.correctItems)||p.correctItems.join("\u0000")!==arr(p.items).join("\u0000"))addError(errors,"Escape puzzle "+n+": correctItems must match the intended German order.");
+        }else{
+          if(!String(p.a==null?"":p.a).trim()||!String(p.aAr==null?"":p.aAr).trim())addError(errors,"Escape puzzle "+n+": a and aAr are required for "+p.type+".");
+        }
+      });
+      const clueCode=puzzles.map(p=>String(p&&p.clue||"")).join("").replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+      const finalCode=String(d.final||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase();
+      if(!clueCode||clueCode!==finalCode)addError(errors,"Escape Room: the puzzle clue fragments do not match the final code.");
+    }else if(data.gameType==="bibel-challenge"){
+      ["title","titleAr","passage","instructions","instructionsAr"].forEach(k=>{if(!String(d[k]||"").trim())addError(errors,"Bibel-Challenge: required field is empty: "+k+".");});
+      const questions=arr(d.questions);
+      if(questions.length<3||questions.length>4)addError(errors,"Bibel-Challenge must contain 3 or 4 questions.");
+      questions.forEach((q,i)=>{
+        const n=i+1;
+        ["q","qAr","hint","hintAr","explanation","explanationAr"].forEach(k=>{if(!String(q&&q[k]||"").trim())addError(errors,"Challenge question "+n+": missing "+k+".");});
+        if(!q||!validType(q.type)){addError(errors,"Challenge question "+n+": unsupported or missing type.");return;}
+        if(q.type==="choice"){
+          if(!Array.isArray(q.opts)||!Array.isArray(q.optsAr)||q.opts.length<2||q.opts.length!==q.optsAr.length)addError(errors,"Challenge question "+n+": German and Arabic options must have equal lengths (at least 2).");
+          if(!Number.isInteger(q.a)||q.a<0||q.a>=arr(q.opts).length)addError(errors,"Challenge question "+n+": correct choice index is invalid.");
+        }else if(q.type==="truefalse"){
+          if(q.a!=="true"&&q.a!=="false")addError(errors,"Challenge question "+n+": truefalse answer must be the string \"true\" or \"false\".");
+        }else if(q.type==="order"){
+          if(!Array.isArray(q.items)||!Array.isArray(q.itemsAr)||q.items.length<2||q.items.length!==q.itemsAr.length)addError(errors,"Challenge question "+n+": order arrays must match and contain at least 2 items.");
+        }else{
+          if(!String(q.a==null?"":q.a).trim()||!String(q.aAr==null?"":q.aAr).trim())addError(errors,"Challenge question "+n+": a and aAr are required for "+q.type+".");
+          if(q.accepted!=null&&!Array.isArray(q.accepted))addError(errors,"Challenge question "+n+": accepted must be an array when supplied.");
+          if(q.acceptedAr!=null&&!Array.isArray(q.acceptedAr))addError(errors,"Challenge question "+n+": acceptedAr must be an array when supplied.");
+        }
+      });
+    }
+    return {errors,warnings};
+  }
+  function optionsHtml(p){
+    const opts=arr(p.opts),arabic=arr(p.optsAr);
+    return "<div class='bilingual'>"+
+      "<div class='lang'><div class='lang-label'>Antworten · Deutsch</div>"+opts.map((o,i)=>"<div class='option "+(i===p.a?"correct":"")+"'>"+(i===p.a?"✓ ":"")+esc(o)+(i===p.a?" <span class='ok'>(richtig)</span>":"")+"</div>").join("")+"</div>"+
+      "<div class='lang ar'><div class='lang-label'>الإجابات · العربية</div>"+arabic.map((o,i)=>"<div class='option "+(i===p.a?"correct":"")+"'>"+(i===p.a?"✓ ":"")+esc(o)+(i===p.a?" <span class='ok'>(الصحيحة)</span>":"")+"</div>").join("")+"</div></div>";
+  }
+  function pair(de,ar,labelDe,labelAr){
+    return "<div class='bilingual'><div class='lang'><div class='lang-label'>"+esc(labelDe||"Deutsch")+"</div><div>"+esc(de)+"</div></div><div class='lang ar'><div class='lang-label'>"+esc(labelAr||"العربية")+"</div><div>"+esc(ar)+"</div></div></div>";
+  }
+  function orderHtml(items,itemsAr){
+    return "<div class='bilingual'><div class='lang'><div class='lang-label'>Reihenfolge · Deutsch</div><ol class='list'>"+arr(items).map(x=>"<li>"+esc(x)+"</li>").join("")+"</ol></div><div class='lang ar'><div class='lang-label'>الترتيب · العربية</div><ol class='list'>"+arr(itemsAr).map(x=>"<li>"+esc(x)+"</li>").join("")+"</ol></div></div>";
+  }
+  function answerHtml(p){
+    if(p.type==="choice")return optionsHtml(p);
+    if(p.type==="truefalse"){
+      const yes=p.a==="true";
+      return "<div class='answer'><strong>Correct answer / الإجابة الصحيحة:</strong> "+(yes?"True / صحيح":"False / خطأ")+"</div>";
+    }
+    if(p.type==="order")return orderHtml(p.items,p.itemsAr);
+    return "<div class='answer'><strong>Answer / الإجابة:</strong> "+esc(p.a)+" / "+esc(p.aAr)+"</div>";
+  }
+  function puzzleCard(p,i,isChallenge){
+    const details=isChallenge
+      ? "<div class='answer'><strong>Erklärung / التفسير:</strong><br>"+esc(p.explanation)+"<div class='ar' style='margin-top:7px'>"+esc(p.explanationAr)+"</div></div>"
+      : "<div class='answer'><strong>Hinweiscode / رمز التلميح:</strong> <span class='code'>"+esc(p.clue)+"</span></div>";
+    return "<article class='item'><div class='eyebrow'>"+(isChallenge?"Question":"Puzzle")+" "+(i+1)+" · "+esc(p.type)+" · "+esc(p.points==null?100:p.points)+" points</div>"+
+      "<h3>"+esc(p.q)+"</h3><div class='ar' style='font-size:1.08rem;margin-bottom:12px'>"+esc(p.qAr)+"</div>"+
+      answerHtml(p)+
+      pair(p.hint,p.hintAr,"Hint / Hinweis","تلميح")+
+      details+"</article>";
+  }
+  function render(data){
+    const d=data.draft, challenge=data.gameType==="bibel-challenge", items=challenge?arr(d.questions):arr(d.puzzles);
+    const title=d.title||"Untitled draft",titleAr=d.titleAr||"";
+    let html="<section class='meta'><div class='eyebrow'>"+(challenge?"Bibel-Challenge draft":"Escape Room draft")+"</div><h2>"+esc(title)+"</h2><div class='ar' style='font-size:1.35rem;font-weight:800'>"+esc(titleAr)+"</div>"+
+      "<div class='meta-grid'><div class='meta-cell'><div class='meta-label'>Bible passage</div><div class='meta-value'>"+esc(challenge?d.passage:d.ref)+"</div></div>"+
+      "<div class='meta-cell'><div class='meta-label'>Status</div><div class='meta-value'><span class='pill'>"+esc(d.status||"missing")+"</span></div></div>"+
+      "<div class='meta-cell'><div class='meta-label'>Items</div><div class='meta-value'>"+items.length+(challenge?" questions":" puzzles")+"</div></div>"+
+      (challenge?"":"<div class='meta-cell'><div class='meta-label'>Final code</div><div class='meta-value code'>"+esc(d.final||"")+"</div></div>")+"</div>"+
+      (challenge?pair(d.instructions,d.instructionsAr,"Instructions · Deutsch","تعليمات القراءة"):pair(d.intro,d.introAr,"Introduction · Deutsch","المقدمة"))+"</section>";
+    if(arr(data.reviewNotes).length)html+="<div class='message warn'><strong>Teacher review notes</strong><ul class='list'>"+arr(data.reviewNotes).map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul></div>";
+    html+=items.map((p,i)=>puzzleCard(p,i,challenge)).join("");
+    html+="<div class='message warn'><strong>Teacher review required.</strong> Check biblical accuracy, age suitability, and whether both languages preserve the same meaning before copying content into the app.</div>";
+    preview.innerHTML=html;
+  }
+  function runValidation(){
+    validation.innerHTML="";preview.innerHTML="";
+    let data;
+    try{data=JSON.parse(input.value);}catch(err){
+      validation.innerHTML="<div class='message bad'><strong>Invalid JSON</strong><br>"+esc(err.message)+"</div>";return;
+    }
+    const result=validateDraft(data);
+    if(result.errors.length){
+      validation.innerHTML="<div class='message bad'><strong>Validation found "+result.errors.length+" issue(s)</strong><ul class='list'>"+result.errors.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul></div>";
+    }else{
+      validation.innerHTML="<div class='message good'><strong>Structural checks passed.</strong> The JSON shape and basic field checks look good. This does not verify Bible accuracy, translation quality, or theological suitability.</div>";
+    }
+    if(result.warnings.length)validation.innerHTML+="<div class='message warn'><strong>Review notes</strong><ul class='list'>"+result.warnings.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul></div>";
+    if(data&&data.draft&&["escape-room","bibel-challenge"].includes(data.gameType))render(data);
+  }
+  async function loadSample(name){
+    validation.innerHTML="";preview.innerHTML="";
+    try{
+      const response=await fetch(name,{cache:"no-store"});
+      if(!response.ok)throw new Error("HTTP "+response.status+" — sample fixture could not be loaded.");
+      input.value=JSON.stringify(await response.json(),null,2);
+      runValidation();
+    }catch(err){
+      validation.innerHTML="<div class='message bad'><strong>Could not load sample</strong><br>"+esc(err.message)+"<br>Paste the fixture JSON manually if this page is opened outside GitHub Pages.</div>";
+    }
+  }
+  $("loadEscape").addEventListener("click",()=>loadSample("daniel-escape-room.json"));
+  $("loadChallenge").addEventListener("click",()=>loadSample("daniel-bibel-challenge.json"));
+  $("validate").addEventListener("click",runValidation);
+  $("clear").addEventListener("click",()=>{input.value="";validation.innerHTML="";preview.innerHTML="";});
+})();
+</script>
+</body>
+</html>
