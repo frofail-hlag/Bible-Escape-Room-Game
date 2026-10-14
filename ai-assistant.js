@@ -447,9 +447,29 @@
         "- Return exactly ONE complete JSON object. No Markdown code fences, comments, ellipses such as ..., or text outside the JSON."
       ),
       L(
-        "- Verwende doppelte Anführungszeichen für JSON-Schlüssel und Textwerte. Setze NIEMALS ein Komma direkt vor } oder ].",
-        "- استخدم علامتي اقتباس مزدوجتين لمفاتيح JSON والقيم النصية. لا تضع فاصلة أبدًا مباشرة قبل } أو ].",
-        "- Use double quotes for JSON keys and string values. NEVER place a comma immediately before } or ]."
+        "- Formatiere das JSON lesbar und eingerückt wie ein formatiertes Codebeispiel: genau zwei Leerzeichen Einrückung, jede Eigenschaft und jedes Array-Element in einer eigenen Zeile. Gib kein kompaktes Einzeilen-JSON aus.",
+        "- نسّق JSON بطريقة واضحة ومنظمة مثل مثال برمجي منسّق: استخدم مسافتين بالضبط للمسافة البادئة، وضع كل خاصية وكل عنصر في المصفوفة في سطر مستقل. لا تُخرج JSON مضغوطًا في سطر واحد.",
+        "- Pretty-print the JSON in a readable, indented format like a formatted code example: use exactly two spaces for indentation, with each property and array item on its own line. Do not return minified one-line JSON."
+      ),
+      L(
+        "- Verwende ausschließlich gerade ASCII-Anführungszeichen (", Zeichen U+0022) als JSON-Begrenzer. Verwende niemals typografische/geschwungene Anführungszeichen wie “ ” oder „ “ für Schlüssel oder Textbegrenzungen.",
+        "- استخدم علامات الاقتباس المستقيمة ASCII فقط ("، الرمز U+0022) لتحديد مفاتيح JSON والقيم النصية. لا تستخدم أبدًا علامات الاقتباس الطباعية أو المنحنية مثل “ ” أو „ “ كفواصل للنص.",
+        "- Use only straight ASCII double quotes (\u0022, character U+0022) as JSON delimiters. Never use curly or typographic quotation marks such as “ ” or „ “ to delimit keys or string values."
+      ),
+      L(
+        "- Jeder Schlüssel muss direkt nach dem Doppelpunkt einen gültigen Wert haben. Niemals fehlende Werte wie \"reviewNotes\": , oder \"accepted\": , ausgeben. Wenn keine Hinweise oder akzeptierten Alternativantworten vorhanden sind, verwende für reviewNotes, accepted und acceptedAr jeweils [].",
+        "- يجب أن تكون لكل مفتاح قيمة JSON صحيحة مباشرة بعد النقطتين. لا تُخرج مطلقًا قيمًا مفقودة مثل \"reviewNotes\": , أو \"accepted\": , . إذا لم توجد ملاحظات أو إجابات بديلة مقبولة، فاستخدم [] لكل من reviewNotes وaccepted وacceptedAr.",
+        "- Every key must have a valid JSON value immediately after its colon. Never output missing values such as \"reviewNotes\": , or \"accepted\": , . If there are no review notes or accepted alternative answers, use [] for reviewNotes, accepted, and acceptedAr."
+      ),
+      L(
+        "- Schreibe jeden Array-Wert mit öffnender und schließender eckiger Klammer. opts und optsAr müssen vollständige Arrays in derselben Reihenfolge und mit gleich vielen Einträgen sein; optsAr darf niemals als einzelner Textwert ausgegeben werden.",
+        "- اكتب كل مصفوفة بين قوسين مربعين مفتوح ومغلق. يجب أن تكون opts وoptsAr مصفوفتين كاملتين بالترتيب نفسه وبالعدد نفسه من العناصر؛ لا تُخرج optsAr أبدًا كنص واحد.",
+        "- Write every array with opening and closing square brackets. opts and optsAr must both be complete arrays with the same order and number of items; never output optsAr as a single string."
+      ),
+      L(
+        "- Prüfe vor der Ausgabe intern das gesamte Objekt: alle Klammern sind geschlossen, alle Kommas korrekt, alle Zeichenfolgen mit geraden Anführungszeichen begrenzt, jeder Schlüssel hat einen Wert, alle Arrays sind korrekt und es gibt keine trailing commas. Stelle sicher, dass der vollständige Text direkt von JSON.parse akzeptiert würde. Gib nur das JSON aus, ohne eine Erklärung.",
+        "- قبل الإخراج، تحقّق داخليًا من الكائن كاملًا: جميع الأقواس مغلقة، والفواصل صحيحة، والنصوص محاطة بعلامات اقتباس مستقيمة، ولكل مفتاح قيمة، وجميع المصفوفات صحيحة، ولا توجد فواصل زائدة. تأكد أن النص الكامل سيُقبل مباشرة بواسطة JSON.parse. أخرج JSON فقط دون شرح.",
+        "- Before responding, internally validate the entire object: all brackets are closed, commas are correct, strings use straight double quotes, every key has a value, arrays are complete, and there are no trailing commas. Ensure the full text would be accepted directly by JSON.parse. Output only the JSON, without explanation."
       ),
       L(
         "- Prüfe vor der Ausgabe alle öffnenden/schließenden Klammern und Kommas. Nutze true, false und null ohne Anführungszeichen, wenn diese JSON-Werte gemeint sind.",
