@@ -1,4 +1,4 @@
-# Bibelreise V3.5.7 — Flexible Question Counts & Multiple Bible Passages
+# Bibelreise V3.5.8 — JSON Repair Code Block Output
 
 ## Hosting and Firebase
 The PWA remains hosted on GitHub Pages. Firebase is used only for teacher authentication, shared Bibel-Challenges, and shared student results. No AI/API features are included.
@@ -99,6 +99,11 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Bibelreise makes no AI/API request in this workflow and needs no OpenAI API key. The existing validation, preview, and explicit draft import flow remain in place. Activities are never published automatically.
 - Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
 
+
+## JSON repair output format (V3.5.8)
+
+- The syntax-repair prompt now asks ChatGPT to return exactly one complete, readable JSON object inside a single Markdown code block labelled `json`, with no explanatory text outside the block.
+- The repair remains syntax-only: preserve all German and Arabic text, questions, answers, hints, explanations, fields, order and meaning. The importer still removes only an optional outer code fence and never silently repairs the JSON content itself.
 
 ## Flexible question counts and multiple Bible passages (V3.5.7)
 
