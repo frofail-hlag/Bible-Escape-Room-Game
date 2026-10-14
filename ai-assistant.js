@@ -29,6 +29,14 @@
     return ["choice", "truefalse", "order", "text", "number", "bible"].includes(type);
   }
 
+  // Strip only one optional outer Markdown JSON fence; never modify JSON content itself.
+  function normalizePastedJson(text) {
+    let candidate = String(text == null ? "" : text).replace(/^\uFEFF/, "").trim();
+    const fenced = candidate.match(/^\`\`\`(?:json)?[ \t]*\r?\n([\s\S]*?)\r?\n\`\`\`[ \t]*$/i);
+    if (fenced) candidate = fenced[1].trim();
+    return candidate;
+  }
+
   function validateEnvelope(text, expectedType) {
     const result = { envelope: null, errors: [], warnings: [] };
     let data;
@@ -447,9 +455,9 @@
       "",
       L("STRIKTE JSON-FORMATREGELN", "قواعد JSON الصارمة", "STRICT JSON FORMATTING RULES"),
       L(
-        "- Gib genau EIN vollständiges JSON-Objekt zurück. Keine Markdown-Codezäune, Kommentare, Auslassungspunkte wie ... oder Texte außerhalb des JSON.",
-        "- أخرج كائن JSON كاملًا واحدًا فقط. لا تستخدم كتل Markdown البرمجية أو التعليقات أو نقاط الحذف مثل ... أو أي نص خارج JSON.",
-        "- Return exactly ONE complete JSON object. No Markdown code fences, comments, ellipses such as ..., or text outside the JSON."
+        "- Gib genau EIN vollständiges JSON-Objekt in genau einem Markdown-Codeblock mit der Kennzeichnung json zurück. Keine Kommentare, Auslassungspunkte wie ... oder Texte außerhalb des Codeblocks.",
+        "- أخرج كائن JSON كاملًا واحدًا فقط داخل كتلة Markdown برمجية واحدة تحمل اسم json. لا تستخدم التعليقات أو نقاط الحذف مثل ... أو أي نص خارج الكتلة البرمجية.",
+        "- Return exactly ONE complete JSON object inside exactly one Markdown code block labelled json. Do not include comments, ellipses such as ..., or any text outside the code block."
       ),
       L(
         "- Formatiere das JSON lesbar und eingerückt wie ein formatiertes Codebeispiel: genau zwei Leerzeichen Einrückung, jede Eigenschaft und jedes Array-Element in einer eigenen Zeile. Gib kein kompaktes Einzeilen-JSON aus.",
@@ -472,9 +480,9 @@
         "- Write every array with opening and closing square brackets. opts and optsAr must both be complete arrays with the same order and number of items; never output optsAr as a single string."
       ),
       L(
-        "- Prüfe vor der Ausgabe intern das gesamte Objekt: alle Klammern sind geschlossen, alle Kommas korrekt, alle Zeichenfolgen mit geraden Anführungszeichen begrenzt, jeder Schlüssel hat einen Wert, alle Arrays sind korrekt und es gibt keine trailing commas. Stelle sicher, dass der vollständige Text direkt von JSON.parse akzeptiert würde. Gib nur das JSON aus, ohne eine Erklärung.",
-        "- قبل الإخراج، تحقّق داخليًا من الكائن كاملًا: جميع الأقواس مغلقة، والفواصل صحيحة، والنصوص محاطة بعلامات اقتباس مستقيمة، ولكل مفتاح قيمة، وجميع المصفوفات صحيحة، ولا توجد فواصل زائدة. تأكد أن النص الكامل سيُقبل مباشرة بواسطة JSON.parse. أخرج JSON فقط دون شرح.",
-        "- Before responding, internally validate the entire object: all brackets are closed, commas are correct, strings use straight double quotes, every key has a value, arrays are complete, and there are no trailing commas. Ensure the full text would be accepted directly by JSON.parse. Output only the JSON, without explanation."
+        "- Prüfe vor der Ausgabe intern das gesamte Objekt: alle Klammern sind geschlossen, alle Kommas korrekt, alle Zeichenfolgen mit geraden Anführungszeichen begrenzt, jeder Schlüssel hat einen Wert, alle Arrays sind korrekt und es gibt keine trailing commas. Stelle sicher, dass das JSON-Objekt innerhalb des Codeblocks direkt von JSON.parse akzeptiert würde. Gib nur den JSON-Codeblock aus, ohne Erklärung davor oder danach.",
+        "- قبل الإخراج، تحقّق داخليًا من الكائن كاملًا: جميع الأقواس مغلقة، والفواصل صحيحة، والنصوص محاطة بعلامات اقتباس مستقيمة، ولكل مفتاح قيمة، وجميع المصفوفات صحيحة، ولا توجد فواصل زائدة. تأكد أن كائن JSON داخل الكتلة البرمجية سيُقبل مباشرة بواسطة JSON.parse. أخرج كتلة JSON البرمجية فقط، دون أي شرح قبلها أو بعدها.",
+        "- Before responding, internally validate the entire object: all brackets are closed, commas are correct, strings use straight double quotes, every key has a value, arrays are complete, and there are no trailing commas. Ensure the JSON object inside the code block would be accepted directly by JSON.parse. Output only the json code block, with no explanation before or after it."
       ),
       L(
         "- Prüfe vor der Ausgabe alle öffnenden/schließenden Klammern und Kommas. Nutze true, false und null ohne Anführungszeichen, wenn diese JSON-Werte gemeint sind.",
@@ -710,7 +718,7 @@
     panel.hidden = true;
     panel.style.cssText = "margin:0 0 18px;border:2px solid #e5c77d";
     panel.innerHTML =
-      "<div class='editor-head'><div><h2>📥 JSON-Entwurf importieren</h2><p class='small'>Füge die vollständige JSON-Antwort aus ChatGPT ein. Der Entwurf wird als neues Spiel angelegt und nie automatisch veröffentlicht.</p></div></div>" +
+      "<div class='editor-head'><div><h2>📥 JSON-Entwurf importieren</h2><p class='small'>Füge den JSON-Code aus ChatGPT ein (am besten über „Code kopieren“). Ein äußerer ```json-Codeblock wird automatisch entfernt. Der Entwurf wird als neues Spiel angelegt und nie automatisch veröffentlicht.</p></div></div>" +
       "<div class='field'><label for='bibelreiseAiJson'>JSON aus ChatGPT / بيانات JSON من ChatGPT</label><textarea id='bibelreiseAiJson' spellcheck='false' placeholder='Hier das vollständige JSON-Objekt einfügen…' style='min-height:210px;font-family:ui-monospace,Consolas,monospace'></textarea></div>" +
       "<div class='actions'><button class='btn' id='bibelreiseAiValidate' type='button'>Prüfen & Vorschau / تحقّق واعرض المعاينة</button><button class='btn secondary' id='bibelreiseAiClear' type='button'>Leeren</button><button class='btn success' id='bibelreiseAiImport' type='button' disabled>Als neuen Entwurf übernehmen / استيراد كمسودة</button></div>" +
       "<div id='bibelreiseAiMessages' aria-live='polite'></div><div id='bibelreiseAiPreview'></div>" +
@@ -767,7 +775,9 @@
     });
     validateButton.addEventListener("click", function () {
       reset();
-      const checked = validateEnvelope(textArea.value, currentKind);
+      const normalizedText = normalizePastedJson(textArea.value);
+      if (normalizedText !== textArea.value) textArea.value = normalizedText;
+      const checked = validateEnvelope(normalizedText, currentKind);
       if (checked.errors.length) {
         messages.innerHTML = "<div class='notice' style='background:#fff0f1;border-color:#f3b6bf;color:#8b1f2d'><strong>Bitte korrigiere " + checked.errors.length + " Problem(e):</strong><ul>" +
           checked.errors.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>";
