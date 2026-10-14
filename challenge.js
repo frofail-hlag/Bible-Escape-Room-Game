@@ -258,6 +258,20 @@
     window.teacherEditGame = function (gameId) {
       originalTeacherEditGame(gameId);
       insertTeacherGreeting();
+
+      // Keep the JSON importer available inside the individual Escape Room editor too.
+      const editorNav = document.querySelector(".app .teacher-nav");
+      if (editorNav && !document.getElementById("bibelreiseAiImportEscapeEditorButton")) {
+        const importButton = document.createElement("button");
+        importButton.id = "bibelreiseAiImportEscapeEditorButton";
+        importButton.className = "btn gold";
+        importButton.type = "button";
+        importButton.textContent = "📥 JSON-Entwurf importieren / استيراد مسودة JSON";
+        editorNav.appendChild(importButton);
+      }
+      if (typeof window.bibelreiseInjectTeacherImportPanel === "function") {
+        window.bibelreiseInjectTeacherImportPanel("escape-room", "bibelreiseAiImportEscapeEditorButton");
+      }
     };
   }
 
