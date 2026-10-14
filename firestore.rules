@@ -50,7 +50,7 @@ service cloud.firestore {
         && request.resource.data.instructionsAr.size() <= 3000
         && request.resource.data.status in ['draft', 'published', 'archived']
         && request.resource.data.questions is list
-        && request.resource.data.questions.size() <= 4
+        && request.resource.data.questions.size() <= 10
         && request.resource.data.createdAt is string
         && request.resource.data.updatedAt is string
         && request.resource.data.ownerUid is string
@@ -84,10 +84,10 @@ service cloud.firestore {
         && request.resource.data.totalPoints <= 10000
         && request.resource.data.correctCount is int
         && request.resource.data.correctCount >= 0
-        && request.resource.data.correctCount <= 4
+        && request.resource.data.correctCount <= 10
         && request.resource.data.questionCount is int
         && request.resource.data.questionCount >= 3
-        && request.resource.data.questionCount <= 4
+        && request.resource.data.questionCount <= 10
         && request.resource.data.correctCount <= request.resource.data.questionCount
         && request.resource.data.elapsedSeconds is int
         && request.resource.data.elapsedSeconds >= 0
