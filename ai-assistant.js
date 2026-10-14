@@ -402,6 +402,15 @@
         if (passage && anchor) anchor.insertAdjacentHTML("afterend", safeBibleLinksMarkup(passage));
       });
     }
+    if (state.view === "teacherChallengeEdit") {
+      const editorChallenge = readChallengeList().find(function (item) { return item.id === state.teacherChallengeId; });
+      const passageCard = Array.from(document.querySelectorAll(".sticky .card")).find(function (card) { return card.textContent.includes("Passage erneut lesen"); });
+      const editorAnchor = passageCard && (passageCard.querySelector("button") || passageCard.querySelector("p"));
+      if (editorChallenge && editorChallenge.passage && editorAnchor && !passageCard.querySelector(".challenge-reading-links")) {
+        editorAnchor.insertAdjacentHTML("afterend", safeBibleLinksMarkup(editorChallenge.passage));
+      }
+      return;
+    }
     if (state.view !== "challengeIntro" && state.view !== "challengeQuestion") return;
     const c = state.activeChallenge;
     if (!c || !c.passage) return;
