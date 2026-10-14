@@ -141,4 +141,4 @@ function teacherPreview(id){let g=games().find(x=>x.id===id);if(!g)return;state.
 function teacherDashboard(){if(typeof window.bibleEscapeRouteTeacherDashboard==='function')return window.bibleEscapeRouteTeacherDashboard();return renderTeacherEscapeDashboard()}
 roleSelect();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
-</script><script src="challenge.js"></script><script type="module" src="firebase-service.js"></script></body></html>
+</script><script src="challenge.js"></script><script src="ai-assistant.js"></script><script type="module" src="firebase-service.js"></script></body></html>
