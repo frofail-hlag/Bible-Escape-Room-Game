@@ -602,10 +602,9 @@
       (published.length ? "<div class='challenge-list-grid'>" + cards + "</div>" :
         "<section class='card empty-challenge'><div style='font-size:42px'>📖</div><h2>Noch keine Challenge veröffentlicht</h2><p>Schaut später wieder vorbei. Eure Diener/innen veröffentlichen hier neue Bibel-Leseaktivitäten.</p><p class='lang-ar' dir='rtl'>لم يتم نشر أي تحدٍ بعد. عودوا لاحقًا للاطلاع على أنشطة قراءة الكتاب المقدس الجديدة.</p></section>") +
       "</main>";
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
   }
   function beginChallengeSetup(challengeId) {
-    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
-
     const challenge = challengeById(challengeId);
     if (!challenge || challenge.status !== "published") return studentChallenges();
     state.activeChallenge = JSON.parse(JSON.stringify(challenge));
@@ -636,10 +635,9 @@
       "<div class='field'><label>Vorname oder Teamname (keinen Nachnamen) / الاسم الأول أو اسم الفريق (بدون اسم العائلة)</label><input id='challengeStudentName' maxlength='50' placeholder='Vorname / Teamname / الاسم الأول / اسم الفريق'></div>" +
       "<p class='small'>Lest den Bibeltext aufmerksam. Ihr dürft die Bibel während jeder Frage erneut öffnen.</p>" +
       "<button class='btn' onclick='startChallenge()'>Challenge starten / ابدأ التحدي →</button></section></main>";
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
   }
   function startChallenge() {
-    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
-
     const nameInput = document.getElementById("challengeStudentName");
     const name = (nameInput && nameInput.value || "").trim();
     if (!name) { alert("Bitte gebt einen Namen ein. / من فضلكم اكتبوا الاسم."); return; }
@@ -728,10 +726,9 @@
       "<div class='challenge-passage-inline'>📖 " + esc(c.passage) + "</div>" + bi(q.q, q.qAr) +
       (answer.correct === null ? input : "") + feedback + "</section>" +
       "<div class='actions' style='margin-top:16px'><button class='btn secondary' onclick='studentChallenges()'>← Challenges / التحديات</button></div></main>";
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
   }
   function saveChallengeTextAnswer(value) {
-    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
-
     ensureChallengeAnswer().text = value;
   }
   function chooseChallengeAnswer(value) {
@@ -881,10 +878,9 @@
         "<div class='empty'><h3>Noch keine Bibel-Challenges</h3><p>Erstelle die erste Aktivität für eure tägliche Bibellektüre.</p><button class='btn' onclick='newBibleChallenge()'>➕ Erste Challenge erstellen</button></div>") +
       "</section></main>";
     insertTeacherGreeting();
+    if (typeof window.bibelreiseInjectTeacherImportPanel === "function") window.bibelreiseInjectTeacherImportPanel("bibel-challenge");
   }
   async function newBibleChallenge() {
-    if (typeof window.bibelreiseInjectTeacherImportPanel === "function") window.bibelreiseInjectTeacherImportPanel("bibel-challenge");
-
     if (!isTeacher()) { teacherLogin(); return; }
     const c = emptyChallenge();
     const list = readChallenges();
@@ -922,10 +918,9 @@
       questions + "</section></section><aside class='sticky'><section class='card'><h2>📖 Passage erneut lesen</h2><p class='small'>Teste, ob die angegebene Stelle in der zweisprachigen Bibel gut auffindbar ist.</p><button class='btn secondary' style='width:100%' onclick='previewChallengeBible(\"" + esc(c.id) + "\")'>Bibel öffnen</button></section>" +
       "<section class='card' style='margin-top:14px'><h2>🧭 Veröffentlichungs-Check</h2><p class='small'>Vor dem Veröffentlichen prüfen wir automatisch, ob die Aktivität 3–4 zweisprachige Fragen und Antworten enthält.</p><div class='muted-box'><strong>Wichtig</strong><br><span class='small'>Bitte Antworten und Erklärungen am angegebenen Bibeltext ausrichten. AI bleibt deaktiviert.</span></div></section></aside></div></main>";
     insertTeacherGreeting();
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
   }
   function challengeQuestionEditor(c, q, i) {
-    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
-
     let type = "<div class='field'><label>Fragetyp</label><select id='bcq_type_" + i + "' onchange='changeBibleChallengeQuestionType(\"" + esc(c.id) + "\"," + i + ",this.value)'>" +
       ["truefalse", "order", "choice", "text", "number", "bible"].map(function (t) { return "<option value='" + t + "' " + (q.type === t ? "selected" : "") + ">" + esc(typeLabel(t)) + "</option>"; }).join("") + "</select></div>";
     let answerFields = "";
