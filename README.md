@@ -107,3 +107,8 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Prompt instructions require strict JSON and forbid trailing commas, comments, Markdown fences, ellipses, and text outside the object.
 - When JSON parsing fails, the importer can generate and copy a syntax-repair prompt in the selected language. It explicitly preserves German and Arabic content and asks ChatGPT to fix syntax only. Pasted JSON is never silently rewritten by the app.
 - No API key, OpenAI API request, or direct account connection has been added.
+
+
+### Firebase Rules update required for 5–10 question Bibel-Challenges (V3.5.1)
+
+The repository's `firestore.rules` now permits up to 10 questions and result answers. **After this change is deployed to GitHub Pages, publish the updated rules in Firebase Console → Firestore Database → Rules.** Until the Firebase rules are published, challenges with more than four questions and their results can be rejected by Firestore. The client serializer in `firebase-service.js` now supports results with up to 10 questions.
