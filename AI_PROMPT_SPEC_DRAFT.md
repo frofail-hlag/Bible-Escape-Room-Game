@@ -211,3 +211,6 @@ There are three separate capabilities; do not conflate them:
 - If pasted JSON fails to parse, the importer offers a copyable repair prompt in the currently selected prompt language. It asks ChatGPT to repair syntax only and preserve every German and Arabic field/value, meaning, ordering and item count. Bibelreise does not silently rewrite JSON.
 - No direct ChatGPT or OpenAI API call has been added.
 - Live testing is required: test all three prompt languages, all count choices, the malformed-JSON repair helper, and one 10-item activity of each game type. Keep all test activities as drafts.
+
+
+Escape Room editor guard: a game can contain a maximum of 10 puzzles; its add-puzzle function prevents creating an 11th puzzle.
