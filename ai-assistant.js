@@ -363,11 +363,32 @@
 
   function safeBibleLinksMarkup(passage) {
     if (typeof window.bibelreiseBibleUrl !== "function") return "";
-    const deUrl = window.bibelreiseBibleUrl(passage, "de");
-    const arUrl = window.bibelreiseBibleUrl(passage, "ar");
-    return "<div class='challenge-reading-links' style='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px'>" +
-      "<a class='btn secondary' href='" + esc(deUrl) + "' target='_blank' rel='noopener noreferrer'>🇩🇪 Deutsche Bibel öffnen ↗</a>" +
-      "<a class='btn secondary lang-ar' dir='rtl' href='" + esc(arUrl) + "' target='_blank' rel='noopener noreferrer'>🇪🇬 فتح الكتاب المقدس بالعربية ↗</a></div>";
+    const deLinks = typeof window.bibelreiseBibleUrls === "function"
+      ? window.bibelreiseBibleUrls(passage, "de") : [{ chapter: null, url: window.bibelreiseBibleUrl(passage, "de") }];
+    const arLinks = typeof window.bibelreiseBibleUrls === "function"
+      ? window.bibelreiseBibleUrls(passage, "ar") : [{ chapter: null, url: window.bibelreiseBibleUrl(passage, "ar") }];
+    function group(links, language) {
+      const arabic = language === "ar";
+      const isRange = links.length > 1;
+      const label = arabic ? "🇪🇬 الكتاب المقدس العربي — AVD" : "🇩🇪 Deutsche Bibel — SCH2000";
+      return "<div class='challenge-reading-link-group' style='display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:6px 0'>" +
+        "<span class='small' " + (arabic ? "dir='rtl' " : "") + "style='font-weight:800;margin-inline-end:4px'>" + label + "</span>" +
+        links.map(function (item) {
+          const unknown = item.url === "https://www.bible.com/";
+          const linkLabel = unknown
+            ? (arabic ? "ابحث عن المقطع ↗" : "Stelle auf Bible.com suchen ↗")
+            : isRange
+              ? (arabic ? "الإصحاح " + item.chapter + " ↗" : "Kapitel " + item.chapter + " ↗")
+              : (arabic ? "فتح المقطع ↗" : "Bibelstelle öffnen ↗");
+          return "<a class='btn secondary " + (arabic ? "lang-ar" : "") + "' " + (arabic ? "dir='rtl' " : "") +
+            "style='padding:8px 11px' href='" + esc(item.url) + "' target='_blank' rel='noopener noreferrer'>" + linkLabel + "</a>";
+        }).join("") + "</div>";
+    }
+    return "<div class='challenge-reading-links' style='display:flex;flex-direction:column;gap:5px;margin:10px 0 14px'>" +
+      group(deLinks, "de") + group(arLinks, "ar") +
+      (deLinks.some(function (x) { return x.url === "https://www.bible.com/"; })
+        ? "<p class='small'>Die Bibelstelle wurde nicht automatisch erkannt. Bitte suche sie direkt auf Bible.com. / لم يتم التعرف على المرجع تلقائيًا، يرجى البحث عنه في موقع Bible.com.</p>" : "") +
+      "</div>";
   }
   function injectBibleLinks() {
     if (typeof state === "undefined" || !state) return;
