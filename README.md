@@ -1,4 +1,4 @@
-# Bibelreise V3.5.6 — Robust ChatGPT JSON Import
+# Bibelreise V3.5.7 — Flexible Question Counts & Multiple Bible Passages
 
 ## Hosting and Firebase
 The PWA remains hosted on GitHub Pages. Firebase is used only for teacher authentication, shared Bibel-Challenges, and shared student results. No AI/API features are included.
@@ -33,7 +33,7 @@ The web configuration is stored in firebase-config.js. It contains Firebase Web 
 Do not use permissive rules such as “allow read, write: if true”. Do not put service-account keys in this repository. The browser Firebase config is public by design; Firestore Rules enforce access. The separate Financial Money Plan Firebase project/database is not used by this app.
 
 ## Current versions
-- Bibel Escape Room: existing game engine and three starter missions retained; the prompt offers 3, 4, 6, 7 or 10 puzzles, and the add-puzzle function prevents exceeding 10.
+- Bibel Escape Room: existing game engine and three starter missions retained; the prompt offers 3–10 puzzles (each count from 3 through 10), and the add-puzzle function prevents exceeding 10.
 - Bibel-Challenge: separate, self-paced bilingual reading activities, 3–10 questions, passage access, feedback, explanations and cross-device results.
 - Teacher login uses Firebase Email/Password and an explicit teacher allow-list.
 - Direct AI/API integration remains paused; V3.5.0 adds manual prompts in German, Arabic or English, with German/Arabic game output and a copyable JSON syntax-repair prompt.
@@ -100,6 +100,14 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
 
 
+## Flexible question counts and multiple Bible passages (V3.5.7)
+
+- Both guided activity types now offer each count from 3 through 10, inclusive (3, 4, 5, 6, 7, 8, 9, 10).
+- The Bible-reference field is a multi-line text area. Teachers can specify an entire Bible book/all chapters, a chapter range such as `Daniel 2–4`, or selected passages from different chapters/books such as `Matthew 5:1–12; Matthew 6:25–34`.
+- Prompt instructions require ChatGPT to treat the full combined reference list as the reading scope, distribute questions across it, and avoid inventing passages. Multiple references should be separated by semicolons or line breaks and each should repeat the book name.
+- The student Bible links now support multiple semicolon/newline-separated references and chapter ranges; whole-book requests open at chapter 1, with the scope still displayed in the activity.
+- The existing manual ChatGPT JSON-code workflow and validation remain unchanged.
+
 ## ChatGPT JSON code-block output and paste handling (V3.5.6)
 
 - The guided prompt now asks ChatGPT to return exactly one complete JSON object inside a single Markdown code block labelled json, with no commentary before or after it.
@@ -128,7 +136,7 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 ## Multilingual prompt builder, selectable counts and JSON recovery (V3.5.0)
 
 - Prompt language selector: Deutsch, العربية, English. Prompt instructions follow the selected language; the generated game always retains the German/Arabic JSON fields.
-- Both game types offer exactly 3, 4, 6, 7, or 10 as prompt count choices. Import validation and the Bibel-Challenge editor support up to 10 questions.
+- Both game types previously offered a smaller set of prompt counts; V3.5.7 expands the options to every count from 3 through 10. Import validation and the Bibel-Challenge editor support up to 10 questions.
 - Prompt instructions require strict JSON and forbid trailing commas, comments, Markdown fences, ellipses, and text outside the object.
 - When JSON parsing fails, the importer can generate and copy a syntax-repair prompt in the selected language. It explicitly preserves German and Arabic content and asks ChatGPT to fix syntax only. Pasted JSON is never silently rewritten by the app.
 - No API key, OpenAI API request, or direct account connection has been added.
