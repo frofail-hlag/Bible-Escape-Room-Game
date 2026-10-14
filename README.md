@@ -1,4 +1,4 @@
-# Bibelreise V3.2.9 — App Branding & Teacher Data Cleanup
+# Bibelreise V3.4.0 — Guided ChatGPT Prompt Builder
 
 ## Hosting and Firebase
 The PWA remains hosted on GitHub Pages. Firebase is used only for teacher authentication, shared Bibel-Challenges, and shared student results. No AI/API features are included.
@@ -36,7 +36,7 @@ Do not use permissive rules such as “allow read, write: if true”. Do not put
 - Bibel Escape Room: existing game engine and three starter missions retained.
 - Bibel-Challenge: separate, self-paced bilingual reading activities, 3–4 questions, passage access, feedback, explanations and cross-device results.
 - Teacher login uses Firebase Email/Password and an explicit teacher allow-list.
-- AI Assistant V3.3 remains paused.
+- Direct AI/API integration remains paused; V3.4.0 adds a manual guided prompt builder only.
 
 
 ## Personalized teacher greeting
@@ -88,3 +88,13 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - `icon.png` is the app icon (cross, open Bible, and a journey path).
 - `welcome-banner.webp` is displayed on the role-selection welcome screen, with the English heading translated into German while retaining the Arabic title.
 - The PWA manifest, browser icon, Apple touch icon, app header and service-worker cache have been updated. Game logic, Firebase Functions, authentication, Firestore rules and database collections are unchanged.
+
+
+## Guided ChatGPT prompt builder (V3.4.0)
+
+- The Escape Room and Bibel-Challenge teacher dashboards and individual editors provide **🧠 ChatGPT-Prompt erstellen**.
+- The form collects age group, Bible story/topic, Bible passage, learning objective, difficulty, number of puzzles/questions, and optional teacher notes.
+- It builds a German prompt asking ChatGPT to create bilingual German/Arabic content matching the existing `bibelreise-ai-v1` JSON schema. The Escape Room prompt includes the clue-fragment/final-code rule.
+- Teachers copy the prompt into their own ChatGPT conversation, refine it as needed, then paste ChatGPT's JSON into **📥 JSON-Entwurf importieren**.
+- Bibelreise makes no AI/API request in this workflow and needs no OpenAI API key. The existing validation, preview, and explicit draft import flow remain in place. Activities are never published automatically.
+- Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
