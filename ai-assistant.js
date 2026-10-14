@@ -466,4 +466,5 @@
   }
   window.bibelreiseValidateAiEnvelope = validateEnvelope;
   window.bibelreiseInjectChallengeBibleLinks = injectBibleLinks;
+  window.bibelreiseInjectTeacherImportPanel = injectImportPanel;
 })();
