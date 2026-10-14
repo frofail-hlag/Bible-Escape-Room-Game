@@ -1,12 +1,13 @@
-Bibelreise V3.5.2 — Multilingual Prompt Builder, Flexible Counts & 10-Question Support
+Bibelreise V3.5.3 — JSON Repair Diagnostics
 
 Current release summary
 - The guided ChatGPT prompt builder supports Deutsch, العربية, and English. The generated prompt follows the selected language.
 - All student-facing game content must always include equivalent German and Arabic fields.
 - Escape Room puzzles and Bibel-Challenge questions offer exactly 3, 4, 6, 7, or 10 items (default: 4).
-- The JSON-repair prompt fixes syntax only and instructs ChatGPT to preserve the German and Arabic content, schema keys, item count, and item order.
+- The importer detects a common missing-value error where "reviewNotes" is followed immediately by a comma, and explains that an empty reviewNotes list must be written as [].
+- The JSON-repair prompt explicitly tells ChatGPT to repair missing values with type-correct JSON while preserving German and Arabic content, schema keys, item count, and item order.
 - Imported content is structurally validated and previewed before it can be saved as a draft. It is never published automatically.
-- Bibel-Challenge validation, student-result serialization, and the repository's Firestore rules support up to 10 questions and corresponding answers.
+- Bibel-Challenge validation, student-result serialization, and Firestore rules support up to 10 questions and corresponding answers.
 - No direct AI/API request or OpenAI API key is used; the teacher copies the prompt into ChatGPT and imports the returned JSON.
 
 Deployment note
