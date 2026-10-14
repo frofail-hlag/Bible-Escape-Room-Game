@@ -100,6 +100,12 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
 
 
+## JSON missing-value diagnostics (V3.5.3)
+
+- The importer now detects the specific malformed pattern `"reviewNotes": ,` and tells the teacher to use `"reviewNotes": []` when there are no notes.
+- The JSON-repair prompt in German, Arabic, and English explicitly tells ChatGPT to fill missing values with schema-correct JSON values, preserve the `reviewNotes` field, and retain all German/Arabic content and question order.
+- The service-worker cache was bumped so installed PWAs can receive the updated diagnostics.
+
 ## Multilingual prompt builder, selectable counts and JSON recovery (V3.5.0)
 
 - Prompt language selector: Deutsch, العربية, English. Prompt instructions follow the selected language; the generated game always retains the German/Arabic JSON fields.
