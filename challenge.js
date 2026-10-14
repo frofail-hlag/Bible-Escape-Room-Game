@@ -604,6 +604,8 @@
       "</main>";
   }
   function beginChallengeSetup(challengeId) {
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
+
     const challenge = challengeById(challengeId);
     if (!challenge || challenge.status !== "published") return studentChallenges();
     state.activeChallenge = JSON.parse(JSON.stringify(challenge));
@@ -636,6 +638,8 @@
       "<button class='btn' onclick='startChallenge()'>Challenge starten / ابدأ التحدي →</button></section></main>";
   }
   function startChallenge() {
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
+
     const nameInput = document.getElementById("challengeStudentName");
     const name = (nameInput && nameInput.value || "").trim();
     if (!name) { alert("Bitte gebt einen Namen ein. / من فضلكم اكتبوا الاسم."); return; }
@@ -726,6 +730,8 @@
       "<div class='actions' style='margin-top:16px'><button class='btn secondary' onclick='studentChallenges()'>← Challenges / التحديات</button></div></main>";
   }
   function saveChallengeTextAnswer(value) {
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
+
     ensureChallengeAnswer().text = value;
   }
   function chooseChallengeAnswer(value) {
@@ -877,6 +883,8 @@
     insertTeacherGreeting();
   }
   async function newBibleChallenge() {
+    if (typeof window.bibelreiseInjectTeacherImportPanel === "function") window.bibelreiseInjectTeacherImportPanel("bibel-challenge");
+
     if (!isTeacher()) { teacherLogin(); return; }
     const c = emptyChallenge();
     const list = readChallenges();
@@ -916,6 +924,8 @@
     insertTeacherGreeting();
   }
   function challengeQuestionEditor(c, q, i) {
+    if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
+
     let type = "<div class='field'><label>Fragetyp</label><select id='bcq_type_" + i + "' onchange='changeBibleChallengeQuestionType(\"" + esc(c.id) + "\"," + i + ",this.value)'>" +
       ["truefalse", "order", "choice", "text", "number", "bible"].map(function (t) { return "<option value='" + t + "' " + (q.type === t ? "selected" : "") + ">" + esc(typeLabel(t)) + "</option>"; }).join("") + "</select></div>";
     let answerFields = "";
