@@ -256,7 +256,7 @@
 
 
   let activePromptLanguage = "de";
-  const ALLOWED_PROMPT_COUNTS = [3, 4, 6, 7, 10];
+  const ALLOWED_PROMPT_COUNTS = [3, 4, 5, 6, 7, 8, 9, 10];
 
   function buildGuidedPrompt(kind, fields) {
     const isEscape = kind === "escape-room";
@@ -343,7 +343,7 @@
       "- " + L("Aktivitätstyp", "نوع النشاط", "Activity type") + ": " + typeLabel,
       "- " + L("Altersgruppe", "الفئة العمرية", "Age group") + ": " + String(fields.age || ""),
       "- " + L("Bibelgeschichte/Thema", "القصة أو الموضوع الكتابي", "Bible story/topic") + ": " + String(fields.topic || ""),
-      "- " + L("Vorgegebene Bibelstelle", "المرجع الكتابي المحدد", "Required Bible passage") + ": " + String(fields.passage || ""),
+      "- " + L("Vorgegebene Bibelstelle(n) und Lesebereich", "المراجع الكتابية ونطاق القراءة المطلوب", "Required Bible reference(s) and reading scope") + ": " + String(fields.passage || ""),
       "- " + L("Lernziel", "الهدف التعليمي", "Learning objective") + ": " + String(fields.objective || L("Leite ein passendes Lernziel aus Thema und Bibelstelle ab.", "استنتج هدفًا تعليميًا مناسبًا من الموضوع والمرجع الكتابي.", "Derive a suitable learning objective from the topic and Bible passage.")),
       "- " + L("Schwierigkeit", "مستوى الصعوبة", "Difficulty") + ": " + difficultyLabel,
       "- " + L("Gewünschte Anzahl", "العدد المطلوب", "Requested count") + ": " + count + (isEscape ? " " + L("Rätsel", "ألغاز", "puzzles") : " " + L("Fragen", "أسئلة", "questions")),
@@ -376,6 +376,11 @@
         "- Verankere Fakten, richtige Antworten und Erklärungen in der angegebenen Bibelstelle. Erfinde keine Verse oder Verweise.",
         "- اجعل الحقائق والإجابات الصحيحة والتفسيرات مستندة إلى المرجع الكتابي المحدد. لا تخترع آيات أو مراجع.",
         "- Ground facts, correct answers and explanations in the specified passage. Never invent verses or references."
+      ),
+      L(
+        "- Behandle die Bibelstellen-Eingabe als vollständigen Lesebereich: Sie kann ein ganzes biblisches Buch (alle Kapitel), eine Kapitelspanne (z. B. Daniel 2–4), mehrere Stellen oder ausgewählte Verse aus verschiedenen Kapiteln/Büchern enthalten (z. B. Matthäus 5,1–12; Matthäus 6,25–34). Trenne mehrere Stellen durch Semikolon oder Zeilenumbruch und nenne bei jeder Stelle ausdrücklich das Buch. Verteile die Fragen über den gesamten angegebenen Bereich; nutze nicht nur die erste Stelle und erfinde keine zusätzlichen Stellen. Wenn der Lesebereich unklar ist, notiere dies in reviewNotes.",
+        "- تعامل مع حقل المراجع الكتابية باعتباره نطاق القراءة الكامل: قد يشمل سفرًا كاملًا (كل الإصحاحات)، أو نطاقًا من الإصحاحات (مثل دانيال 2–4)، أو عدة مقاطع، أو آيات مختارة من إصحاحات أو أسفار مختلفة (مثل متى 5:1–12؛ متى 6:25–34). افصل المراجع المتعددة بفاصلة منقوطة أو بسطر جديد، واذكر اسم السفر صراحةً في كل مرجع. وزّع الأسئلة على نطاق القراءة المحدد كله؛ لا تستخدم المرجع الأول فقط ولا تخترع مراجع إضافية. إذا كان نطاق القراءة غير واضح، فاذكر ذلك في reviewNotes.",
+        "- Treat the Bible-reference input as the full reading scope: it may specify an entire biblical book (all chapters), a chapter range (e.g. Daniel 2–4), multiple references, or selected verses from different chapters/books (e.g. Matthew 5:1–12; Matthew 6:25–34). Separate references with semicolons or line breaks and repeat the book name for each reference. Distribute the questions across the entire specified scope; do not use only the first reference or invent additional passages. If the scope is unclear, note this in reviewNotes."
       ),
       L("- Gib kurze, hilfreiche Hinweise, die die Antwort nicht direkt verraten.", "- قدّم تلميحات قصيرة ومفيدة لا تكشف الإجابة مباشرة.", "- Give concise, helpful hints without revealing the answer directly."),
       L(
@@ -577,7 +582,7 @@
     panel.hidden = true;
     panel.style.cssText = "margin:0 0 18px;border:2px solid #b6c9f5";
     const isEscape = kind === "escape-room";
-    const countOptions = [3, 4, 6, 7, 10].map(function (count) {
+    const countOptions = [3, 4, 5, 6, 7, 8, 9, 10].map(function (count) {
       return "<option value='" + count + "' " + (count === 4 ? "selected" : "") + ">" + count + (isEscape ? " Rätsel" : " Fragen") + "</option>";
     }).join("");
     panel.innerHTML =
@@ -587,7 +592,7 @@
       "<option value='de'>Deutsch</option><option value='ar'>العربية</option><option value='en'>English</option></select></div>" +
       "<div class='field'><label for='bibelreisePromptAge'>Altersgruppe / الفئة العمرية</label><input id='bibelreisePromptAge' required maxlength='60' value='9–15 Jahre' placeholder='z. B. 9–15 Jahre'></div>" +
       "<div class='field'><label for='bibelreisePromptTopic'>Bibelgeschichte oder Thema / القصة أو الموضوع الكتابي *</label><input id='bibelreisePromptTopic' required maxlength='180' placeholder='z. B. Daniel in der Löwengrube'></div>" +
-      "<div class='field'><label for='bibelreisePromptPassage'>Bibelstelle / المرجع الكتابي *</label><input id='bibelreisePromptPassage' required maxlength='120' placeholder='z. B. Daniel 6,1–29'></div>" +
+      "<div class='field'><label for='bibelreisePromptPassage'>Bibelstelle(n) und Lesebereich / المراجع الكتابية ونطاق القراءة *</label><textarea id='bibelreisePromptPassage' required rows='3' maxlength='800' placeholder='z. B. Ruth – alle Kapitel; Daniel 2–4; Matthäus 5,1–12; Matthäus 6,25–34'></textarea><p class='small'>Mehrere Stellen mit Semikolon oder neuer Zeile trennen und den Buchnamen bei jeder Stelle wiederholen. Beispiele: Ruth – alle Kapitel; Daniel 2–4; Matthäus 5,1–12; Matthäus 6,25–34. / افصل المراجع المتعددة بفاصلة منقوطة أو بسطر جديد، وكرّر اسم السفر في كل مرجع. يمكنك تحديد سفر كامل، أو الإصحاحات من X إلى Y، أو آيات من إصحاحات مختلفة.</p></div>" +
       "<div class='field'><label for='bibelreisePromptObjective'>Lernziel (empfohlen) / الهدف التعليمي</label><textarea id='bibelreisePromptObjective' rows='2' maxlength='500' placeholder='Was sollen die Kinder verstehen oder behalten?'></textarea></div>" +
       "<div class='field-row'><div class='field'><label for='bibelreisePromptDifficulty'>Schwierigkeit / مستوى الصعوبة</label><select id='bibelreisePromptDifficulty'><option>Einfach</option><option selected>Mittel</option><option>Schwer</option></select></div>" +
       "<div class='field'><label for='bibelreisePromptCount'>" + (isEscape ? "Anzahl Rätsel / عدد الألغاز" : "Anzahl Fragen / عدد الأسئلة") + "</label><select id='bibelreisePromptCount'>" + countOptions + "</select></div></div>" +
@@ -869,7 +874,7 @@
           const unknown = item.url === "https://www.bible.com/";
           const linkLabel = unknown
             ? (arabic ? "ابحث عن المقطع ↗" : "Stelle auf Bible.com suchen ↗")
-            : isRange
+            : isRange && item.chapter
               ? (arabic ? "الإصحاح " + item.chapter + " ↗" : "Kapitel " + item.chapter + " ↗")
               : (arabic ? "فتح المقطع ↗" : "Bibelstelle öffnen ↗");
           return "<a class='btn secondary " + (arabic ? "lang-ar" : "") + "' " + (arabic ? "dir='rtl' " : "") +
