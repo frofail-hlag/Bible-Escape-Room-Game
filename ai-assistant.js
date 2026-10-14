@@ -417,6 +417,15 @@
       return output;
     };
   }
+  const originalChallengeManagement = window.teacherChallengeManagement;
+  if (typeof originalChallengeManagement === "function") {
+    window.teacherChallengeManagement = function () {
+      const output = originalChallengeManagement.apply(this, arguments);
+      injectImportPanel("bibel-challenge");
+      return output;
+    };
+  }
+
   const originalChallengeDashboard = window.teacherChallengeDashboard;
   if (typeof originalChallengeDashboard === "function") {
     window.teacherChallengeDashboard = async function () {
