@@ -159,20 +159,34 @@ On successful validation, the importer should show a preview/diff and require a 
 
 ## 6. Integration feasibility — separate track
 
-There are three different technical capabilities; they must not be conflated:
+**Research checked on 2026-10-14 against current official OpenAI documentation. Eligibility is not yet confirmed for Bibelreise.**
 
-1. **Manual ChatGPT hand-off:** Works without a new API integration or additional AI/API billing. The teacher pastes the prepared prompt into their chosen ChatGPT conversation and pastes the resulting JSON back into the future importer. The web app cannot automatically read the conversation.
-2. **Generate inside Bibelreise with included ChatGPT plan usage:** OpenAI documents a Sign in with ChatGPT flow for eligible applications. Eligibility depends on app type/partner requirements and supported plans. The current guidance says remotely hosted apps should use the interest form; the user’s ChatGPT Go eligibility for this particular integration must be confirmed before implementation. This route would generate a fresh request in Bibelreise; it does not import the user’s current ChatGPT conversation.
-3. **Ask ChatGPT to send a finished draft directly to Bibelreise from the current conversation:** This needs a supported ChatGPT app/tool connection with a write action and a secure endpoint. Current custom MCP write-action availability is plan/workspace-limited, so this path is not assumed to work on the user’s personal ChatGPT Go plan. We must verify availability/approval before investing in it.
+There are three separate capabilities; do not conflate them:
 
-No route should have silent fallback to paid API usage. If no-cost plan usage is not authorized or reaches its limit, the feature must stop and explain that the user can retry later or use the manual copy/paste workflow.
+1. **Manual ChatGPT hand-off (available now):** The teacher copies the prepared prompt into a ChatGPT conversation, refines it, copies the resulting JSON into Bibelreise, validates the structure, reviews the preview, and explicitly imports it as a draft. The app does not read the conversation automatically. This path needs no API key and no separate AI/API billing.
+
+2. **Use the teacher's ChatGPT Go plan from inside the hosted Bibelreise PWA (promising, but requires access approval):** OpenAI documents that Go, Plus, and Pro users can authorize eligible AI requests in participating third-party apps to count against usage included in their ChatGPT plan. This does not provide access to the teacher's ChatGPT conversations or memories, and it does not share an OpenAI API key. OpenAI's developer guidance says the self-registration flow is for open-source and locally hosted apps; developers offering this in a remotely hosted app should use the Sign in with ChatGPT interest form. Since Bibelreise is hosted on GitHub Pages, the current next step is to submit that form and wait for OpenAI's response before implementation. Approval is not guaranteed.
+   - Official plan-use guidance: https://help.openai.com/en/articles/20001542-using-your-chatgpt-plan-in-other-apps-and-sites
+   - Official developer overview: https://developers.openai.com/siwc/token-sharing-open-source
+   - Interest form: https://openai.com/form/sign-in-with-chatgpt-interest/
+
+3. **Send a finished JSON draft from the current ChatGPT conversation directly into Bibelreise:** This is a separate ChatGPT app/custom MCP integration and should not be confused with Sign in with ChatGPT for usage inside the PWA. OpenAI's current help guidance says full MCP support with write/modify actions is available in beta for ChatGPT Business, Enterprise, and Edu. It is not currently documented as available for a personal Go plan, so do not make this the primary path for this project.
+
+### Required cost and safety controls
+
+- No OpenAI API key, paid API fallback, or silent fallback to credits.
+- If the no-additional-API-cost path has not been approved or cannot be authorized for an account, keep the manual copy/paste workflow available and stop the AI request with a clear explanation.
+- If plan usage is approved, require the teacher to explicitly authorize it and give them a clear way to set a low usage limit. Never assume access to ChatGPT conversations.
+- Check the user's app-specific usage cap and the separate “allow apps to use credits” setting before tests. Do not enable credit usage or automatic credit purchases on the user's behalf.
+- Every generated activity must remain a draft until a teacher reviews it and explicitly publishes it.
 
 ## 7. Current progress and next steps
 
-1. **Complete:** Finalize prompt inputs and create one example for each game type.
+1. **Complete:** Finalize prompt inputs and create one sample JSON fixture for each game type.
 2. **Complete:** Standalone validator/preview page with Daniel sample fixtures.
-3. **Implemented, needs hands-on verification:** In-app manual JSON import from both teacher dashboards, with validation, preview, generated IDs, and draft-only saving.
-4. **Implemented:** Direct German SCH2000 and Arabic AVD Bible.com links are displayed on the Bibel-Challenge list, teacher editor, introduction and each question. Multi-chapter references such as Esther 4–7 offer a separate link for each chapter in both languages. The existing in-app two-language Bible reader remains available as well. Unrecognized references now fall back to Bible.com rather than incorrectly opening John 1.
-5. **Next:** Test importing both sample JSON files through the actual app, verify editor preview and gameplay, then test Challenge draft sync and the two direct Bible links on desktop and mobile.
-6. **Separate track:** Confirm the eligibility path for ChatGPT-plan usage or direct ChatGPT-to-app integration. Do not add an API key, paid fallback, or silent credits.
-7. Add the eventual AI-assistance button/form only after these manual import checks pass and the no-additional-cost integration path is confirmed.
+3. **Complete and hands-on tested on 2026-10-14:** The in-app manual JSON import workflow for both game types. The user confirmed that both Daniel fixtures imported as drafts, and that validation, bilingual preview, gameplay, answers/scoring, hints/clues, completion/results, layout, and Bible-reference checks passed. Both Daniel activities must remain drafts until the full app development and final release review are complete.
+4. **Implemented and previously tested:** Direct German SCH2000 and Arabic AVD Bible.com links are displayed on the Bibel-Challenge list, teacher editor, introduction and each question. Multi-chapter references such as Esther 4–7 offer a separate link for each chapter in both languages. The existing in-app two-language Bible reader remains available. Unrecognized references fall back to Bible.com rather than incorrectly opening John 1.
+5. **Current next step — eligibility, not UI development:** Submit the official Sign in with ChatGPT interest form for the remotely hosted Bibelreise PWA and await confirmation. The form asks for work email, first and last name, company, website, job title, requested capabilities, and a brief product description; the user should complete and submit it. Do not claim access until OpenAI confirms it.
+6. **After an eligibility decision:** If the no-cost plan-usage route is approved, design the sign-in/consent, usage-limit, privacy, and error flows before implementing the AI-assistance form. If it is not approved, continue using the current manual ChatGPT hand-off and JSON import workflow. Do not add an API key or paid fallback.
+7. **Final publication gate:** Keep the Daniel Escape Room and Daniel Bibel-Challenge as drafts during development. Publish only after the remaining teacher-area work is complete and the final end-to-end release checklist passes.
+
