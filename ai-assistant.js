@@ -152,7 +152,7 @@
       ref: String(d.ref).trim(),
       intro: String(d.intro).trim(),
       introAr: String(d.introAr).trim(),
-      color: String(d.color || "📖"),
+      color: String(d.color || "📖").replace(/[\u0000-\u001F<>"'&]/g, "").slice(0, 12) || "📖",
       duration: Math.max(1, Number(d.duration) || 15),
       difficulty: ["Einfach", "Mittel", "Schwer"].includes(d.difficulty) ? d.difficulty : "Mittel",
       status: "draft",
