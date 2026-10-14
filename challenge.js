@@ -1175,6 +1175,21 @@
       "https://www.bible.com/de/bible/157/" + code + "." + match[2] + ".SCH2000";
   }
   window.bibelreiseBibleUrl = function (ref, version) { return bibleUrl(ref, version); };
+  window.bibelreiseBibleUrls = function (ref, version) {
+    const clean = String(ref || "").replace(/[–—]/g, "-").trim();
+    const range = clean.match(/^(.+?)\s+(\d{1,3})\s*-\s*(\d{1,3})$/);
+    if (range) {
+      const first = Number(range[2]), last = Number(range[3]);
+      if (last >= first && last - first <= 11) {
+        return Array.from({ length: last - first + 1 }, function (_, index) {
+          const chapter = first + index;
+          return { chapter: chapter, url: bibleUrl(range[1] + " " + chapter, version) };
+        });
+      }
+    }
+    const single = clean.match(/^(.+?)\s+(\d{1,3})/);
+    return [{ chapter: single ? Number(single[2]) : null, url: bibleUrl(clean, version) }];
+  };
   const originalOpenBible = openBible;
   openBible = function (from) {
     if (from !== "challenge") return originalOpenBible(from);
