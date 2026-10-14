@@ -386,7 +386,7 @@
           "- Create exactly " + count + " connected puzzles that form a meaningful learning journey, using a suitable mix of choice, truefalse, order, text, number and bible."
         ),
         L(
-          "- Jedes Rätsel braucht ein kurzes clue-Fragment aus Großbuchstaben A–Z oder Ziffern. Aneinandergereiht müssen alle Fragmente exakt final ergeben, ohne Leerzeichen oder Satzzeichen. Kein einzelnes Rätsel darf den vollständigen final-Code verraten.",
+          "- Jedes Rätsel braucht ein kurzes clue-Fragment aus Großbuchstaben A–Z oder Ziffern. Aneinandergereiht müssen alle Fragmente exakt final ergeben, ohne Leerzeichen oder Satzzeichen. Bei einer Aktivität mit mehreren Rätseln darf kein einzelnes Rätsel den vollständigen final-Code verraten.",
           "- يجب أن ينتج كل لغز جزءًا قصيرًا من clue باستخدام الأحرف اللاتينية الكبيرة A–Z أو الأرقام. يجب أن تكوّن الأجزاء مجتمعة قيمة final تمامًا دون مسافات أو علامات ترقيم.",
           "- Every puzzle needs a short clue fragment using uppercase Latin letters A–Z or digits. Concatenating the fragments must equal final exactly, with no spaces or punctuation."
         ),
