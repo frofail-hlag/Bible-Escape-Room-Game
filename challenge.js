@@ -269,6 +269,14 @@
         importButton.textContent = "📥 JSON-Entwurf importieren / استيراد مسودة JSON";
         editorNav.appendChild(importButton);
       }
+      if (editorNav && !document.getElementById("bibelreiseAiPromptEscapeEditorButton")) {
+        const promptButton = document.createElement("button");
+        promptButton.id = "bibelreiseAiPromptEscapeEditorButton";
+        promptButton.className = "btn gold";
+        promptButton.type = "button";
+        promptButton.textContent = "🧠 ChatGPT-Prompt erstellen / إعداد طلب ChatGPT";
+        editorNav.appendChild(promptButton);
+      }
       if (typeof window.bibelreiseInjectTeacherImportPanel === "function") {
         window.bibelreiseInjectTeacherImportPanel("escape-room", "bibelreiseAiImportEscapeEditorButton");
       }
@@ -927,7 +935,7 @@
       field("bc_passage", "Bibelstelle (z. B. Esther 4,1–17)", c.passage, false) +
       "<div class='bilingual-fields'>" + textareaField("bc_instructions", "Anweisungen (Deutsch)", c.instructions, false) + textareaField("bc_instructionsar", "التعليمات (العربية)", c.instructionsAr, true) + "</div>" +
       "<div class='field'><label>Status</label><select id='bc_status'><option value='draft' " + (c.status !== "published" ? "selected" : "") + ">Entwurf</option><option value='published' " + (c.status === "published" ? "selected" : "") + ">Veröffentlicht</option></select></div>" +
-      "<div class='actions'><button class='btn' onclick='saveBibleChallengeMeta(\"" + esc(c.id) + "\")'>💾 Speichern</button><button class='btn gold' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Testen</button></div><div class='actions' style='margin-top:12px'><button class='btn gold' id='bibelreiseAiImportEditorButton' type='button'>📥 JSON-Entwurf importieren / استيراد مسودة JSON</button></div></div>" +
+      "<div class='actions'><button class='btn' onclick='saveBibleChallengeMeta(\"" + esc(c.id) + "\")'>💾 Speichern</button><button class='btn gold' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Testen</button></div><div class='actions' style='margin-top:12px'><button class='btn gold' id='bibelreiseAiImportEditorButton' type='button'>📥 JSON-Entwurf importieren / استيراد مسودة JSON</button><button class='btn gold' id='bibelreiseAiPromptChallengeEditorButton' type='button'>🧠 ChatGPT-Prompt erstellen / إعداد طلب ChatGPT</button></div></div>" +
       "<section class='card' style='margin-top:16px'><div class='editor-head'><div><h2>Fragen (" + c.questions.length + "/4)</h2><p class='small'>Mindestens 3 und höchstens 4 Fragen zum angegebenen Bibelabschnitt.</p></div>" +
       "<button class='btn' onclick='addBibleChallengeQuestion(\"" + esc(c.id) + "\")' " + (c.questions.length >= 4 ? "disabled" : "") + ">➕ Frage hinzufügen</button></div>" +
       questions + "</section></section><aside class='sticky'><section class='card'><h2>📖 Passage erneut lesen</h2><p class='small'>Teste, ob die angegebene Stelle in der zweisprachigen Bibel gut auffindbar ist.</p><button class='btn secondary' style='width:100%' onclick='previewChallengeBible(\"" + esc(c.id) + "\")'>Bibel öffnen</button></section>" +
