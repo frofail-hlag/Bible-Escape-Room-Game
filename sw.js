@@ -1,4 +1,4 @@
-const CACHE='bibelreise-v3-3-9-editor-import-cache-cleanup';;;;;;
+const CACHE='bibelreise-v3-4-0-guided-chatgpt-prompt-builder';;;;;;
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon.png','./welcome-banner.webp','./background-bible.png','./challenge.js','./challenge.css','./ai-assistant.js','./firebase-config.js','./firebase-service.js'];
 
 self.addEventListener('install', event => {
