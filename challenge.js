@@ -186,8 +186,8 @@
         !challenge.instructions || !challenge.instructionsAr) {
       return "Bitte Titel, Bibelstelle und Anweisungen in beiden Sprachen ausfüllen.";
     }
-    if (challenge.questions.length < 3 || challenge.questions.length > 4) {
-      return "Eine Bibel-Challenge braucht 3 oder 4 Fragen.";
+    if (challenge.questions.length < 3 || challenge.questions.length > 10) {
+      return "Eine Bibel-Challenge braucht mindestens 3 und höchstens 10 Fragen.";
     }
     for (let i = 0; i < challenge.questions.length; i++) {
       const q = challenge.questions[i];
@@ -936,8 +936,8 @@
       "<div class='bilingual-fields'>" + textareaField("bc_instructions", "Anweisungen (Deutsch)", c.instructions, false) + textareaField("bc_instructionsar", "التعليمات (العربية)", c.instructionsAr, true) + "</div>" +
       "<div class='field'><label>Status</label><select id='bc_status'><option value='draft' " + (c.status !== "published" ? "selected" : "") + ">Entwurf</option><option value='published' " + (c.status === "published" ? "selected" : "") + ">Veröffentlicht</option></select></div>" +
       "<div class='actions'><button class='btn' onclick='saveBibleChallengeMeta(\"" + esc(c.id) + "\")'>💾 Speichern</button><button class='btn gold' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Testen</button></div><div class='actions' style='margin-top:12px'><button class='btn gold' id='bibelreiseAiImportEditorButton' type='button'>📥 JSON-Entwurf importieren / استيراد مسودة JSON</button><button class='btn gold' id='bibelreiseAiPromptChallengeEditorButton' type='button'>🧠 ChatGPT-Prompt erstellen / إعداد طلب ChatGPT</button></div></div>" +
-      "<section class='card' style='margin-top:16px'><div class='editor-head'><div><h2>Fragen (" + c.questions.length + "/4)</h2><p class='small'>Mindestens 3 und höchstens 4 Fragen zum angegebenen Bibelabschnitt.</p></div>" +
-      "<button class='btn' onclick='addBibleChallengeQuestion(\"" + esc(c.id) + "\")' " + (c.questions.length >= 4 ? "disabled" : "") + ">➕ Frage hinzufügen</button></div>" +
+      "<section class='card' style='margin-top:16px'><div class='editor-head'><div><h2>Fragen (" + c.questions.length + "/10)</h2><p class='small'>Mindestens 3 und höchstens 10 Fragen zum angegebenen Bibelabschnitt.</p></div>" +
+      "<button class='btn' onclick='addBibleChallengeQuestion(\"" + esc(c.id) + "\")' " + (c.questions.length >= 10 ? "disabled" : "") + ">➕ Frage hinzufügen</button></div>" +
       questions + "</section></section><aside class='sticky'><section class='card'><h2>📖 Passage erneut lesen</h2><p class='small'>Teste, ob die angegebene Stelle in der zweisprachigen Bibel gut auffindbar ist.</p><button class='btn secondary' style='width:100%' onclick='previewChallengeBible(\"" + esc(c.id) + "\")'>Bibel öffnen</button></section>" +
       "<section class='card' style='margin-top:14px'><h2>🧭 Veröffentlichungs-Check</h2><p class='small'>Vor dem Veröffentlichen prüfen wir automatisch, ob die Aktivität 3–4 zweisprachige Fragen und Antworten enthält.</p><div class='muted-box'><strong>Wichtig</strong><br><span class='small'>Bitte Antworten und Erklärungen am angegebenen Bibeltext ausrichten. AI bleibt deaktiviert.</span></div></section></aside></div></main>";
     insertTeacherGreeting();
@@ -1079,7 +1079,7 @@
   async function addBibleChallengeQuestion(challengeId) {
     const list = readChallenges();
     const c = list.find(function (x) { return x.id === challengeId; });
-    if (!c || c.questions.length >= 4) return alert("Maximal vier Fragen pro Challenge. / أربعة أسئلة كحد أقصى.");
+    if (!c || c.questions.length >= 10) return alert("Maximal zehn Fragen pro Challenge. / الحد الأقصى عشرة أسئلة لكل تحدٍ.");
     c.questions.push(newQuestion(c.questions.length + 1));
     if (c.status === "published") {
       c.status = "draft";
