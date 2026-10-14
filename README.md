@@ -100,6 +100,10 @@ The repository's `.firebaserc` targets project `bible-escape-room`. The cleanup 
 - Direct Sign in with ChatGPT / plan-usage integration is a separate optional future track and is not required for the guided prompt builder.
 
 
+## Explicit readable JSON reminder (V3.5.5)
+
+- Adds the short instruction “Write it in a readable JSON format” near the top of the quality rules (translated to the selected prompt language), in addition to the detailed JSON formatting checklist. This mirrors the wording that was shown to improve real-world results during teacher testing.
+
 ## Pretty-printed JSON prompts (V3.5.4)
 
 - Guided prompts in German, Arabic, and English now require pretty-printed JSON with exactly two spaces of indentation, with each property and array item on its own line.
