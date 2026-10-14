@@ -200,3 +200,14 @@ There are three separate capabilities; do not conflate them:
 - Teacher explicitly copies the prompt to their own ChatGPT conversation, then copies the JSON response back into the existing importer. The app does not call ChatGPT, inspect conversations, use an API key, or invoke paid API usage.
 - The JSON import validation, preview and draft-only persistence workflow remains the same. No activity is published automatically.
 - Needs a live-browser check for prompt generation/copying, then a Daniel end-to-end regression test from prompt to draft import.
+
+
+## Prompt language, count and JSON syntax recovery (V3.5.0)
+
+- The prompt form offers German, Arabic and English. Its instruction text is generated in the selected prompt language.
+- Regardless of the prompt language, the generated activity always uses the existing bilingual German/Arabic fields and the same `bibelreise-ai-v1` JSON schema.
+- Both activity types offer these exact requested-count options: 3, 4, 6, 7 or 10. The importer accepts 3–10 items, and the Bibel-Challenge editor and publication checks support up to 10.
+- Prompts explicitly prohibit Markdown fences, comments, ellipses, prose outside the JSON object and trailing commas before `}` or `]`.
+- If pasted JSON fails to parse, the importer offers a copyable repair prompt in the currently selected prompt language. It asks ChatGPT to repair syntax only and preserve every German and Arabic field/value, meaning, ordering and item count. Bibelreise does not silently rewrite JSON.
+- No direct ChatGPT or OpenAI API call has been added.
+- Live testing is required: test all three prompt languages, all count choices, the malformed-JSON repair helper, and one 10-item activity of each game type. Keep all test activities as drafts.
