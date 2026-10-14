@@ -238,20 +238,22 @@
     };
   }
 
-  function injectImportPanel(kind) {
+  function injectImportPanel(kind, specificTriggerId) {
     const root = document.querySelector(".app");
     const nav = root && root.querySelector(".teacher-nav");
     if (!root || !nav) return;
-    let trigger = document.getElementById(BUTTON_ID);
-    if (!trigger) {
+    let trigger = document.getElementById(specificTriggerId || BUTTON_ID);
+    if (!trigger && !specificTriggerId) {
       trigger = document.createElement("button");
       trigger.id = BUTTON_ID;
       trigger.className = "btn gold";
       trigger.type = "button";
       trigger.textContent = "📥 JSON-Entwurf importieren";
+      nav.appendChild(trigger);
     }
-    // The Challenge screens render this visible button themselves. Reattach it to the current navigation and bind it once.
-    if (trigger.parentNode !== nav) nav.appendChild(trigger);
+    if (!trigger) return;
+    // Dashboard controls live in navigation; a dedicated editor control stays inside the editor card.
+    if (!specificTriggerId && trigger.parentNode !== nav) nav.appendChild(trigger);
     if (trigger.dataset.bibelreiseImportBound !== "true") {
       trigger.dataset.bibelreiseImportBound = "true";
       trigger.addEventListener("click", function () {
