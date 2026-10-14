@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "bibelreise-ai-v1",
+  "gameType": "bibel-challenge",
+  "reviewNotes": [],
+  "draft": {
+    "title": "Daniel und die Löwengrube – Bibel-Challenge",
+    "titleAr": "دانيال وجب الأسود – تحدّي الكتاب المقدّس",
+    "passage": "Daniel 6",
+    "instructions": "Lies Daniel 6. Achte darauf, wie Daniel sich trotz des Verbots verhält, wie der König reagiert und wie Gott Daniel beschützt.",
+    "instructionsAr": "اقرأ دانيال ٦. انتبه إلى تصرّف دانيال رغم الأمر، وإلى ردّ فعل الملك، وكيف حمى الله دانيال.",
+    "status": "draft",
+    "questions": [
+      {
+        "type": "choice",
+        "q": "Was tat Daniel, nachdem er vom neuen Verbot erfahren hatte?",
+        "qAr": "ماذا فعل دانيال بعدما عرف بالأمر الجديد؟",
+        "opts": [
+          "Er versteckte sich und betete nicht mehr.",
+          "Er betete weiter wie gewohnt zu Gott.",
+          "Er verließ sofort die Stadt."
+        ],
+        "optsAr": [
+          "اختبأ ولم يعد يصلّي.",
+          "استمرّ في الصلاة لله كعادته.",
+          "غادر المدينة فورًا."
+        ],
+        "a": 1,
+        "hint": "Lies noch einmal, was Daniel tat, als er nach Hause kam.",
+        "hintAr": "اقرأ مرة أخرى ما فعله دانيال عندما عاد إلى بيته.",
+        "explanation": "Daniel blieb Gott treu und betete weiter, obwohl das Gesetz es verbot.",
+        "explanationAr": "ظلّ دانيال أمينًا لله واستمرّ في الصلاة رغم أن الأمر كان يمنع ذلك.",
+        "points": 100,
+        "accepted": [],
+        "acceptedAr": []
+      },
+      {
+        "type": "truefalse",
+        "q": "Der König war froh und unbesorgt, als Daniel in die Löwengrube geworfen werden sollte.",
+        "qAr": "كان الملك سعيدًا وغير قلق عندما كان دانيال سيُلقى في جب الأسود.",
+        "a": "false",
+        "hint": "Achte darauf, wie sich der König fühlte und was er versuchte.",
+        "hintAr": "انتبه إلى مشاعر الملك وما حاول أن يفعله.",
+        "explanation": "Der König war sehr betrübt und suchte nach einem Weg, Daniel zu retten.",
+        "explanationAr": "حزن الملك بشدة وحاول أن يجد طريقة لإنقاذ دانيال.",
+        "points": 100,
+        "accepted": [],
+        "acceptedAr": []
+      },
+      {
+        "type": "choice",
+        "q": "Wie wurde Daniel in der Löwengrube beschützt?",
+        "qAr": "كيف حُمي دانيال في جب الأسود؟",
+        "opts": [
+          "Gott sandte einen Engel, der den Löwen den Rachen verschloss.",
+          "Die Löwen wurden aus der Grube gebracht, bevor Daniel hineinkam.",
+          "Daniel versteckte sich vor den Löwen."
+        ],
+        "optsAr": [
+          "أرسل الله ملاكًا فأغلق أفواه الأسود.",
+          "أُخرجت الأسود من الجب قبل دخول دانيال.",
+          "اختبأ دانيال من الأسود."
+        ],
+        "a": 0,
+        "hint": "Suche im Bericht nach dem, was Gott in der Nacht tat.",
+        "hintAr": "ابحث في النص عمّا فعله الله أثناء الليل.",
+        "explanation": "Gott sandte seinen Engel, und Daniel blieb unverletzt.",
+        "explanationAr": "أرسل الله ملاكه، فبقي دانيال دون أذى.",
+        "points": 100,
+        "accepted": [],
+        "acceptedAr": []
+      },
+      {
+        "type": "order",
+        "q": "Ordne die Ereignisse so, wie sie in Daniel 6 geschehen.",
+        "qAr": "رتّب الأحداث كما وردت في دانيال ٦.",
+        "items": [
+          "Der König erlässt das Verbot.",
+          "Daniel betet wie gewohnt zu Gott.",
+          "Daniel wird in die Löwengrube geworfen.",
+          "Gott sendet einen Engel, der die Löwen zurückhält.",
+          "Daniel wird unversehrt aus der Grube geholt."
+        ],
+        "itemsAr": [
+          "يصدر الملك الأمر.",
+          "يصلّي دانيال لله كعادته.",
+          "يُلقى دانيال في جب الأسود.",
+          "يرسل الله ملاكًا يمنع الأسود من إيذائه.",
+          "يُخرج دانيال من الجب دون أن يصاب بأذى."
+        ],
+        "hint": "Achte auf den Ablauf von der neuen Regel bis zum Morgen danach.",
+        "hintAr": "انتبه إلى تسلسل الأحداث من صدور الأمر حتى صباح اليوم التالي.",
+        "explanation": "Der Bericht zeigt erst das Verbot und Daniels Gebet, dann die Löwengrube und schließlich Gottes Schutz.",
+        "explanationAr": "يبدأ النص بالأمر وصلاة دانيال، ثم جب الأسود، وأخيرًا حماية الله له.",
+        "points": 100,
+        "accepted": [],
+        "acceptedAr": []
+      }
+    ]
+  }
+}
