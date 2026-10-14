@@ -214,3 +214,10 @@ There are three separate capabilities; do not conflate them:
 
 
 Escape Room editor guard: a game can contain a maximum of 10 puzzles; its add-puzzle function prevents creating an 11th puzzle.
+
+
+### Firebase cloud compatibility follow-up (V3.5.1)
+
+- Updated `firestore.rules` so Bibel-Challenges and student results support up to 10 questions/answers.
+- Updated `firebase-service.js` result normalization to preserve up to 10 correct answers, question count, and answer records.
+- **Manual deployment is required:** publish the repository's new `firestore.rules` in Firebase Console → Firestore Database → Rules before testing cloud sync or student results for 5–10 question Challenges. GitHub Pages deployment does not publish Firestore rules.
