@@ -906,21 +906,21 @@
     if (!c) return teacherChallengeDashboard();
     const questions = c.questions.map(function (q, i) { return challengeQuestionEditor(c, q, i); }).join("");
     app.innerHTML = "<main class='app'>" + header("Bibel-Challenge bearbeiten") +
-      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherChallengeDashboard()'>← Challenges</button><button class='btn secondary' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Vorschau</button><button class='btn gold' id='bibelreiseAiImportButton' type='button'>📥 JSON-Entwurf importieren</button></div>" +
+      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherChallengeDashboard()'>← Challenges</button><button class='btn secondary' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Vorschau</button></div>" +
       cloudNoticeHtml() +
       "<div class='two-col'><section><div class='card'><div class='editor-head'><div><h1>📖 Bibel-Challenge bearbeiten</h1><p class='small'>Die Aktivität wird erst für Schülerinnen und Schüler sichtbar, wenn sie veröffentlicht ist.</p></div><span class='badge " + (c.status === "published" ? "green" : "gray") + "'>" + (c.status === "published" ? "Veröffentlicht" : "Entwurf") + "</span></div>" +
       "<div class='bilingual-fields'>" + field("bc_title", "Titel (Deutsch)", c.title, false) + field("bc_titlear", "العنوان (العربية)", c.titleAr, true) + "</div>" +
       field("bc_passage", "Bibelstelle (z. B. Esther 4,1–17)", c.passage, false) +
       "<div class='bilingual-fields'>" + textareaField("bc_instructions", "Anweisungen (Deutsch)", c.instructions, false) + textareaField("bc_instructionsar", "التعليمات (العربية)", c.instructionsAr, true) + "</div>" +
       "<div class='field'><label>Status</label><select id='bc_status'><option value='draft' " + (c.status !== "published" ? "selected" : "") + ">Entwurf</option><option value='published' " + (c.status === "published" ? "selected" : "") + ">Veröffentlicht</option></select></div>" +
-      "<div class='actions'><button class='btn' onclick='saveBibleChallengeMeta(\"" + esc(c.id) + "\")'>💾 Speichern</button><button class='btn gold' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Testen</button></div></div>" +
+      "<div class='actions'><button class='btn' onclick='saveBibleChallengeMeta(\"" + esc(c.id) + "\")'>💾 Speichern</button><button class='btn gold' onclick='previewBibleChallenge(\"" + esc(c.id) + "\")'>▶ Testen</button></div><div class='actions' style='margin-top:12px'><button class='btn gold' id='bibelreiseAiImportEditorButton' type='button'>📥 JSON-Entwurf importieren / استيراد مسودة JSON</button></div></div>" +
       "<section class='card' style='margin-top:16px'><div class='editor-head'><div><h2>Fragen (" + c.questions.length + "/4)</h2><p class='small'>Mindestens 3 und höchstens 4 Fragen zum angegebenen Bibelabschnitt.</p></div>" +
       "<button class='btn' onclick='addBibleChallengeQuestion(\"" + esc(c.id) + "\")' " + (c.questions.length >= 4 ? "disabled" : "") + ">➕ Frage hinzufügen</button></div>" +
       questions + "</section></section><aside class='sticky'><section class='card'><h2>📖 Passage erneut lesen</h2><p class='small'>Teste, ob die angegebene Stelle in der zweisprachigen Bibel gut auffindbar ist.</p><button class='btn secondary' style='width:100%' onclick='previewChallengeBible(\"" + esc(c.id) + "\")'>Bibel öffnen</button></section>" +
       "<section class='card' style='margin-top:14px'><h2>🧭 Veröffentlichungs-Check</h2><p class='small'>Vor dem Veröffentlichen prüfen wir automatisch, ob die Aktivität 3–4 zweisprachige Fragen und Antworten enthält.</p><div class='muted-box'><strong>Wichtig</strong><br><span class='small'>Bitte Antworten und Erklärungen am angegebenen Bibeltext ausrichten. AI bleibt deaktiviert.</span></div></section></aside></div></main>";
     insertTeacherGreeting();
     if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
-    if (typeof window.bibelreiseInjectTeacherImportPanel === "function") window.bibelreiseInjectTeacherImportPanel("bibel-challenge");
+    if (typeof window.bibelreiseInjectTeacherImportPanel === "function") window.bibelreiseInjectTeacherImportPanel("bibel-challenge", "bibelreiseAiImportEditorButton");
   }
   function challengeQuestionEditor(c, q, i) {
     let type = "<div class='field'><label>Fragetyp</label><select id='bcq_type_" + i + "' onchange='changeBibleChallengeQuestionType(\"" + esc(c.id) + "\"," + i + ",this.value)'>" +
