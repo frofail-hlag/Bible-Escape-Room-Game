@@ -1,6 +1,13 @@
-Bibelreise V3.2.9 — App Branding & Icon (EU Frankfurt)
+Bibelreise V3.5.2 — Multilingual Prompt Builder, Flexible Counts & 10-Question Support
 
-Adds teacher self-registration with Firebase Email/Password, email verification and a resend-verification action. New registrations remain pending until the existing administrator approves them in the in-app Lehrerverwaltung screen. Admin rights are never granted through registration; the first admin is designated manually in Firestore. Approved teachers receive normal teacher access, not admin access. Updated Firestore rules protect teacher requests and role changes. Admin-only cleanup functions remove orphaned teacher request/profile documents after user deletion or during a manual reconciliation. Existing student, Escape Room and Bibel-Challenge flows are retained.
+Current release summary
+- The guided ChatGPT prompt builder supports Deutsch, العربية, and English. The generated prompt follows the selected language.
+- All student-facing game content must always include equivalent German and Arabic fields.
+- Escape Room puzzles and Bibel-Challenge questions offer exactly 3, 4, 6, 7, or 10 items (default: 4).
+- The JSON-repair prompt fixes syntax only and instructs ChatGPT to preserve the German and Arabic content, schema keys, item count, and item order.
+- Imported content is structurally validated and previewed before it can be saved as a draft. It is never published automatically.
+- Bibel-Challenge validation, student-result serialization, and the repository's Firestore rules support up to 10 questions and corresponding answers.
+- No direct AI/API request or OpenAI API key is used; the teacher copies the prompt into ChatGPT and imports the returned JSON.
 
-
-Adds the new cross-and-open-Bible app icon, German/Arabic Bibelreise branding, and the German welcome banner. This release changes only visual branding, metadata, and cached assets; game logic, authentication, Firebase Functions, Firestore rules, and database structures are unchanged.
+Deployment note
+After deploying the app updates to GitHub Pages, publish the repository's updated firestore.rules in Firebase Console → Firestore Database → Rules. Until those rules are published, shared Bibel-Challenges with more than four questions and their results may be rejected by Firestore.
