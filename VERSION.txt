@@ -1,14 +1,16 @@
-Bibelreise V3.5.3 — JSON Repair Diagnostics
+Bibelreise V3.5.4 — Pretty-Printed JSON Prompts
 
 Current release summary
-- The guided ChatGPT prompt builder supports Deutsch, العربية, and English. The generated prompt follows the selected language.
-- All student-facing game content must always include equivalent German and Arabic fields.
-- Escape Room puzzles and Bibel-Challenge questions offer exactly 3, 4, 6, 7, or 10 items (default: 4).
-- The importer detects a common missing-value error where "reviewNotes" is followed immediately by a comma, and explains that an empty reviewNotes list must be written as [].
-- The JSON-repair prompt explicitly tells ChatGPT to repair missing values with type-correct JSON while preserving German and Arabic content, schema keys, item count, and item order.
-- Imported content is structurally validated and previewed before it can be saved as a draft. It is never published automatically.
+- Guided prompts are available in German, Arabic, and English; the prompt follows the selected language.
+- All student-facing content must remain bilingual in German and Arabic.
+- Escape Room puzzles and Bibel-Challenge questions offer 3, 4, 6, 7, or 10 items (default: 4).
+- Prompts explicitly request readable JSON with exactly two spaces of indentation, each property and array item on its own line, and straight ASCII double quotes only.
+- Prompts forbid curly quotation marks as JSON delimiters, missing values, trailing commas, malformed arrays, and any text outside the JSON object.
+- Empty review notes and optional accepted-answer lists must use [].
+- ChatGPT is instructed to check the entire object for correct brackets, commas, values, arrays, and parseability before returning it.
+- The importer validates and previews generated content before saving it as a draft. Activities are never automatically published.
 - Bibel-Challenge validation, student-result serialization, and Firestore rules support up to 10 questions and corresponding answers.
-- No direct AI/API request or OpenAI API key is used; the teacher copies the prompt into ChatGPT and imports the returned JSON.
+- No direct AI/API request or OpenAI API key is used.
 
 Deployment note
-After deploying the app updates to GitHub Pages, publish the repository's updated firestore.rules in Firebase Console → Firestore Database → Rules. Until those rules are published, shared Bibel-Challenges with more than four questions and their results may be rejected by Firestore.
+GitHub Pages must deploy the updated files. The service-worker cache was bumped to V3.5.4 to help installed PWAs retrieve the new prompt instructions. Firebase Firestore rules are managed separately and should already be updated to support up to 10 questions and answers.
