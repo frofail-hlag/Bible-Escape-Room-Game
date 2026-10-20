@@ -328,6 +328,11 @@ async function loadResults() {
   const snap = await getDocs(collection(db, "challengeResults"));
   return snap.docs.map(item => ({ ...item.data(), id: item.id }));
 }
+async function migratePublishedChallengeAnswerKeys() {
+  const migrate = httpsCallable(getFunctions(defaultApp, "europe-west3"), "migratePublishedChallengeAnswerKeys");
+  const response = await migrate({});
+  return response.data || {};
+}
 async function evaluateBibleChallengeSubmission(challengeId, answers) {
   if (!studentAuth.currentUser || !studentAuth.currentUser.isAnonymous) {
     await signInAnonymously(studentAuth);
@@ -365,5 +370,6 @@ window.bibleFirebaseReady = Promise.resolve({
   loadResults,
   saveStudentResult,
   evaluateBibleChallengeSubmission,
+  migratePublishedChallengeAnswerKeys,
   getCurrentTeacher: () => authorizedTeacher()
 });
