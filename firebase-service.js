@@ -367,19 +367,6 @@ async function claimBibleChallengeReward(studentCode, pin, resultId) {
   return claimResponse.data || {};
 }
 
-async function saveStudentResult(result) {
-  const payload = cleanResult(result);
-  if (!payload.id || !payload.challengeId) throw new Error("Ergebnisdaten sind unvollständig.");
-  if (!studentAuth.currentUser || !studentAuth.currentUser.isAnonymous) {
-    await signInAnonymously(studentAuth);
-  }
-  const challengeSnap = await getDoc(doc(studentDb, "challenges", payload.challengeId));
-  if (!challengeSnap.exists() || challengeSnap.data().status !== "published") {
-    throw new Error("Diese Challenge ist nicht mehr veröffentlicht; das Ergebnis wurde lokal gespeichert.");
-  }
-  await setDoc(doc(studentDb, "challengeResults", payload.id), payload);
-  return true;
-}
 
 window.bibleFirebaseReady = Promise.resolve({
   projectId: firebaseConfig.projectId,
@@ -394,7 +381,6 @@ window.bibleFirebaseReady = Promise.resolve({
   loadChallenges,
   saveChallenge,
   loadResults,
-  saveStudentResult,
   evaluateBibleChallengeSubmission,
   claimBibleChallengeReward,
   migratePublishedChallengeAnswerKeys,
