@@ -312,7 +312,7 @@ async function loadChallenges(options = {}) {
     : await getDocs(query(source, where("status", "==", "published")));
   const challenges = snap.docs.map(item => ({ ...item.data(), id: item.id }));
   if (teacher) {
-    const getAnswerKey = httpsCallable(getFunctions(defaultApp, "europe-west3"), "getRewardChallengeAnswerKey");
+    const getAnswerKey = httpsCallable(functionsFor(defaultApp), "getRewardChallengeAnswerKey");
     for (const challenge of challenges) {
       if (challenge.status !== "published") continue;
       try {
@@ -348,7 +348,7 @@ async function saveChallenge(challenge) {
   const payload = challengePayload(challenge, old && old.ownerUid ? old.ownerUid : user.uid, old && old.createdAt);
   await setDoc(ref, payload);
   if (payload.status === "published") {
-    const syncAnswerKey = httpsCallable(getFunctions(defaultApp, "europe-west3"), "syncRewardChallengeAnswerKey");
+    const syncAnswerKey = httpsCallable(functionsFor(defaultApp), "syncRewardChallengeAnswerKey");
     await syncAnswerKey({
       challengeId: payload.id,
       expectedUpdatedAt: payload.updatedAt,
@@ -363,7 +363,7 @@ async function loadResults() {
   return snap.docs.map(item => ({ ...item.data(), id: item.id }));
 }
 async function migratePublishedChallengeAnswerKeys() {
-  const migrate = httpsCallable(getFunctions(defaultApp, "europe-west3"), "migratePublishedChallengeAnswerKeys");
+  const migrate = httpsCallable(functionsFor(defaultApp), "migratePublishedChallengeAnswerKeys");
   const response = await migrate({});
   return response.data || {};
 }
