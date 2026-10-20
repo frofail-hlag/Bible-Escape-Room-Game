@@ -117,17 +117,11 @@
     }
   }
   async function submitResultToFirebase(result) {
-    try {
-      const api = await firebaseApi();
-      await api.saveStudentResult(result);
-      state.challengeCloudSaveStatus = "saved";
-      return true;
-    } catch (error) {
-      state.challengeCloudSaveStatus = "failed";
-      state.firebaseSyncMessage = firebaseErrorText(error);
-      console.warn("Bible Escape Firebase result save:", error);
-      return false;
-    }
+    // The trusted evaluateBibleChallengeSubmission callable has already persisted
+    // the authoritative result before the client receives the evaluation. Never
+    // attempt a second browser-side write to challengeResults.
+    state.challengeCloudSaveStatus = result && result.resultId ? "saved" : "failed";
+    return Boolean(result && result.resultId);
   }
   function id() {
     return "bc_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7);
