@@ -831,6 +831,8 @@
     const answers = state.challengeAnswers || [];
     const elapsedSeconds = Math.max(0, Math.round((Date.now() - state.challengeStartedAt) / 1000));
     let evaluated = [];
+    let serverEvaluation = null;
+    const resultId = id();
     if (state.challengePreviewMode) {
       evaluated = c.questions.map(function (q, i) {
         const a = answers[i] || {};
@@ -861,8 +863,10 @@
               String(a.text || "")
           };
         });
-        const response = await api.evaluateBibleChallengeSubmission(c.id, submitted);
-        const details = Array.isArray(response.answerDetails) ? response.answerDetails : [];
+        serverEvaluation = await api.evaluateBibleChallengeSubmission(c.id, submitted, {
+          resultId, studentName: state.challengeName, elapsedSeconds
+        });
+        const details = Array.isArray(serverEvaluation.answerDetails) ? serverEvaluation.answerDetails : [];
         if (details.length !== c.questions.length) throw new Error("Die Auswertung war unvollständig. Bitte versuche es erneut.");
         evaluated = details;
       } catch (error) {
@@ -892,9 +896,13 @@
     const totalPoints = c.questions.reduce(function (sum, q) { return sum + Number(q.points || 100); }, 0);
     const score = resultAnswers.reduce(function (sum, a) { return sum + a.points; }, 0);
     const result = {
-      id: id(), challengeId: c.id, challengeTitle: c.title, challengeTitleAr: c.titleAr,
-      passage: c.passage, studentName: state.challengeName, score: Math.round(score),
-      totalPoints: Math.round(totalPoints), correctCount, questionCount: c.questions.length,
+      id: state.challengePreviewMode ? resultId : (serverEvaluation && serverEvaluation.resultId || resultId),
+      challengeId: c.id, challengeTitle: c.title, challengeTitleAr: c.titleAr,
+      passage: c.passage, studentName: state.challengeName,
+      score: state.challengePreviewMode ? Math.round(score) : Number(serverEvaluation.score || 0),
+      totalPoints: state.challengePreviewMode ? Math.round(totalPoints) : Number(serverEvaluation.totalPoints || 0),
+      correctCount: state.challengePreviewMode ? correctCount : Number(serverEvaluation.correctCount || 0),
+      questionCount: state.challengePreviewMode ? c.questions.length : Number(serverEvaluation.questionCount || c.questions.length),
       elapsedSeconds, completedAt: new Date().toISOString(), answers: resultAnswers
     };
     if (state.challengePreviewMode) {
@@ -903,8 +911,7 @@
       const results = readChallengeResults();
       results.push(result);
       saveChallengeResults(results);
-      state.challengeCloudSaveStatus = "saving";
-      await submitResultToFirebase(result);
+      state.challengeCloudSaveStatus = "saved";
     }
     state.challengeResult = result;
     state.view = "challengeResult";
