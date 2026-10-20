@@ -725,7 +725,7 @@
         "' oninput='saveChallengeTextAnswer(this.value)' placeholder='Antwort hier eingeben / اكتب الإجابة هنا'></div>";
     }
     let feedback = "";
-    if (answer.correct !== null) {
+    if (state.challengePreviewMode && answer.correct !== null) {
       const rightAnswer = challengeCorrectAnswer(q);
       feedback = "<section class='challenge-feedback " + (answer.correct ? "correct" : "incorrect") + "'>" +
         "<h3>" + (answer.correct ? "✅ Richtig! / إجابة صحيحة!" : "↪ Schaut noch einmal nach / راجعوا النص مرة أخرى") + "</h3>" +
@@ -735,8 +735,13 @@
           "<p class='small'>Vergleicht eure Antwort mit dem Bibeltext. / قارنوا إجابتكم بالنص الكتابي.</p>") +
         "</section><button class='btn' onclick='nextChallengeQuestion()'>" +
         (index < c.questions.length - 1 ? "Nächste Frage / السؤال التالي →" : "Ergebnis anzeigen / عرض النتيجة →") + "</button>";
+    } else if (answer.submitted === true) {
+      feedback = "<section class='challenge-feedback'><h3>Antwort gespeichert / تم حفظ الإجابة</h3>" +
+        "<p>Die Antwort wird nach Abschluss der gesamten Challenge ausgewertet. / سيتم تقييم الإجابة بعد إكمال التحدي بالكامل.</p>" +
+        "</section><button class='btn' onclick='nextChallengeQuestion()'>" +
+        (index < c.questions.length - 1 ? "Nächste Frage / السؤال التالي →" : "Ergebnis anzeigen / عرض النتيجة →") + "</button>";
     } else {
-      feedback = "<div class='actions challenge-question-actions'><button class='btn' onclick='checkChallengeAnswer()'>Antwort prüfen / تحقّق من الإجابة</button>" +
+      feedback = "<div class='actions challenge-question-actions'><button class='btn' onclick='checkChallengeAnswer()'>Antwort speichern / حفظ الإجابة</button>" +
         (q.hint || q.hintAr ? "<button class='btn secondary' onclick='toggleChallengeHint()'>💡 Hinweis / تلميح</button>" : "") + "</div>" +
         (state.challengeShowHint ? "<div class='hint-box'>" + bi(q.hint || "", q.hintAr || "") + "</div>" : "");
     }
@@ -744,10 +749,10 @@
       "<div class='challenge-session-bar'><div><strong>" + esc(state.challengeName) + "</strong><div class='small'>" + esc(c.title) + " / " + esc(c.titleAr) + "</div></div>" +
       "<button class='btn secondary' onclick='openChallengeBible()'>📖 Bibel erneut öffnen / فتح الكتاب المقدس</button></div>" +
       "<div class='challenge-progress-row'><span>Frage " + (index + 1) + " von " + c.questions.length + " / السؤال " + (index + 1) + " من " + c.questions.length + "</span><strong>" + state.challengeScore + " Punkte</strong></div>" +
-      "<div class='progress'><div style='width:" + Math.round((index + (answer.correct !== null ? 1 : 0)) / c.questions.length * 100) + "%'></div></div>" +
+      "<div class='progress'><div style='width:" + Math.round((index + (answer.submitted || answer.correct !== null ? 1 : 0)) / c.questions.length * 100) + "%'></div></div>" +
       "<section class='card challenge-question-card'><div class='challenge-question-type'>" + esc(typeLabel(q.type)) + "</div>" +
       "<div class='challenge-passage-inline'>📖 " + esc(c.passage) + "</div>" + bi(q.q, q.qAr) +
-      (answer.correct === null ? input : "") + feedback + "</section>" +
+      (!answer.submitted && answer.correct === null ? input : "") + feedback + "</section>" +
       "<div class='actions' style='margin-top:16px'><button class='btn secondary' onclick='studentChallenges()'>← Challenges / التحديات</button></div></main>";
     if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
   }
@@ -756,13 +761,13 @@
   }
   function chooseChallengeAnswer(value) {
     const answer = ensureChallengeAnswer();
-    if (answer.correct !== null) return;
+    if (answer.submitted === true || (state.challengePreviewMode && answer.correct !== null)) return;
     answer.selected = value;
     renderChallengeQuestion();
   }
   function moveChallengeOrder(displayIndex, delta) {
     const answer = ensureChallengeAnswer();
-    if (answer.correct !== null) return;
+    if (answer.submitted === true || (state.challengePreviewMode && answer.correct !== null)) return;
     const j = displayIndex + delta;
     if (j < 0 || j >= state.challengeOrder.length) return;
     const tmp = state.challengeOrder[displayIndex];
@@ -787,22 +792,26 @@
     const c = state.activeChallenge;
     const q = c.questions[state.challengeIndex];
     const answer = ensureChallengeAnswer();
-    if (answer.correct !== null) return;
+    if (answer.submitted === true || (state.challengePreviewMode && answer.correct !== null)) return;
     if (q.type === "choice" && answer.selected === null) { alert("Bitte wählt eine Antwort. / اختاروا إجابة من فضلكم."); return; }
     if (q.type === "truefalse" && answer.selected === null) { alert("Bitte wählt Richtig oder Falsch. / اختاروا صحيح أو خطأ."); return; }
     if (q.type === "order" && !state.challengeOrder.length) { alert("Für diese Frage wurden keine Ereignisse angelegt."); return; }
     if (!["choice", "truefalse", "order"].includes(q.type) && !String(answer.text || "").trim()) { alert("Bitte gebt eine Antwort ein. / اكتبوا الإجابة من فضلكم."); return; }
-    let correct = false;
-    if (q.type === "choice") correct = Number(answer.selected) === Number(q.a);
-    else if (q.type === "truefalse") correct = String(answer.selected) === String(q.a);
-    else if (q.type === "order") correct = state.challengeOrder.every(function (value, i) { return value === i; });
-    else correct = accepted(q, answer.text);
-    answer.correct = correct;
-    answer.points = correct ? Number(q.points || 100) : 0;
     answer.given = q.type === "choice" ? (q.opts || [])[Number(answer.selected)] :
       q.type === "truefalse" ? (String(answer.selected) === "true" ? "Richtig / صحيح" : "Falsch / خطأ") :
       q.type === "order" ? state.challengeOrder.map(function (i) { return q.items[i]; }).join(" → ") : answer.text;
-    if (correct) state.challengeScore += answer.points;
+    if (state.challengePreviewMode) {
+      let correct = false;
+      if (q.type === "choice") correct = Number(answer.selected) === Number(q.a);
+      else if (q.type === "truefalse") correct = String(answer.selected) === String(q.a);
+      else if (q.type === "order") correct = state.challengeOrder.every(function (value, i) { return value === i; });
+      else correct = accepted(q, answer.text);
+      answer.correct = correct;
+      answer.points = correct ? Number(q.points || 100) : 0;
+      if (correct) state.challengeScore += answer.points;
+    } else {
+      answer.submitted = true;
+    }
     state.challengeShowHint = false;
     renderChallengeQuestion();
   }
