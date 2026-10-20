@@ -76,7 +76,7 @@ function challengePayload(challenge, ownerUid, createdAt) {
     instructions: String(challenge.instructions || ""),
     instructionsAr: String(challenge.instructionsAr || ""),
     status: ["draft", "published", "archived"].includes(challenge.status) ? challenge.status : "draft",
-    questions: Array.isArray(challenge.questions) ? challenge.questions.map(publicQuestion) : [],
+    questions: Array.isArray(challenge.questions) ? (challenge.status === "published" ? challenge.questions.map(publicQuestion) : plain(challenge.questions)) : [],
     createdAt: String(createdAt || challenge.createdAt || new Date().toISOString()),
     updatedAt: new Date().toISOString(),
     ownerUid: String(ownerUid)
@@ -280,7 +280,34 @@ async function loadChallenges(options = {}) {
   const snap = teacher
     ? await getDocs(source)
     : await getDocs(query(source, where("status", "==", "published")));
-  return snap.docs.map(item => ({ ...item.data(), id: item.id }));
+  const challenges = snap.docs.map(item => ({ ...item.data(), id: item.id }));
+  if (teacher) {
+    const getAnswerKey = httpsCallable(getFunctions(defaultApp, "europe-west3"), "getRewardChallengeAnswerKey");
+    for (const challenge of challenges) {
+      if (challenge.status !== "published") continue;
+      try {
+        const response = await getAnswerKey({ challengeId: challenge.id });
+        const keys = Array.isArray(response.data && response.data.questions) ? response.data.questions : [];
+        const keyById = new Map(keys.map(question => [question.id, question]));
+        challenge.questions = (challenge.questions || []).map(question => {
+          const key = keyById.get(question.id);
+          if (!key) return question;
+          const merged = { ...question, a: key.a, aAr: key.aAr,
+            accepted: key.accepted || [], acceptedAr: key.acceptedAr || [] };
+          if (key.type === "order") {
+            merged.items = key.items || [];
+            merged.itemsAr = key.itemsAr || [];
+          }
+          return merged;
+        });
+      } catch (error) {
+        throw new Error("Die privaten Antwortdaten für die veröffentlichte Challenge „" + (challenge.title || challenge.id) +
+          "“ konnten nicht geladen werden. Bitte führe zuerst die sichere Challenge-Migration aus. " +
+          String(error && error.message || ""));
+      }
+    }
+  }
+  return challenges;
 }
 async function saveChallenge(challenge) {
   const user = await requireTeacher();
