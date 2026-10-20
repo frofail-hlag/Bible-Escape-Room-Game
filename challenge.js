@@ -937,7 +937,24 @@
     if (!isTeacher()) { teacherLogin(); return; }
     state.view = "teacherChallenges";
     render();
+  }\n  async function migrateBibleChallengeAnswerKeys() {
+    if (!isTeacher()) { teacherLogin(); return; }
+    if (!(state.firebaseTeacherAdmin === true || localStorage.getItem("bibleEscapeTeacherAdmin") === "1")) {
+      alert("Nur ein Admin darf die einmalige sichere Challenge-Migration ausführen.");
+      return;
+    }
+    if (!confirm("Die bestehenden veröffentlichten Bibel-Challenges werden sicher migriert. Antwortschlüssel werden aus den öffentlichen Dokumenten entfernt. Fortfahren?")) return;
+    try {
+      const api = await firebaseApi();
+      const result = await api.migratePublishedChallengeAnswerKeys();
+      alert("Migration abgeschlossen. Sichere Challenges: " + Number(result.migrated || 0) + ". Bitte prüfe anschließend einige Challenges und teste die Schüleransicht.");
+      await syncChallengesFromFirebase(true);
+      teacherChallengeDashboard();
+    } catch (error) {
+      alert("Die Migration konnte nicht abgeschlossen werden. Es wurden keine Produktionsänderungen außerhalb der Migration vorgenommen.\n\n" + String(error && error.message || error));
+    }
   }
+
   function renderTeacherChallenges() {
     clearInterval(state.timer);
     const challenges = readChallenges().slice().sort(function (a, b) { return String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")); });
@@ -951,7 +968,9 @@
         "<button class='btn danger' onclick='archiveBibleChallenge(\"" + esc(c.id) + "\")'>Archivieren</button></div></td></tr>";
     }).join("");
     app.innerHTML = "<main class='app'>" + header("Lehrerbereich · Bibel-Challenges") +
-      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrer-Dashboard</button><button class='btn' onclick='newBibleChallenge()'>➕ Neue Bibel-Challenge</button><button class='btn secondary' onclick='state.role=\"teacher\";home()'>🎮 Spiele spielen</button><button class='btn gold' id='bibelreiseAiImportButton' type='button'>📥 JSON-Entwurf importieren</button></div>" +
+      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrer-Dashboard</button><button class='btn' onclick='newBibleChallenge()'>➕ Neue Bibel-Challenge</button><button class='btn secondary' onclick='state.role=\"teacher\";home()'>🎮 Spiele spielen</button>" +
+      ((state.firebaseTeacherAdmin === true || localStorage.getItem("bibleEscapeTeacherAdmin") === "1") ? "<button class='btn danger' onclick='migrateBibleChallengeAnswerKeys()'>🔐 Sichere Challenge-Migration</button>" : "") +
+      "<button class='btn gold' id='bibelreiseAiImportButton' type='button'>📥 JSON-Entwurf importieren</button></div>" +
       "<section class='hero challenge-hero'><h1>📖 Bibel-Challenges</h1><p>Erstellt Leseaktivitäten mit einer Bibelstelle und 3–4 Fragen. Schülerinnen und Schüler können den Bibeltext jederzeit erneut öffnen.</p><p class='lang-ar' dir='rtl'>أنشئوا أنشطة قراءة مع مقطع كتابي وثلاثة أو أربعة أسئلة. يمكن للطلاب الرجوع إلى النص في أي وقت.</p></section>" +
       cloudNoticeHtml() +
       "<section class='card'><div class='editor-head'><div><h2>Meine Bibel-Challenges</h2><p class='small'>Titel, Bibelstelle, Anweisungen und Fragen können zweisprachig bearbeitet werden.</p></div><button class='btn' onclick='newBibleChallenge()'>➕ Neue Challenge</button></div>" +
@@ -1370,6 +1389,7 @@
     checkChallengeAnswer: checkChallengeAnswer,
     nextChallengeQuestion: nextChallengeQuestion,
     teacherChallengeDashboard: teacherChallengeDashboard,
+    migrateBibleChallengeAnswerKeys: migrateBibleChallengeAnswerKeys,
     newBibleChallenge: newBibleChallenge,
     editBibleChallenge: editBibleChallenge,
     saveBibleChallengeMeta: saveBibleChallengeMeta,
