@@ -319,7 +319,11 @@ async function saveChallenge(challenge) {
   await setDoc(ref, payload);
   if (payload.status === "published") {
     const syncAnswerKey = httpsCallable(getFunctions(defaultApp, "europe-west3"), "syncRewardChallengeAnswerKey");
-    await syncAnswerKey({ challengeId: payload.id, questions: plain(challenge.questions || []) });
+    await syncAnswerKey({
+      challengeId: payload.id,
+      expectedUpdatedAt: payload.updatedAt,
+      questions: plain(challenge.questions || [])
+    });
   }
   return payload;
 }
