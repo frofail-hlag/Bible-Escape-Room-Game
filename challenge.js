@@ -937,7 +937,8 @@
     if (!isTeacher()) { teacherLogin(); return; }
     state.view = "teacherChallenges";
     render();
-  }\n  async function migrateBibleChallengeAnswerKeys() {
+  }
+  async function migrateBibleChallengeAnswerKeys() {
     if (!isTeacher()) { teacherLogin(); return; }
     if (!(state.firebaseTeacherAdmin === true || localStorage.getItem("bibleEscapeTeacherAdmin") === "1")) {
       alert("Nur ein Admin darf die einmalige sichere Challenge-Migration ausführen.");
