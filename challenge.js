@@ -828,26 +828,73 @@
   async function finishChallenge() {
     const c = state.activeChallenge;
     const answers = state.challengeAnswers || [];
-    const correctCount = answers.filter(function (a) { return a && a.correct; }).length;
-    const totalPoints = c.questions.reduce(function (sum, q) { return sum + Number(q.points || 100); }, 0);
     const elapsedSeconds = Math.max(0, Math.round((Date.now() - state.challengeStartedAt) / 1000));
-    const result = {
-      id: id(),
-      challengeId: c.id,
-      challengeTitle: c.title,
-      challengeTitleAr: c.titleAr,
-      passage: c.passage,
-      studentName: state.challengeName,
-      score: Math.round(state.challengeScore),
-      totalPoints: Math.round(totalPoints),
-      correctCount: correctCount,
-      questionCount: c.questions.length,
-      elapsedSeconds: elapsedSeconds,
-      completedAt: new Date().toISOString(),
-      answers: c.questions.map(function (q, i) {
+    let evaluated = [];
+    if (state.challengePreviewMode) {
+      evaluated = c.questions.map(function (q, i) {
         const a = answers[i] || {};
-        return { questionId: q.id, question: q.q, questionAr: q.qAr, correct: !!a.correct, given: a.given || a.text || "", points: Math.round(Number(a.points || 0)) };
-      })
+        return {
+          questionId: q.id, correct: !!a.correct, given: a.given || a.text || "",
+          correctAnswer: q.type === "choice" ? (q.opts || [])[Number(q.a)] || "" :
+            q.type === "truefalse" ? (String(q.a) === "true" ? "Richtig" : "Falsch") :
+            q.type === "order" ? (q.items || []).join(" → ") :
+            String(q.a || q.aAr || (q.accepted || [])[0] || (q.acceptedAr || [])[0] || ""),
+          correctAnswerAr: q.type === "choice" ? (q.optsAr || [])[Number(q.a)] || "" :
+            q.type === "truefalse" ? (String(q.a) === "true" ? "صحيح" : "خطأ") :
+            q.type === "order" ? (q.itemsAr || []).join(" ← ") :
+            String(q.aAr || (q.acceptedAr || [])[0] || ""),
+          explanation: q.explanation || "", explanationAr: q.explanationAr || ""
+        };
+      });
+    } else {
+      state.challengeCloudSaveStatus = "evaluating";
+      render();
+      try {
+        const api = await firebaseApi();
+        const submitted = c.questions.map(function (q, i) {
+          const a = answers[i] || {};
+          return {
+            questionId: q.id,
+            answer: q.type === "choice" || q.type === "truefalse" ? a.selected :
+              q.type === "order" ? (Array.isArray(state.challengeOrderByQuestion && state.challengeOrderByQuestion[i]) ? state.challengeOrderByQuestion[i] : (a.order || [])) :
+              String(a.text || "")
+          };
+        });
+        const response = await api.evaluateBibleChallengeSubmission(c.id, submitted);
+        const details = Array.isArray(response.answerDetails) ? response.answerDetails : [];
+        if (details.length !== c.questions.length) throw new Error("Die Auswertung war unvollständig. Bitte versuche es erneut.");
+        evaluated = details;
+      } catch (error) {
+        state.challengeCloudSaveStatus = "failed";
+        alert("Die Challenge konnte noch nicht sicher ausgewertet werden. Bitte prüfe die Internetverbindung und versuche es erneut. / تعذر تقييم التحدي بأمان. تحقق من الاتصال وحاول مرة أخرى.\n\n" + String(error && error.message || ""));
+        renderChallengeQuestion();
+        return;
+      }
+    }
+    const detailsById = new Map(evaluated.map(function (item) { return [item.questionId, item]; }));
+    const resultAnswers = c.questions.map(function (q, i) {
+      const a = answers[i] || {};
+      const detail = detailsById.get(q.id) || {};
+      const correct = Boolean(detail.correct);
+      const points = correct ? Number(q.points || 100) : 0;
+      return {
+        questionId: q.id, question: q.q, questionAr: q.qAr, correct,
+        given: String(detail.given == null ? (a.given || a.text || "") : detail.given),
+        points,
+        correctAnswer: String(detail.correctAnswer || ""),
+        correctAnswerAr: String(detail.correctAnswerAr || ""),
+        explanation: String(detail.explanation || q.explanation || ""),
+        explanationAr: String(detail.explanationAr || q.explanationAr || "")
+      };
+    });
+    const correctCount = resultAnswers.filter(function (a) { return a.correct; }).length;
+    const totalPoints = c.questions.reduce(function (sum, q) { return sum + Number(q.points || 100); }, 0);
+    const score = resultAnswers.reduce(function (sum, a) { return sum + a.points; }, 0);
+    const result = {
+      id: id(), challengeId: c.id, challengeTitle: c.title, challengeTitleAr: c.titleAr,
+      passage: c.passage, studentName: state.challengeName, score: Math.round(score),
+      totalPoints: Math.round(totalPoints), correctCount, questionCount: c.questions.length,
+      elapsedSeconds, completedAt: new Date().toISOString(), answers: resultAnswers
     };
     if (state.challengePreviewMode) {
       state.challengeCloudSaveStatus = "preview";
@@ -879,8 +926,9 @@
         const a = r.answers[i] || {};
         return "<article class='challenge-review-item'><div class='challenge-review-status'>" + (a.correct ? "✅" : "📖") + " " + (a.correct ? "Richtig / صحيح" : "Noch einmal lesen / أعد القراءة") + "</div>" +
           bi(q.q, q.qAr) + (a.correct ? "" : "<div><strong>Eure Antwort / إجابتكم:</strong> " + esc(a.given || "—") + "</div>") +
-          "<div><strong>Richtige Antwort / الإجابة الصحيحة:</strong></div>" + challengeCorrectAnswer(q) +
-          (q.explanation || q.explanationAr ? bi(q.explanation || "", q.explanationAr || "") : "") + "</article>";
+          "<div><strong>Richtige Antwort / الإجابة الصحيحة:</strong></div>" +
+          bi(a.correctAnswer || (state.challengePreviewMode ? challengeCorrectAnswer(q) : ""), a.correctAnswerAr || "") +
+          (a.explanation || a.explanationAr ? bi(a.explanation || "", a.explanationAr || "") : "") + "</article>";
       }).join("") + "</section><div class='actions' style='margin-top:16px'><button class='btn' onclick='studentChallenges()'>Weitere Challenge / تحدٍ آخر</button><button class='btn secondary' onclick='home()'>Zur Startseite / العودة للرئيسية</button></div></main>";
   }
 
