@@ -55,6 +55,16 @@ function publicQuestion(question) {
   delete copy.aAr;
   delete copy.accepted;
   delete copy.acceptedAr;
+  // Order questions must not expose the teacher-authored correct sequence in Firestore.
+  if (copy.type === "order" && Array.isArray(copy.items)) {
+    const items = copy.items.map((text, index) => ({ text, textAr: (copy.itemsAr || [])[index] || "" }));
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    copy.items = items.map(item => item.text);
+    copy.itemsAr = items.map(item => item.textAr);
+  }
   return copy;
 }
 function challengePayload(challenge, ownerUid, createdAt) {
