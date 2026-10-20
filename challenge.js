@@ -633,6 +633,8 @@
     state.activeChallenge = JSON.parse(JSON.stringify(challenge));
     state.challengePreviewMode = false;
     state.challengeCloudSaveStatus = "";
+    state.challengeRewardsClaimed = false;
+    state.challengeRewardsClaiming = false;
     state.challengeIndex = 0;
     state.challengeAnswers = [];
     state.challengeName = "";
