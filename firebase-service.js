@@ -1,7 +1,7 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
   getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  updateProfile, sendEmailVerification, reload, signOut, signInAnonymously
+  updateProfile, sendEmailVerification, reload, signOut, signInAnonymously, signInWithCustomToken
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc,
@@ -22,6 +22,11 @@ const studentApp = getApps().find(app => app.name === "BibleEscapeStudent")
   || initializeApp(firebaseConfig, "BibleEscapeStudent");
 const studentAuth = getAuth(studentApp);
 const studentDb = getFirestore(studentApp);
+
+// Separate auth context for optional Rewards login on shared student devices.
+const rewardsApp = getApps().find(app => app.name === "BibleEscapeRewardsStudent")
+  || initializeApp(firebaseConfig, "BibleEscapeRewardsStudent");
+const rewardsAuth = getAuth(rewardsApp);
 
 function teacherRef(uid) {
   return doc(db, "teachers", uid);
@@ -350,6 +355,18 @@ async function evaluateBibleChallengeSubmission(challengeId, answers, metadata =
   });
   return response.data || {};
 }
+async function claimBibleChallengeReward(studentCode, pin, resultId) {
+  const functions = getFunctions(rewardsApp, "europe-west3");
+  const login = httpsCallable(functions, "loginRewardStudent");
+  const loginResponse = await login({ studentCode: String(studentCode || ""), pin: String(pin || "") });
+  const token = loginResponse.data && loginResponse.data.token;
+  if (!token) throw new Error("Die Rewards-Anmeldung war nicht erfolgreich.");
+  await signInWithCustomToken(rewardsAuth, token);
+  const claim = httpsCallable(functions, "claimBibleChallengeReward");
+  const claimResponse = await claim({ resultId: String(resultId || "") });
+  return claimResponse.data || {};
+}
+
 async function saveStudentResult(result) {
   const payload = cleanResult(result);
   if (!payload.id || !payload.challengeId) throw new Error("Ergebnisdaten sind unvollständig.");
@@ -379,6 +396,7 @@ window.bibleFirebaseReady = Promise.resolve({
   loadResults,
   saveStudentResult,
   evaluateBibleChallengeSubmission,
+  claimBibleChallengeReward,
   migratePublishedChallengeAnswerKeys,
   getCurrentTeacher: () => authorizedTeacher()
 });
