@@ -880,7 +880,7 @@
       const points = correct ? Number(q.points || 100) : 0;
       return {
         questionId: q.id, question: q.q, questionAr: q.qAr, correct,
-        given: String(detail.given == null ? (a.given || a.text || "") : detail.given),
+        given: String(a.given || a.text || detail.given || ""),
         points,
         correctAnswer: String(detail.correctAnswer || ""),
         correctAnswerAr: String(detail.correctAnswerAr || ""),
@@ -928,7 +928,7 @@
         return "<article class='challenge-review-item'><div class='challenge-review-status'>" + (a.correct ? "✅" : "📖") + " " + (a.correct ? "Richtig / صحيح" : "Noch einmal lesen / أعد القراءة") + "</div>" +
           bi(q.q, q.qAr) + (a.correct ? "" : "<div><strong>Eure Antwort / إجابتكم:</strong> " + esc(a.given || "—") + "</div>") +
           "<div><strong>Richtige Antwort / الإجابة الصحيحة:</strong></div>" +
-          bi(a.correctAnswer || (state.challengePreviewMode ? challengeCorrectAnswer(q) : ""), a.correctAnswerAr || "") +
+          (state.challengePreviewMode ? challengeCorrectAnswer(q) : bi(a.correctAnswer || "", a.correctAnswerAr || "")) +
           (a.explanation || a.explanationAr ? bi(a.explanation || "", a.explanationAr || "") : "") + "</article>";
       }).join("") + "</section><div class='actions' style='margin-top:16px'><button class='btn' onclick='studentChallenges()'>Weitere Challenge / تحدٍ آخر</button><button class='btn secondary' onclick='home()'>Zur Startseite / العودة للرئيسية</button></div></main>";
   }
