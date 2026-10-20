@@ -6,11 +6,13 @@ on:
     paths:
       - "challenge.js"
       - "firebase-service.js"
+      - "firestore.rules"
       - ".github/workflows/bible-challenge-security-checks.yml"
   pull_request:
     paths:
       - "challenge.js"
       - "firebase-service.js"
+      - "firestore.rules"
       - ".github/workflows/bible-challenge-security-checks.yml"
 
 jobs:
@@ -25,3 +27,7 @@ jobs:
         run: node --check challenge.js
       - name: Check Firebase service module syntax
         run: node --check firebase-service.js
+      - name: Confirm results rules are server-write-only
+        run: |
+          grep -q "allow read: if isTeacher();" firestore.rules
+          grep -q "allow write: if false;" firestore.rules
