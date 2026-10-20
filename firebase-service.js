@@ -10,16 +10,19 @@ import {
 import { getFunctions, connectFunctionsEmulator, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
 import { firebaseConfig } from "./firebase-config.js";
 
-// The dedicated end-to-end test branch is hard-wired to demo emulators on localhost.
-// Any non-local host keeps the existing Firebase configuration; this branch must not be deployed.
+// Dedicated test branch: always use the non-deployable demo project ID.
+// Even if this branch is accidentally hosted, it must never connect to production.
 const useEmulators = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const appConfig = useEmulators ? {
+const appConfig = {
   apiKey: "fake-api-key",
   authDomain: "demo-ava-rewards.firebaseapp.com",
   projectId: "demo-ava-rewards",
   appId: "1:123456789:web:emulator",
   messagingSenderId: "123456789"
-} : firebaseConfig;
+};
+if (!useEmulators) {
+  console.error("End-to-end test branch is local-only and will not connect to production Firebase.");
+}
 
 const defaultApp = getApps().some(app => app.name === "[DEFAULT]")
   ? getApp()
