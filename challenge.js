@@ -797,6 +797,7 @@
     if (q.type === "truefalse" && answer.selected === null) { alert("Bitte wählt Richtig oder Falsch. / اختاروا صحيح أو خطأ."); return; }
     if (q.type === "order" && !state.challengeOrder.length) { alert("Für diese Frage wurden keine Ereignisse angelegt."); return; }
     if (!["choice", "truefalse", "order"].includes(q.type) && !String(answer.text || "").trim()) { alert("Bitte gebt eine Antwort ein. / اكتبوا الإجابة من فضلكم."); return; }
+    if (q.type === "order") answer.order = state.challengeOrder.slice();
     answer.given = q.type === "choice" ? (q.opts || [])[Number(answer.selected)] :
       q.type === "truefalse" ? (String(answer.selected) === "true" ? "Richtig / صحيح" : "Falsch / خطأ") :
       q.type === "order" ? state.challengeOrder.map(function (i) { return q.items[i]; }).join(" → ") : answer.text;
