@@ -48,6 +48,15 @@ async function requireTeacher() {
 function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
+function publicQuestion(question) {
+  const copy = plain(question || {});
+  // Correct-answer material must never be written into the student-readable document.
+  delete copy.a;
+  delete copy.aAr;
+  delete copy.accepted;
+  delete copy.acceptedAr;
+  return copy;
+}
 function challengePayload(challenge, ownerUid, createdAt) {
   return {
     id: String(challenge.id),
@@ -57,7 +66,7 @@ function challengePayload(challenge, ownerUid, createdAt) {
     instructions: String(challenge.instructions || ""),
     instructionsAr: String(challenge.instructionsAr || ""),
     status: ["draft", "published", "archived"].includes(challenge.status) ? challenge.status : "draft",
-    questions: Array.isArray(challenge.questions) ? plain(challenge.questions) : [],
+    questions: Array.isArray(challenge.questions) ? challenge.questions.map(publicQuestion) : [],
     createdAt: String(createdAt || challenge.createdAt || new Date().toISOString()),
     updatedAt: new Date().toISOString(),
     ownerUid: String(ownerUid)
@@ -271,12 +280,24 @@ async function saveChallenge(challenge) {
   const old = existing.exists() ? existing.data() : null;
   const payload = challengePayload(challenge, old && old.ownerUid ? old.ownerUid : user.uid, old && old.createdAt);
   await setDoc(ref, payload);
+  if (payload.status === "published") {
+    const syncAnswerKey = httpsCallable(getFunctions(defaultApp, "europe-west3"), "syncRewardChallengeAnswerKey");
+    await syncAnswerKey({ challengeId: payload.id, questions: plain(challenge.questions || []) });
+  }
   return payload;
 }
 async function loadResults() {
   await requireTeacher();
   const snap = await getDocs(collection(db, "challengeResults"));
   return snap.docs.map(item => ({ ...item.data(), id: item.id }));
+}
+async function evaluateBibleChallengeSubmission(challengeId, answers) {
+  if (!studentAuth.currentUser || !studentAuth.currentUser.isAnonymous) {
+    await signInAnonymously(studentAuth);
+  }
+  const evaluate = httpsCallable(getFunctions(studentApp, "europe-west3"), "evaluateBibleChallengeSubmission");
+  const response = await evaluate({ challengeId: String(challengeId), answers });
+  return response.data || {};
 }
 async function saveStudentResult(result) {
   const payload = cleanResult(result);
@@ -306,5 +327,6 @@ window.bibleFirebaseReady = Promise.resolve({
   saveChallenge,
   loadResults,
   saveStudentResult,
+  evaluateBibleChallengeSubmission,
   getCurrentTeacher: () => authorizedTeacher()
 });
