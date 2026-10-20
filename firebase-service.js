@@ -337,12 +337,17 @@ async function migratePublishedChallengeAnswerKeys() {
   const response = await migrate({});
   return response.data || {};
 }
-async function evaluateBibleChallengeSubmission(challengeId, answers) {
+async function evaluateBibleChallengeSubmission(challengeId, answers, metadata = {}) {
   if (!studentAuth.currentUser || !studentAuth.currentUser.isAnonymous) {
     await signInAnonymously(studentAuth);
   }
   const evaluate = httpsCallable(getFunctions(studentApp, "europe-west3"), "evaluateBibleChallengeSubmission");
-  const response = await evaluate({ challengeId: String(challengeId), answers });
+  const response = await evaluate({
+    challengeId: String(challengeId), answers,
+    resultId: String(metadata.resultId || ""),
+    studentName: String(metadata.studentName || ""),
+    elapsedSeconds: Number(metadata.elapsedSeconds)
+  });
   return response.data || {};
 }
 async function saveStudentResult(result) {
