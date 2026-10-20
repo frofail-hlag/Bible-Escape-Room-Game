@@ -2,7 +2,7 @@ name: Bible Challenge security checks
 
 on:
   push:
-    branches: [secure-bible-challenge-answers]
+    branches: [secure-bible-challenge-answers, end-to-end-test-setup]
     paths:
       - "challenge.js"
       - "firebase-service.js"
