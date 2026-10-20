@@ -58,45 +58,6 @@ service cloud.firestore {
             || request.resource.data.questions.size() >= 3);
     }
 
-    function validStudentResult(resultId) {
-      return request.resource.data.keys().hasOnly([
-          'id', 'challengeId', 'challengeTitle', 'challengeTitleAr', 'passage',
-          'studentName', 'score', 'totalPoints', 'correctCount', 'questionCount',
-          'elapsedSeconds', 'completedAt', 'answers'
-        ])
-        && request.resource.data.id == resultId
-        && request.resource.data.challengeId is string
-        && exists(/databases/$(database)/documents/challenges/$(request.resource.data.challengeId))
-        && get(/databases/$(database)/documents/challenges/$(request.resource.data.challengeId)).data.status == 'published'
-        && request.resource.data.challengeTitle is string
-        && request.resource.data.challengeTitle.size() <= 160
-        && request.resource.data.challengeTitleAr is string
-        && request.resource.data.challengeTitleAr.size() <= 160
-        && request.resource.data.passage is string
-        && request.resource.data.studentName is string
-        && request.resource.data.studentName.size() >= 1
-        && request.resource.data.studentName.size() <= 50
-        && request.resource.data.score is number
-        && request.resource.data.score >= 0
-        && request.resource.data.score <= 10000
-        && request.resource.data.totalPoints is number
-        && request.resource.data.totalPoints > 0
-        && request.resource.data.totalPoints <= 10000
-        && request.resource.data.correctCount is int
-        && request.resource.data.correctCount >= 0
-        && request.resource.data.correctCount <= 10
-        && request.resource.data.questionCount is int
-        && request.resource.data.questionCount >= 3
-        && request.resource.data.questionCount <= 10
-        && request.resource.data.correctCount <= request.resource.data.questionCount
-        && request.resource.data.elapsedSeconds is int
-        && request.resource.data.elapsedSeconds >= 0
-        && request.resource.data.elapsedSeconds <= 86400
-        && request.resource.data.completedAt is string
-        && request.resource.data.answers is list
-        && request.resource.data.answers.size() == request.resource.data.questionCount;
-    }
-
     match /teachers/{teacherId} {
       allow get: if signedIn() && request.auth.uid == teacherId || isAdmin();
       allow list: if isAdmin();
@@ -166,11 +127,10 @@ service cloud.firestore {
     }
 
     match /challengeResults/{resultId} {
-      allow create: if request.auth != null
-        && request.auth.token.firebase.sign_in_provider == 'anonymous'
-        && validStudentResult(resultId);
-      allow get, list: if isTeacher();
-      allow update, delete: if false;
+      // Results are written only by the trusted server-side evaluator (Admin SDK).
+      // Teachers may read results; browser clients may never create or alter them.
+      allow read: if isTeacher();
+      allow write: if false;
     }
   }
 }
