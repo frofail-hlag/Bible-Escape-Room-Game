@@ -1,32 +1,57 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  getAuth, connectAuthEmulator, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   updateProfile, sendEmailVerification, reload, signOut, signInAnonymously, signInWithCustomToken
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc,
+  getFirestore, connectFirestoreEmulator, collection, doc, getDoc, getDocs, query, where, setDoc,
   updateDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
+import { getFunctions, connectFunctionsEmulator, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
 import { firebaseConfig } from "./firebase-config.js";
+
+// The dedicated end-to-end test branch is hard-wired to demo emulators on localhost.
+// Any non-local host keeps the existing Firebase configuration; this branch must not be deployed.
+const useEmulators = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const appConfig = useEmulators ? {
+  apiKey: "fake-api-key",
+  authDomain: "demo-ava-rewards.firebaseapp.com",
+  projectId: "demo-ava-rewards",
+  appId: "1:123456789:web:emulator",
+  messagingSenderId: "123456789"
+} : firebaseConfig;
 
 const defaultApp = getApps().some(app => app.name === "[DEFAULT]")
   ? getApp()
-  : initializeApp(firebaseConfig);
+  : initializeApp(appConfig);
 const auth = getAuth(defaultApp);
 const db = getFirestore(defaultApp);
 
-// Students use a separate anonymous-auth context so they do not sign out a teacher
+// Students use separate auth contexts so they do not sign out a teacher
 // when a shared device is used for testing.
 const studentApp = getApps().find(app => app.name === "BibleEscapeStudent")
-  || initializeApp(firebaseConfig, "BibleEscapeStudent");
+  || initializeApp(appConfig, "BibleEscapeStudent");
 const studentAuth = getAuth(studentApp);
 const studentDb = getFirestore(studentApp);
 
-// Separate auth context for optional Rewards login on shared student devices.
+// Separate auth context for Rewards login on shared student devices.
 const rewardsApp = getApps().find(app => app.name === "BibleEscapeRewardsStudent")
-  || initializeApp(firebaseConfig, "BibleEscapeRewardsStudent");
+  || initializeApp(appConfig, "BibleEscapeRewardsStudent");
 const rewardsAuth = getAuth(rewardsApp);
+
+if (useEmulators) {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectAuthEmulator(studentAuth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectAuthEmulator(rewardsAuth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  connectFirestoreEmulator(studentDb, "127.0.0.1", 8080);
+}
+
+function functionsFor(app) {
+  const functions = getFunctions(app, "europe-west3");
+  if (useEmulators) connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+  return functions;
+}
 
 function teacherRef(uid) {
   return doc(db, "teachers", uid);
@@ -271,7 +296,7 @@ async function requireAdmin() {
 }
 async function cleanupOrphanTeacherRecords() {
   await requireAdmin();
-  const cleanupFunction = httpsCallable(getFunctions(defaultApp, "europe-west3"), "cleanupOrphanTeacherRecords");
+  const cleanupFunction = httpsCallable(functionsFor(defaultApp), "cleanupOrphanTeacherRecords");
   const response = await cleanupFunction({});
   return response.data || {};
 }
@@ -346,7 +371,7 @@ async function evaluateBibleChallengeSubmission(challengeId, answers, metadata =
   if (!studentAuth.currentUser || !studentAuth.currentUser.isAnonymous) {
     await signInAnonymously(studentAuth);
   }
-  const evaluate = httpsCallable(getFunctions(studentApp, "europe-west3"), "evaluateBibleChallengeSubmission");
+  const evaluate = httpsCallable(functionsFor(studentApp), "evaluateBibleChallengeSubmission");
   const response = await evaluate({
     challengeId: String(challengeId), answers,
     resultId: String(metadata.resultId || ""),
@@ -356,7 +381,7 @@ async function evaluateBibleChallengeSubmission(challengeId, answers, metadata =
   return response.data || {};
 }
 async function claimBibleChallengeReward(studentCode, pin, resultId) {
-  const functions = getFunctions(rewardsApp, "europe-west3");
+  const functions = functionsFor(rewardsApp);
   const login = httpsCallable(functions, "loginRewardStudent");
   const loginResponse = await login({ studentCode: String(studentCode || ""), pin: String(pin || "") });
   const token = loginResponse.data && loginResponse.data.token;
