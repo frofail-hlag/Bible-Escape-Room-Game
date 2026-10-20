@@ -1,0 +1,27 @@
+name: Bible Challenge security checks
+
+on:
+  push:
+    branches: [secure-bible-challenge-answers]
+    paths:
+      - "challenge.js"
+      - "firebase-service.js"
+      - ".github/workflows/bible-challenge-security-checks.yml"
+  pull_request:
+    paths:
+      - "challenge.js"
+      - "firebase-service.js"
+      - ".github/workflows/bible-challenge-security-checks.yml"
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check challenge script syntax
+        run: node --check challenge.js
+      - name: Check Firebase service module syntax
+        run: node --check firebase-service.js
