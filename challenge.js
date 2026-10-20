@@ -117,17 +117,11 @@
     }
   }
   async function submitResultToFirebase(result) {
-    try {
-      const api = await firebaseApi();
-      await api.saveStudentResult(result);
-      state.challengeCloudSaveStatus = "saved";
-      return true;
-    } catch (error) {
-      state.challengeCloudSaveStatus = "failed";
-      state.firebaseSyncMessage = firebaseErrorText(error);
-      console.warn("Bible Escape Firebase result save:", error);
-      return false;
-    }
+    // The trusted evaluateBibleChallengeSubmission callable has already persisted
+    // the authoritative result before the client receives the evaluation. Never
+    // attempt a second browser-side write to challengeResults.
+    state.challengeCloudSaveStatus = result && result.resultId ? "saved" : "failed";
+    return Boolean(result && result.resultId);
   }
   function id() {
     return "bc_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7);
@@ -633,6 +627,8 @@
     state.activeChallenge = JSON.parse(JSON.stringify(challenge));
     state.challengePreviewMode = false;
     state.challengeCloudSaveStatus = "";
+    state.challengeRewardsClaimed = false;
+    state.challengeRewardsClaiming = false;
     state.challengeIndex = 0;
     state.challengeAnswers = [];
     state.challengeName = "";
@@ -725,7 +721,7 @@
         "' oninput='saveChallengeTextAnswer(this.value)' placeholder='Antwort hier eingeben / اكتب الإجابة هنا'></div>";
     }
     let feedback = "";
-    if (answer.correct !== null) {
+    if (state.challengePreviewMode && answer.correct !== null) {
       const rightAnswer = challengeCorrectAnswer(q);
       feedback = "<section class='challenge-feedback " + (answer.correct ? "correct" : "incorrect") + "'>" +
         "<h3>" + (answer.correct ? "✅ Richtig! / إجابة صحيحة!" : "↪ Schaut noch einmal nach / راجعوا النص مرة أخرى") + "</h3>" +
@@ -735,19 +731,24 @@
           "<p class='small'>Vergleicht eure Antwort mit dem Bibeltext. / قارنوا إجابتكم بالنص الكتابي.</p>") +
         "</section><button class='btn' onclick='nextChallengeQuestion()'>" +
         (index < c.questions.length - 1 ? "Nächste Frage / السؤال التالي →" : "Ergebnis anzeigen / عرض النتيجة →") + "</button>";
+    } else if (answer.submitted === true) {
+      feedback = "<section class='challenge-feedback'><h3>Antwort gespeichert / تم حفظ الإجابة</h3>" +
+        "<p>Die Antwort wird nach Abschluss der gesamten Challenge ausgewertet. / سيتم تقييم الإجابة بعد إكمال التحدي بالكامل.</p>" +
+        "</section><button class='btn' onclick='nextChallengeQuestion()'>" +
+        (index < c.questions.length - 1 ? "Nächste Frage / السؤال التالي →" : "Ergebnis anzeigen / عرض النتيجة →") + "</button>";
     } else {
-      feedback = "<div class='actions challenge-question-actions'><button class='btn' onclick='checkChallengeAnswer()'>Antwort prüfen / تحقّق من الإجابة</button>" +
+      feedback = "<div class='actions challenge-question-actions'><button class='btn' onclick='checkChallengeAnswer()'>Antwort speichern / حفظ الإجابة</button>" +
         (q.hint || q.hintAr ? "<button class='btn secondary' onclick='toggleChallengeHint()'>💡 Hinweis / تلميح</button>" : "") + "</div>" +
         (state.challengeShowHint ? "<div class='hint-box'>" + bi(q.hint || "", q.hintAr || "") + "</div>" : "");
     }
     app.innerHTML = "<main class='app'>" + header("Bibel-Challenge / تحدي الكتاب المقدس") +
       "<div class='challenge-session-bar'><div><strong>" + esc(state.challengeName) + "</strong><div class='small'>" + esc(c.title) + " / " + esc(c.titleAr) + "</div></div>" +
       "<button class='btn secondary' onclick='openChallengeBible()'>📖 Bibel erneut öffnen / فتح الكتاب المقدس</button></div>" +
-      "<div class='challenge-progress-row'><span>Frage " + (index + 1) + " von " + c.questions.length + " / السؤال " + (index + 1) + " من " + c.questions.length + "</span><strong>" + state.challengeScore + " Punkte</strong></div>" +
-      "<div class='progress'><div style='width:" + Math.round((index + (answer.correct !== null ? 1 : 0)) / c.questions.length * 100) + "%'></div></div>" +
+      "<div class='challenge-progress-row'><span>Frage " + (index + 1) + " von " + c.questions.length + " / السؤال " + (index + 1) + " من " + c.questions.length + "</span><strong>" + (state.challengePreviewMode ? state.challengeScore + " Punkte" : "Punkte nach Abschluss / النقاط بعد الإكمال") + "</strong></div>" +
+      "<div class='progress'><div style='width:" + Math.round((index + (answer.submitted || answer.correct !== null ? 1 : 0)) / c.questions.length * 100) + "%'></div></div>" +
       "<section class='card challenge-question-card'><div class='challenge-question-type'>" + esc(typeLabel(q.type)) + "</div>" +
       "<div class='challenge-passage-inline'>📖 " + esc(c.passage) + "</div>" + bi(q.q, q.qAr) +
-      (answer.correct === null ? input : "") + feedback + "</section>" +
+      (!answer.submitted && answer.correct === null ? input : "") + feedback + "</section>" +
       "<div class='actions' style='margin-top:16px'><button class='btn secondary' onclick='studentChallenges()'>← Challenges / التحديات</button></div></main>";
     if (typeof window.bibelreiseInjectChallengeBibleLinks === "function") window.bibelreiseInjectChallengeBibleLinks();
   }
@@ -756,13 +757,13 @@
   }
   function chooseChallengeAnswer(value) {
     const answer = ensureChallengeAnswer();
-    if (answer.correct !== null) return;
+    if (answer.submitted === true || (state.challengePreviewMode && answer.correct !== null)) return;
     answer.selected = value;
     renderChallengeQuestion();
   }
   function moveChallengeOrder(displayIndex, delta) {
     const answer = ensureChallengeAnswer();
-    if (answer.correct !== null) return;
+    if (answer.submitted === true || (state.challengePreviewMode && answer.correct !== null)) return;
     const j = displayIndex + delta;
     if (j < 0 || j >= state.challengeOrder.length) return;
     const tmp = state.challengeOrder[displayIndex];
@@ -787,22 +788,27 @@
     const c = state.activeChallenge;
     const q = c.questions[state.challengeIndex];
     const answer = ensureChallengeAnswer();
-    if (answer.correct !== null) return;
+    if (answer.submitted === true || (state.challengePreviewMode && answer.correct !== null)) return;
     if (q.type === "choice" && answer.selected === null) { alert("Bitte wählt eine Antwort. / اختاروا إجابة من فضلكم."); return; }
     if (q.type === "truefalse" && answer.selected === null) { alert("Bitte wählt Richtig oder Falsch. / اختاروا صحيح أو خطأ."); return; }
     if (q.type === "order" && !state.challengeOrder.length) { alert("Für diese Frage wurden keine Ereignisse angelegt."); return; }
     if (!["choice", "truefalse", "order"].includes(q.type) && !String(answer.text || "").trim()) { alert("Bitte gebt eine Antwort ein. / اكتبوا الإجابة من فضلكم."); return; }
-    let correct = false;
-    if (q.type === "choice") correct = Number(answer.selected) === Number(q.a);
-    else if (q.type === "truefalse") correct = String(answer.selected) === String(q.a);
-    else if (q.type === "order") correct = state.challengeOrder.every(function (value, i) { return value === i; });
-    else correct = accepted(q, answer.text);
-    answer.correct = correct;
-    answer.points = correct ? Number(q.points || 100) : 0;
+    if (q.type === "order") answer.order = state.challengeOrder.slice();
     answer.given = q.type === "choice" ? (q.opts || [])[Number(answer.selected)] :
       q.type === "truefalse" ? (String(answer.selected) === "true" ? "Richtig / صحيح" : "Falsch / خطأ") :
       q.type === "order" ? state.challengeOrder.map(function (i) { return q.items[i]; }).join(" → ") : answer.text;
-    if (correct) state.challengeScore += answer.points;
+    if (state.challengePreviewMode) {
+      let correct = false;
+      if (q.type === "choice") correct = Number(answer.selected) === Number(q.a);
+      else if (q.type === "truefalse") correct = String(answer.selected) === String(q.a);
+      else if (q.type === "order") correct = state.challengeOrder.every(function (value, i) { return value === i; });
+      else correct = accepted(q, answer.text);
+      answer.correct = correct;
+      answer.points = correct ? Number(q.points || 100) : 0;
+      if (correct) state.challengeScore += answer.points;
+    } else {
+      answer.submitted = true;
+    }
     state.challengeShowHint = false;
     renderChallengeQuestion();
   }
@@ -819,26 +825,81 @@
   async function finishChallenge() {
     const c = state.activeChallenge;
     const answers = state.challengeAnswers || [];
-    const correctCount = answers.filter(function (a) { return a && a.correct; }).length;
-    const totalPoints = c.questions.reduce(function (sum, q) { return sum + Number(q.points || 100); }, 0);
     const elapsedSeconds = Math.max(0, Math.round((Date.now() - state.challengeStartedAt) / 1000));
-    const result = {
-      id: id(),
-      challengeId: c.id,
-      challengeTitle: c.title,
-      challengeTitleAr: c.titleAr,
-      passage: c.passage,
-      studentName: state.challengeName,
-      score: Math.round(state.challengeScore),
-      totalPoints: Math.round(totalPoints),
-      correctCount: correctCount,
-      questionCount: c.questions.length,
-      elapsedSeconds: elapsedSeconds,
-      completedAt: new Date().toISOString(),
-      answers: c.questions.map(function (q, i) {
+    let evaluated = [];
+    let serverEvaluation = null;
+    const resultId = id();
+    if (state.challengePreviewMode) {
+      evaluated = c.questions.map(function (q, i) {
         const a = answers[i] || {};
-        return { questionId: q.id, question: q.q, questionAr: q.qAr, correct: !!a.correct, given: a.given || a.text || "", points: Math.round(Number(a.points || 0)) };
-      })
+        return {
+          questionId: q.id, correct: !!a.correct, given: a.given || a.text || "",
+          correctAnswer: q.type === "choice" ? (q.opts || [])[Number(q.a)] || "" :
+            q.type === "truefalse" ? (String(q.a) === "true" ? "Richtig" : "Falsch") :
+            q.type === "order" ? (q.items || []).join(" → ") :
+            String(q.a || q.aAr || (q.accepted || [])[0] || (q.acceptedAr || [])[0] || ""),
+          correctAnswerAr: q.type === "choice" ? (q.optsAr || [])[Number(q.a)] || "" :
+            q.type === "truefalse" ? (String(q.a) === "true" ? "صحيح" : "خطأ") :
+            q.type === "order" ? (q.itemsAr || []).join(" ← ") :
+            String(q.aAr || (q.acceptedAr || [])[0] || ""),
+          explanation: q.explanation || "", explanationAr: q.explanationAr || ""
+        };
+      });
+    } else {
+      state.challengeCloudSaveStatus = "evaluating";
+      render();
+      try {
+        const api = await firebaseApi();
+        const submitted = c.questions.map(function (q, i) {
+          const a = answers[i] || {};
+          return {
+            questionId: q.id,
+            answer: q.type === "choice" || q.type === "truefalse" ? a.selected :
+              q.type === "order" ? (Array.isArray(state.challengeOrderByQuestion && state.challengeOrderByQuestion[i]) ? state.challengeOrderByQuestion[i] : (a.order || [])) :
+              String(a.text || "")
+          };
+        });
+        serverEvaluation = await api.evaluateBibleChallengeSubmission(c.id, submitted, {
+          resultId, studentName: state.challengeName, elapsedSeconds
+        });
+        const details = Array.isArray(serverEvaluation.answerDetails) ? serverEvaluation.answerDetails : [];
+        if (details.length !== c.questions.length) throw new Error("Die Auswertung war unvollständig. Bitte versuche es erneut.");
+        evaluated = details;
+      } catch (error) {
+        state.challengeCloudSaveStatus = "failed";
+        alert("Die Challenge konnte noch nicht sicher ausgewertet werden. Bitte prüfe die Internetverbindung und versuche es erneut. / تعذر تقييم التحدي بأمان. تحقق من الاتصال وحاول مرة أخرى.\n\n" + String(error && error.message || ""));
+        renderChallengeQuestion();
+        return;
+      }
+    }
+    const detailsById = new Map(evaluated.map(function (item) { return [item.questionId, item]; }));
+    const resultAnswers = c.questions.map(function (q, i) {
+      const a = answers[i] || {};
+      const detail = detailsById.get(q.id) || {};
+      const correct = Boolean(detail.correct);
+      const points = correct ? Number(q.points || 100) : 0;
+      return {
+        questionId: q.id, question: q.q, questionAr: q.qAr, correct,
+        given: String(a.given || a.text || detail.given || ""),
+        points,
+        correctAnswer: String(detail.correctAnswer || ""),
+        correctAnswerAr: String(detail.correctAnswerAr || ""),
+        explanation: String(detail.explanation || q.explanation || ""),
+        explanationAr: String(detail.explanationAr || q.explanationAr || "")
+      };
+    });
+    const correctCount = resultAnswers.filter(function (a) { return a.correct; }).length;
+    const totalPoints = c.questions.reduce(function (sum, q) { return sum + Number(q.points || 100); }, 0);
+    const score = resultAnswers.reduce(function (sum, a) { return sum + a.points; }, 0);
+    const result = {
+      id: state.challengePreviewMode ? resultId : (serverEvaluation && serverEvaluation.resultId || resultId),
+      challengeId: c.id, challengeTitle: c.title, challengeTitleAr: c.titleAr,
+      passage: c.passage, studentName: state.challengeName,
+      score: state.challengePreviewMode ? Math.round(score) : Number(serverEvaluation.score || 0),
+      totalPoints: state.challengePreviewMode ? Math.round(totalPoints) : Number(serverEvaluation.totalPoints || 0),
+      correctCount: state.challengePreviewMode ? correctCount : Number(serverEvaluation.correctCount || 0),
+      questionCount: state.challengePreviewMode ? c.questions.length : Number(serverEvaluation.questionCount || c.questions.length),
+      elapsedSeconds, completedAt: new Date().toISOString(), answers: resultAnswers
     };
     if (state.challengePreviewMode) {
       state.challengeCloudSaveStatus = "preview";
@@ -846,13 +907,34 @@
       const results = readChallengeResults();
       results.push(result);
       saveChallengeResults(results);
-      state.challengeCloudSaveStatus = "saving";
-      await submitResultToFirebase(result);
+      state.challengeCloudSaveStatus = "saved";
     }
     state.challengeResult = result;
     state.view = "challengeResult";
     render();
   }
+  async function claimCurrentBibleChallengeReward() {
+    const result = state.challengeResult;
+    if (!result || state.challengePreviewMode || state.challengeRewardsClaimed) return;
+    const studentCode = window.prompt("Ava Kerolos Rewards – Schülercode eingeben / أدخل رمز الطالب");
+    if (!studentCode) return;
+    const pin = window.prompt("Rewards-PIN eingeben / أدخل الرقم السري");
+    if (!pin) return;
+    state.challengeRewardsClaiming = true;
+    render();
+    try {
+      const api = await firebaseApi();
+      const response = await api.claimBibleChallengeReward(studentCode, pin, result.id);
+      state.challengeRewardsClaimed = true;
+      alert("Erfolgreich! " + Number(response.pointsAwarded || 0) + " Rewards-Punkte wurden gutgeschrieben. / تمت إضافة " + Number(response.pointsAwarded || 0) + " نقطة مكافأة.");
+    } catch (error) {
+      alert("Rewards-Punkte konnten nicht gutgeschrieben werden. Bitte Schülercode/PIN prüfen oder die Lehrkraft fragen. / تعذرت إضافة نقاط المكافآت. تحقق من الرمز والرقم السري أو اسأل الخادم.\\n\\n" + String(error && error.message || ""));
+    } finally {
+      state.challengeRewardsClaiming = false;
+      render();
+    }
+  }
+
   function renderChallengeResult() {
     const c = state.activeChallenge;
     const r = state.challengeResult;
@@ -863,15 +945,17 @@
       "<p>" + r.correctCount + " von " + r.questionCount + " richtig / " + r.correctCount + " من " + r.questionCount + " إجابات صحيحة</p>" +
       "<p>📍 " + esc(r.passage) + " · " + Math.floor(r.elapsedSeconds / 60) + ":" + String(r.elapsedSeconds % 60).padStart(2, "0") + "</p></section>" +
       (state.challengePreviewMode ? "<div class='notice'>Vorschau/Test: Das Ergebnis wurde nicht gespeichert. / تجربة: لم يتم حفظ النتيجة.</div>" :
-        state.challengeCloudSaveStatus === "saved" ? "<p class='small'>☁️ Ergebnis wurde mit Firebase synchronisiert. / تم حفظ النتيجة على السحابة.</p>" :
-        "<div class='notice'>Ergebnis auf diesem Gerät gespeichert, aber Firebase konnte es noch nicht synchronisieren. / تم حفظ النتيجة على هذا الجهاز، لكن لم تتم مزامنتها بعد.</div>") +
+        state.challengeCloudSaveStatus === "saved" ? "<p class='small'>☁️ Ergebnis wurde serverseitig gespeichert. / تم حفظ النتيجة على الخادم.</p>" :
+        "<div class='notice'>Ergebnis konnte nicht bestätigt werden. / تعذر تأكيد النتيجة.</div>") +
+      (!state.challengePreviewMode ? (state.challengeRewardsClaimed ? "<div class='notice'>⭐ Rewards-Punkte wurden gutgeschrieben. / تمت إضافة نقاط المكافآت.</div>" : "<section class='card'><h3>⭐ Ava Kerolos Rewards</h3><p>Mit Schülercode und PIN anmelden, um Punkte für diese Challenge zu erhalten. / سجّل الدخول برمز الطالب والرقم السري للحصول على نقاط هذا التحدي.</p><button class='btn gold' onclick='claimCurrentBibleChallengeReward()' " + (state.challengeRewardsClaiming ? "disabled" : "") + ">⭐ Rewards-Punkte erhalten / احصل على نقاط المكافآت</button></section>") : "") +
       "<section class='card'><h2>Das habt ihr gelernt / ماذا تعلمتم</h2>" +
       c.questions.map(function (q, i) {
         const a = r.answers[i] || {};
         return "<article class='challenge-review-item'><div class='challenge-review-status'>" + (a.correct ? "✅" : "📖") + " " + (a.correct ? "Richtig / صحيح" : "Noch einmal lesen / أعد القراءة") + "</div>" +
           bi(q.q, q.qAr) + (a.correct ? "" : "<div><strong>Eure Antwort / إجابتكم:</strong> " + esc(a.given || "—") + "</div>") +
-          "<div><strong>Richtige Antwort / الإجابة الصحيحة:</strong></div>" + challengeCorrectAnswer(q) +
-          (q.explanation || q.explanationAr ? bi(q.explanation || "", q.explanationAr || "") : "") + "</article>";
+          "<div><strong>Richtige Antwort / الإجابة الصحيحة:</strong></div>" +
+          (state.challengePreviewMode ? challengeCorrectAnswer(q) : bi(a.correctAnswer || "", a.correctAnswerAr || "")) +
+          (a.explanation || a.explanationAr ? bi(a.explanation || "", a.explanationAr || "") : "") + "</article>";
       }).join("") + "</section><div class='actions' style='margin-top:16px'><button class='btn' onclick='studentChallenges()'>Weitere Challenge / تحدٍ آخر</button><button class='btn secondary' onclick='home()'>Zur Startseite / العودة للرئيسية</button></div></main>";
   }
 
@@ -880,6 +964,24 @@
     state.view = "teacherChallenges";
     render();
   }
+  async function migrateBibleChallengeAnswerKeys() {
+    if (!isTeacher()) { teacherLogin(); return; }
+    if (!(state.firebaseTeacherAdmin === true || localStorage.getItem("bibleEscapeTeacherAdmin") === "1")) {
+      alert("Nur ein Admin darf die einmalige sichere Challenge-Migration ausführen.");
+      return;
+    }
+    if (!confirm("Die bestehenden veröffentlichten Bibel-Challenges werden sicher migriert. Antwortschlüssel werden aus den öffentlichen Dokumenten entfernt. Fortfahren?")) return;
+    try {
+      const api = await firebaseApi();
+      const result = await api.migratePublishedChallengeAnswerKeys();
+      alert("Migration abgeschlossen. Sichere Challenges: " + Number(result.migrated || 0) + ". Bitte prüfe anschließend einige Challenges und teste die Schüleransicht.");
+      await syncChallengesFromFirebase(true);
+      teacherChallengeDashboard();
+    } catch (error) {
+      alert("Die Migration konnte nicht abgeschlossen werden. Es wurden keine Produktionsänderungen außerhalb der Migration vorgenommen.\n\n" + String(error && error.message || error));
+    }
+  }
+
   function renderTeacherChallenges() {
     clearInterval(state.timer);
     const challenges = readChallenges().slice().sort(function (a, b) { return String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")); });
@@ -893,7 +995,9 @@
         "<button class='btn danger' onclick='archiveBibleChallenge(\"" + esc(c.id) + "\")'>Archivieren</button></div></td></tr>";
     }).join("");
     app.innerHTML = "<main class='app'>" + header("Lehrerbereich · Bibel-Challenges") +
-      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrer-Dashboard</button><button class='btn' onclick='newBibleChallenge()'>➕ Neue Bibel-Challenge</button><button class='btn secondary' onclick='state.role=\"teacher\";home()'>🎮 Spiele spielen</button><button class='btn gold' id='bibelreiseAiImportButton' type='button'>📥 JSON-Entwurf importieren</button></div>" +
+      "<div class='teacher-nav'><button class='btn secondary' onclick='teacherDashboard()'>← Lehrer-Dashboard</button><button class='btn' onclick='newBibleChallenge()'>➕ Neue Bibel-Challenge</button><button class='btn secondary' onclick='state.role=\"teacher\";home()'>🎮 Spiele spielen</button>" +
+      ((state.firebaseTeacherAdmin === true || localStorage.getItem("bibleEscapeTeacherAdmin") === "1") ? "<button class='btn danger' onclick='migrateBibleChallengeAnswerKeys()'>🔐 Sichere Challenge-Migration</button>" : "") +
+      "<button class='btn gold' id='bibelreiseAiImportButton' type='button'>📥 JSON-Entwurf importieren</button></div>" +
       "<section class='hero challenge-hero'><h1>📖 Bibel-Challenges</h1><p>Erstellt Leseaktivitäten mit einer Bibelstelle und 3–4 Fragen. Schülerinnen und Schüler können den Bibeltext jederzeit erneut öffnen.</p><p class='lang-ar' dir='rtl'>أنشئوا أنشطة قراءة مع مقطع كتابي وثلاثة أو أربعة أسئلة. يمكن للطلاب الرجوع إلى النص في أي وقت.</p></section>" +
       cloudNoticeHtml() +
       "<section class='card'><div class='editor-head'><div><h2>Meine Bibel-Challenges</h2><p class='small'>Titel, Bibelstelle, Anweisungen und Fragen können zweisprachig bearbeitet werden.</p></div><button class='btn' onclick='newBibleChallenge()'>➕ Neue Challenge</button></div>" +
@@ -1312,6 +1416,7 @@
     checkChallengeAnswer: checkChallengeAnswer,
     nextChallengeQuestion: nextChallengeQuestion,
     teacherChallengeDashboard: teacherChallengeDashboard,
+    migrateBibleChallengeAnswerKeys: migrateBibleChallengeAnswerKeys,
     newBibleChallenge: newBibleChallenge,
     editBibleChallenge: editBibleChallenge,
     saveBibleChallengeMeta: saveBibleChallengeMeta,
@@ -1324,6 +1429,7 @@
     previewChallengeBible: previewChallengeBible,
     openChallengeBible: openChallengeBible,
     openChallengeBibleFromList: openChallengeBibleFromList,
-    viewBibleChallengeResults: viewBibleChallengeResults
+    viewBibleChallengeResults: viewBibleChallengeResults,
+    claimCurrentBibleChallengeReward: claimCurrentBibleChallengeReward
   });
 })();
