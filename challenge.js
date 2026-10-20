@@ -917,6 +917,28 @@
     state.view = "challengeResult";
     render();
   }
+  async function claimCurrentBibleChallengeReward() {
+    const result = state.challengeResult;
+    if (!result || state.challengePreviewMode || state.challengeRewardsClaimed) return;
+    const studentCode = window.prompt("Ava Kerolos Rewards – Schülercode eingeben / أدخل رمز الطالب");
+    if (!studentCode) return;
+    const pin = window.prompt("Rewards-PIN eingeben / أدخل الرقم السري");
+    if (!pin) return;
+    state.challengeRewardsClaiming = true;
+    render();
+    try {
+      const api = await firebaseApi();
+      const response = await api.claimBibleChallengeReward(studentCode, pin, result.id);
+      state.challengeRewardsClaimed = true;
+      alert("Erfolgreich! " + Number(response.pointsAwarded || 0) + " Rewards-Punkte wurden gutgeschrieben. / تمت إضافة " + Number(response.pointsAwarded || 0) + " نقطة مكافأة.");
+    } catch (error) {
+      alert("Rewards-Punkte konnten nicht gutgeschrieben werden. Bitte Schülercode/PIN prüfen oder die Lehrkraft fragen. / تعذرت إضافة نقاط المكافآت. تحقق من الرمز والرقم السري أو اسأل الخادم.\\n\\n" + String(error && error.message || ""));
+    } finally {
+      state.challengeRewardsClaiming = false;
+      render();
+    }
+  }
+
   function renderChallengeResult() {
     const c = state.activeChallenge;
     const r = state.challengeResult;
@@ -927,8 +949,9 @@
       "<p>" + r.correctCount + " von " + r.questionCount + " richtig / " + r.correctCount + " من " + r.questionCount + " إجابات صحيحة</p>" +
       "<p>📍 " + esc(r.passage) + " · " + Math.floor(r.elapsedSeconds / 60) + ":" + String(r.elapsedSeconds % 60).padStart(2, "0") + "</p></section>" +
       (state.challengePreviewMode ? "<div class='notice'>Vorschau/Test: Das Ergebnis wurde nicht gespeichert. / تجربة: لم يتم حفظ النتيجة.</div>" :
-        state.challengeCloudSaveStatus === "saved" ? "<p class='small'>☁️ Ergebnis wurde mit Firebase synchronisiert. / تم حفظ النتيجة على السحابة.</p>" :
-        "<div class='notice'>Ergebnis auf diesem Gerät gespeichert, aber Firebase konnte es noch nicht synchronisieren. / تم حفظ النتيجة على هذا الجهاز، لكن لم تتم مزامنتها بعد.</div>") +
+        state.challengeCloudSaveStatus === "saved" ? "<p class='small'>☁️ Ergebnis wurde serverseitig gespeichert. / تم حفظ النتيجة على الخادم.</p>" :
+        "<div class='notice'>Ergebnis konnte nicht bestätigt werden. / تعذر تأكيد النتيجة.</div>") +
+      (!state.challengePreviewMode ? (state.challengeRewardsClaimed ? "<div class='notice'>⭐ Rewards-Punkte wurden gutgeschrieben. / تمت إضافة نقاط المكافآت.</div>" : "<section class='card'><h3>⭐ Ava Kerolos Rewards</h3><p>Mit Schülercode und PIN anmelden, um Punkte für diese Challenge zu erhalten. / سجّل الدخول برمز الطالب والرقم السري للحصول على نقاط هذا التحدي.</p><button class='btn gold' onclick='claimCurrentBibleChallengeReward()' " + (state.challengeRewardsClaiming ? "disabled" : "") + ">⭐ Rewards-Punkte erhalten / احصل على نقاط المكافآت</button></section>") : "") +
       "<section class='card'><h2>Das habt ihr gelernt / ماذا تعلمتم</h2>" +
       c.questions.map(function (q, i) {
         const a = r.answers[i] || {};
@@ -1410,6 +1433,7 @@
     previewChallengeBible: previewChallengeBible,
     openChallengeBible: openChallengeBible,
     openChallengeBibleFromList: openChallengeBibleFromList,
-    viewBibleChallengeResults: viewBibleChallengeResults
+    viewBibleChallengeResults: viewBibleChallengeResults,
+    claimCurrentBibleChallengeReward: claimCurrentBibleChallengeReward
   });
 })();
