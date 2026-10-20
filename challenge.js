@@ -748,7 +748,7 @@
     app.innerHTML = "<main class='app'>" + header("Bibel-Challenge / تحدي الكتاب المقدس") +
       "<div class='challenge-session-bar'><div><strong>" + esc(state.challengeName) + "</strong><div class='small'>" + esc(c.title) + " / " + esc(c.titleAr) + "</div></div>" +
       "<button class='btn secondary' onclick='openChallengeBible()'>📖 Bibel erneut öffnen / فتح الكتاب المقدس</button></div>" +
-      "<div class='challenge-progress-row'><span>Frage " + (index + 1) + " von " + c.questions.length + " / السؤال " + (index + 1) + " من " + c.questions.length + "</span><strong>" + state.challengeScore + " Punkte</strong></div>" +
+      "<div class='challenge-progress-row'><span>Frage " + (index + 1) + " von " + c.questions.length + " / السؤال " + (index + 1) + " من " + c.questions.length + "</span><strong>" + (state.challengePreviewMode ? state.challengeScore + " Punkte" : "Punkte nach Abschluss / النقاط بعد الإكمال") + "</strong></div>" +
       "<div class='progress'><div style='width:" + Math.round((index + (answer.submitted || answer.correct !== null ? 1 : 0)) / c.questions.length * 100) + "%'></div></div>" +
       "<section class='card challenge-question-card'><div class='challenge-question-type'>" + esc(typeLabel(q.type)) + "</div>" +
       "<div class='challenge-passage-inline'>📖 " + esc(c.passage) + "</div>" + bi(q.q, q.qAr) +
