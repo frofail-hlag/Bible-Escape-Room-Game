@@ -628,6 +628,7 @@
     state.challengePreviewMode = false;
     state.challengeCloudSaveStatus = "";
     state.challengeRewardsClaimed = false;
+    state.challengeRewardsAlreadyAwarded = false;
     state.challengeRewardsClaiming = false;
     state.challengeIndex = 0;
     state.challengeAnswers = [];
@@ -926,7 +927,12 @@
       const api = await firebaseApi();
       const response = await api.claimBibleChallengeReward(studentCode, pin, result.id);
       state.challengeRewardsClaimed = true;
-      alert("Erfolgreich! " + Number(response.pointsAwarded || 0) + " Rewards-Punkte wurden gutgeschrieben. / تمت إضافة " + Number(response.pointsAwarded || 0) + " نقطة مكافأة.");
+      state.challengeRewardsAlreadyAwarded = Boolean(response.alreadyAwarded);
+      if (state.challengeRewardsAlreadyAwarded) {
+        alert("Bereits gesammelt! Du hast diese Challenge bereits abgeschlossen und die Rewards-Punkte dafür erhalten. Du kannst sie nicht erneut sammeln. / لقد أكملت هذا التحدي وجمعت نقاط المكافآت الخاصة به بالفعل. لا يمكنك جمعها مرة أخرى.");
+      } else {
+        alert("Erfolgreich! " + Number(response.pointsAwarded || 0) + " Rewards-Punkte wurden gutgeschrieben. / تمت إضافة " + Number(response.pointsAwarded || 0) + " نقطة مكافأة.");
+      }
     } catch (error) {
       alert("Rewards-Punkte konnten nicht gutgeschrieben werden. Bitte Schülercode/PIN prüfen oder die Lehrkraft fragen. / تعذرت إضافة نقاط المكافآت. تحقق من الرمز والرقم السري أو اسأل الخادم.\\n\\n" + String(error && error.message || ""));
     } finally {
@@ -947,7 +953,7 @@
       (state.challengePreviewMode ? "<div class='notice'>Vorschau/Test: Das Ergebnis wurde nicht gespeichert. / تجربة: لم يتم حفظ النتيجة.</div>" :
         state.challengeCloudSaveStatus === "saved" ? "<p class='small'>☁️ Ergebnis wurde serverseitig gespeichert. / تم حفظ النتيجة على الخادم.</p>" :
         "<div class='notice'>Ergebnis konnte nicht bestätigt werden. / تعذر تأكيد النتيجة.</div>") +
-      (!state.challengePreviewMode ? (state.challengeRewardsClaimed ? "<div class='notice'>⭐ Rewards-Punkte wurden gutgeschrieben. / تمت إضافة نقاط المكافآت.</div>" : "<section class='card'><h3>⭐ Ava Kerolos Rewards</h3><p>Mit Schülercode und PIN anmelden, um Punkte für diese Challenge zu erhalten. / سجّل الدخول برمز الطالب والرقم السري للحصول على نقاط هذا التحدي.</p><button class='btn gold' onclick='claimCurrentBibleChallengeReward()' " + (state.challengeRewardsClaiming ? "disabled" : "") + ">⭐ Rewards-Punkte erhalten / احصل على نقاط المكافآت</button></section>") : "") +
+      (!state.challengePreviewMode ? (state.challengeRewardsClaimed ? (state.challengeRewardsAlreadyAwarded ? "<div class='notice'>⭐ Diese Challenge wurde bereits abgeschlossen. Die Rewards-Punkte wurden schon gesammelt und können nicht erneut gesammelt werden. / لقد أكملت هذا التحدي وجمعت نقاط المكافآت الخاصة به بالفعل. لا يمكن جمعها مرة أخرى.</div>" : "<div class='notice'>⭐ Rewards-Punkte wurden gutgeschrieben. / تمت إضافة نقاط المكافآت.</div>") : "<section class='card'><h3>⭐ Ava Kerolos Rewards</h3><p>Mit Schülercode und PIN anmelden, um Punkte für diese Challenge zu erhalten. / سجّل الدخول برمز الطالب والرقم السري للحصول على نقاط هذا التحدي.</p><button class='btn gold' onclick='claimCurrentBibleChallengeReward()' " + (state.challengeRewardsClaiming ? "disabled" : "") + ">⭐ Rewards-Punkte erhalten / احصل على نقاط المكافآت</button></section>") : "") +
       "<section class='card'><h2>Das habt ihr gelernt / ماذا تعلمتم</h2>" +
       c.questions.map(function (q, i) {
         const a = r.answers[i] || {};
