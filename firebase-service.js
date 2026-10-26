@@ -407,6 +407,81 @@ async function claimBibleChallengeReward(studentCode, pin, resultId) {
 }
 
 
+
+async function loadRewardsTeacherData() {
+  await requireTeacher();
+  const [studentSnap, rewardSnap, redemptionSnap, transactionSnap] = await Promise.all([
+    getDocs(collection(db, "rewardStudents")),
+    getDocs(collection(db, "rewards")),
+    getDocs(collection(db, "redemptions")),
+    getDocs(collection(db, "pointTransactions"))
+  ]);
+  const students = studentSnap.docs.map(item => ({ ...item.data(), id: item.id, studentCode: item.data().studentCode || "" }));
+  const rewards = rewardSnap.docs.map(item => ({ ...item.data(), id: item.id }));
+  const studentById = new Map(students.map(s => [s.id, s]));
+  const rewardById = new Map(rewards.map(r => [r.id, r]));
+  const redemptions = redemptionSnap.docs.map(item => {
+    const r = item.data();
+    const student = studentById.get(r.studentUid) || {};
+    const reward = rewardById.get(r.rewardId) || {};
+    return { ...r, id: item.id, studentName: r.studentName || student.displayName || r.studentUid, rewardName: r.rewardName || reward.name || r.rewardId };
+  }).sort((a,b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const transactions = transactionSnap.docs.map(item => {
+    const t = item.data();
+    const student = studentById.get(t.studentUid) || {};
+    return { ...t, id: item.id, studentName: student.displayName || t.studentUid };
+  }).sort((a,b) => {
+    const av = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : Date.parse(a.createdAt || "") || 0;
+    const bv = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : Date.parse(b.createdAt || "") || 0;
+    return bv - av;
+  });
+  return { students, rewards, redemptions, transactions };
+}
+async function createRewardStudent(data) {
+  await requireTeacher();
+  const create = httpsCallable(functionsFor(defaultApp), "createRewardStudent");
+  const response = await create(data || {});
+  return response.data || {};
+}
+async function resetRewardStudentPin(data) {
+  await requireTeacher();
+  const reset = httpsCallable(functionsFor(defaultApp), "resetRewardStudentPin");
+  const response = await reset(data || {});
+  return response.data || {};
+}
+async function saveReward(data, rewardId) {
+  await requireTeacher();
+  const clean = {};
+  if (data.name !== undefined) clean.name = String(data.name || "").trim().slice(0, 100);
+  if (data.nameAr !== undefined) clean.nameAr = String(data.nameAr || "").trim().slice(0, 100);
+  if (data.description !== undefined) clean.description = String(data.description || "").trim().slice(0, 300);
+  if (data.descriptionAr !== undefined) clean.descriptionAr = String(data.descriptionAr || "").trim().slice(0, 300);
+  if (data.emoji !== undefined) clean.emoji = String(data.emoji || "🎁").slice(0, 8);
+  if (data.cost !== undefined) {
+    const cost = Number(data.cost);
+    if (!Number.isInteger(cost) || cost < 1 || cost > 1000000) throw new Error("Die Punktkosten müssen eine positive ganze Zahl sein.");
+    clean.cost = cost;
+  }
+  if (data.active !== undefined) clean.active = data.active === true;
+  clean.updatedAt = new Date().toISOString();
+  if (rewardId) {
+    await updateDoc(doc(db, "rewards", String(rewardId)), clean);
+    return { id: String(rewardId) };
+  }
+  if (!clean.name || !clean.nameAr || !Number.isInteger(clean.cost) || clean.cost < 1) throw new Error("Bitte Namen in beiden Sprachen und gültige Punktkosten eingeben.");
+  clean.createdAt = new Date().toISOString();
+  clean.createdBy = auth.currentUser.uid;
+  const ref = doc(collection(db, "rewards"));
+  await setDoc(ref, clean);
+  return { id: ref.id };
+}
+async function reviewRewardRedemption(data) {
+  await requireTeacher();
+  const review = httpsCallable(functionsFor(defaultApp), "reviewRewardRedemption");
+  const response = await review(data || {});
+  return response.data || {};
+}
+
 window.bibleFirebaseReady = Promise.resolve({
   projectId: firebaseConfig.projectId,
   signInTeacher,
@@ -422,6 +497,11 @@ window.bibleFirebaseReady = Promise.resolve({
   loadResults,
   evaluateBibleChallengeSubmission,
   claimBibleChallengeReward,
+  loadRewardsTeacherData,
+  createRewardStudent,
+  resetRewardStudentPin,
+  saveReward,
+  reviewRewardRedemption,
   migratePublishedChallengeAnswerKeys,
   getCurrentTeacher: () => authorizedTeacher()
 });
