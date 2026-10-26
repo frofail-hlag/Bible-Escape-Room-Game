@@ -80,7 +80,7 @@ exports.createRewardStudent = functions.region(REGION).https.onCall(async (data,
       const existing = await tx.get(lookupRef);
       if (existing.exists) fail("already-exists", "Dieser Schülercode ist bereits vergeben.");
       tx.create(profileRef, {
-        displayName, classId, active: true, balance: 0, totalEarned: 0, createdAt: now,
+        displayName, classId, studentCode: code, active: true, balance: 0, totalEarned: 0, createdAt: now,
         createdBy: teacher.uid, authUid: uid
       });
       tx.create(lookupRef, {
