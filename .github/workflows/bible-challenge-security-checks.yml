@@ -10,6 +10,7 @@ on:
       - "firestore.rules.test.js"
       - "firebase.json"
       - "package.json"
+      - "functions/**"
       - ".github/workflows/bible-challenge-security-checks.yml"
   pull_request:
     paths:
@@ -19,6 +20,7 @@ on:
       - "firestore.rules.test.js"
       - "firebase.json"
       - "package.json"
+      - "functions/**"
       - ".github/workflows/bible-challenge-security-checks.yml"
 
 jobs:
@@ -33,7 +35,10 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - name: Install test dependencies
+      - name: Install root test dependencies
+        run: npm install --no-audit --no-fund
+      - name: Install backend dependencies
+        working-directory: functions
         run: npm install --no-audit --no-fund
       - name: Check challenge script syntax
         run: node --check challenge.js
@@ -41,3 +46,5 @@ jobs:
         run: node --check firebase-service.js
       - name: Run Firestore rules emulator tests
         run: npx firebase emulators:exec --only firestore --project demo-biblireise-security "npm run test:rules"
+      - name: Run backend unit and integration tests in emulators
+        run: npx firebase emulators:exec --only auth,firestore,functions --project demo-biblireise-security "cd functions && npm test && npm run test:integration"
