@@ -1,19 +1,20 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
-    }
+    function signedIn() { return request.auth != null; }
 
     function isTeacher() {
       return signedIn()
         && exists(/databases/$(database)/documents/teachers/$(request.auth.uid))
         && get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data.active == true;
     }
-
+    function isActiveTeacher() { return isTeacher(); }
     function isAdmin() {
       return isTeacher()
         && get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data.admin == true;
+    }
+    function rewardStudent() {
+      return signedIn() && request.auth.token.rewardStudent == true;
     }
 
     function validTeacherProfile() {
@@ -54,22 +55,17 @@ service cloud.firestore {
         && request.resource.data.createdAt is string
         && request.resource.data.updatedAt is string
         && request.resource.data.ownerUid is string
-        && (request.resource.data.status != 'published'
-            || request.resource.data.questions.size() >= 3);
+        && (request.resource.data.status != 'published' || request.resource.data.questions.size() >= 3);
     }
 
     match /teachers/{teacherId} {
       allow get: if signedIn() && request.auth.uid == teacherId || isAdmin();
       allow list: if isAdmin();
-      allow create: if isAdmin()
-        && teacherId != request.auth.uid
-        && validTeacherProfile()
-        && request.resource.data.active == true
+      allow create: if isAdmin() && teacherId != request.auth.uid
+        && validTeacherProfile() && request.resource.data.active == true
         && request.resource.data.admin == false;
-      allow update: if isAdmin()
-        && teacherId != request.auth.uid
-        && validTeacherProfile()
-        && request.resource.data.admin == false;
+      allow update: if isAdmin() && teacherId != request.auth.uid
+        && validTeacherProfile() && request.resource.data.admin == false;
       allow delete: if isAdmin() && teacherId != request.auth.uid;
     }
 
@@ -95,16 +91,14 @@ service cloud.firestore {
         && request.resource.data.createdAt is string
         && request.resource.data.updatedAt is string;
       allow update: if (
-          signedIn()
-          && request.auth.uid == requestId
+          signedIn() && request.auth.uid == requestId
           && request.auth.token.email_verified == true
           && resource.data.status == 'pending'
           && request.resource.data.status == resource.data.status
           && request.resource.data.emailVerified == true
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['emailVerified', 'updatedAt'])
         ) || (
-          isAdmin()
-          && resource.data.status == 'pending'
+          isAdmin() && resource.data.status == 'pending'
           && request.resource.data.status in ['approved', 'rejected']
           && request.resource.data.reviewedBy == request.auth.uid
           && request.resource.data.updatedAt is string
@@ -115,22 +109,51 @@ service cloud.firestore {
 
     match /challenges/{challengeId} {
       allow get, list: if resource.data.status == 'published' || isTeacher();
-      allow create: if isTeacher()
-        && validChallenge()
+      allow create: if isTeacher() && validChallenge()
         && request.resource.data.id == challengeId
         && request.resource.data.ownerUid == request.auth.uid;
-      allow update: if isTeacher()
-        && validChallenge()
+      allow update: if isTeacher() && validChallenge()
         && request.resource.data.id == challengeId
         && request.resource.data.ownerUid == resource.data.ownerUid;
       allow delete: if isTeacher();
     }
 
+    // Trusted server-side evaluator writes results with the Admin SDK.
+    // Browser clients must never create or modify trusted results.
     match /challengeResults/{resultId} {
-      // Results are written only by the trusted server-side evaluator (Admin SDK).
-      // Teachers may read results; browser clients may never create or alter them.
       allow read: if isTeacher();
       allow write: if false;
+    }
+
+    // Rewards student profiles and private credentials.
+    match /rewardStudents/{studentUid} {
+      allow get: if rewardStudent() && request.auth.uid == studentUid;
+      allow list: if isActiveTeacher();
+      allow create, update, delete: if false;
+    }
+    match /studentCodeLookups/{code} {
+      allow read, write: if false;
+    }
+    match /rewardChallengeAnswerKeys/{challengeId} {
+      allow read, write: if false;
+    }
+    match /rewardChallengeAttempts/{attemptId} {
+      allow read, write: if false;
+    }
+    match /verifiedChallengeResults/{resultId} {
+      allow read, write: if false;
+    }
+    match /pointTransactions/{transactionId} {
+      allow get, list: if (rewardStudent() && resource.data.studentUid == request.auth.uid) || isActiveTeacher();
+      allow create, update, delete: if false;
+    }
+    match /rewards/{rewardId} {
+      allow get, list: if rewardStudent() || isActiveTeacher();
+      allow create, update, delete: if isActiveTeacher();
+    }
+    match /redemptions/{redemptionId} {
+      allow get, list: if (rewardStudent() && resource.data.studentUid == request.auth.uid) || isActiveTeacher();
+      allow create, update, delete: if false;
     }
   }
 }
