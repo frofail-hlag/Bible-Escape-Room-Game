@@ -1,27 +1,57 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  updateProfile, sendEmailVerification, reload, signOut, signInAnonymously
+  getAuth, connectAuthEmulator, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  updateProfile, sendEmailVerification, reload, signOut, signInAnonymously, signInWithCustomToken
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, query, where, setDoc,
+  getFirestore, connectFirestoreEmulator, collection, doc, getDoc, getDocs, query, where, setDoc,
   updateDoc, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
+import { getFunctions, connectFunctionsEmulator, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
 import { firebaseConfig } from "./firebase-config.js";
+
+// Local development uses an isolated demo project. Hosted builds use the
+// existing Biblereise Firebase web-app configuration.
+const useEmulators = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const appConfig = useEmulators ? {
+  apiKey: "fake-api-key",
+  authDomain: "demo-biblereise-security.firebaseapp.com",
+  projectId: "demo-biblireise-security",
+  appId: "1:123456789:web:emulator",
+  messagingSenderId: "123456789"
+} : firebaseConfig;
 
 const defaultApp = getApps().some(app => app.name === "[DEFAULT]")
   ? getApp()
-  : initializeApp(firebaseConfig);
+  : initializeApp(appConfig);
 const auth = getAuth(defaultApp);
 const db = getFirestore(defaultApp);
 
-// Students use a separate anonymous-auth context so they do not sign out a teacher
+// Students use separate auth contexts so they do not sign out a teacher
 // when a shared device is used for testing.
 const studentApp = getApps().find(app => app.name === "BibleEscapeStudent")
-  || initializeApp(firebaseConfig, "BibleEscapeStudent");
+  || initializeApp(appConfig, "BibleEscapeStudent");
 const studentAuth = getAuth(studentApp);
 const studentDb = getFirestore(studentApp);
+
+// Separate auth context for Rewards login on shared student devices.
+const rewardsApp = getApps().find(app => app.name === "BibleEscapeRewardsStudent")
+  || initializeApp(appConfig, "BibleEscapeRewardsStudent");
+const rewardsAuth = getAuth(rewardsApp);
+
+if (useEmulators) {
+  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectAuthEmulator(studentAuth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectAuthEmulator(rewardsAuth, "http://127.0.0.1:9099", { disableWarnings: true });
+  connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  connectFirestoreEmulator(studentDb, "127.0.0.1", 8080);
+}
+
+function functionsFor(app) {
+  const functions = getFunctions(app, "europe-west3");
+  if (useEmulators) connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+  return functions;
+}
 
 function teacherRef(uid) {
   return doc(db, "teachers", uid);
@@ -48,6 +78,25 @@ async function requireTeacher() {
 function plain(value) {
   return JSON.parse(JSON.stringify(value));
 }
+function publicQuestion(question) {
+  const copy = plain(question || {});
+  // Correct-answer material must never be written into the student-readable document.
+  delete copy.a;
+  delete copy.aAr;
+  delete copy.accepted;
+  delete copy.acceptedAr;
+  // Order questions must not expose the teacher-authored correct sequence in Firestore.
+  if (copy.type === "order" && Array.isArray(copy.items)) {
+    const items = copy.items.map((text, index) => ({ text, textAr: (copy.itemsAr || [])[index] || "" }));
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    copy.items = items.map(item => item.text);
+    copy.itemsAr = items.map(item => item.textAr);
+  }
+  return copy;
+}
 function challengePayload(challenge, ownerUid, createdAt) {
   return {
     id: String(challenge.id),
@@ -57,7 +106,7 @@ function challengePayload(challenge, ownerUid, createdAt) {
     instructions: String(challenge.instructions || ""),
     instructionsAr: String(challenge.instructionsAr || ""),
     status: ["draft", "published", "archived"].includes(challenge.status) ? challenge.status : "draft",
-    questions: Array.isArray(challenge.questions) ? plain(challenge.questions) : [],
+    questions: Array.isArray(challenge.questions) ? (challenge.status === "published" ? challenge.questions.map(publicQuestion) : plain(challenge.questions)) : [],
     createdAt: String(createdAt || challenge.createdAt || new Date().toISOString()),
     updatedAt: new Date().toISOString(),
     ownerUid: String(ownerUid)
@@ -247,7 +296,7 @@ async function requireAdmin() {
 }
 async function cleanupOrphanTeacherRecords() {
   await requireAdmin();
-  const cleanupFunction = httpsCallable(getFunctions(defaultApp, "europe-west3"), "cleanupOrphanTeacherRecords");
+  const cleanupFunction = httpsCallable(functionsFor(defaultApp), "cleanupOrphanTeacherRecords");
   const response = await cleanupFunction({});
   return response.data || {};
 }
@@ -261,7 +310,34 @@ async function loadChallenges(options = {}) {
   const snap = teacher
     ? await getDocs(source)
     : await getDocs(query(source, where("status", "==", "published")));
-  return snap.docs.map(item => ({ ...item.data(), id: item.id }));
+  const challenges = snap.docs.map(item => ({ ...item.data(), id: item.id }));
+  if (teacher) {
+    const getAnswerKey = httpsCallable(functionsFor(defaultApp), "getRewardChallengeAnswerKey");
+    for (const challenge of challenges) {
+      if (challenge.status !== "published") continue;
+      try {
+        const response = await getAnswerKey({ challengeId: challenge.id });
+        const keys = Array.isArray(response.data && response.data.questions) ? response.data.questions : [];
+        const keyById = new Map(keys.map(question => [question.id, question]));
+        challenge.questions = (challenge.questions || []).map(question => {
+          const key = keyById.get(question.id);
+          if (!key) return question;
+          const merged = { ...question, a: key.a, aAr: key.aAr,
+            accepted: key.accepted || [], acceptedAr: key.acceptedAr || [] };
+          if (key.type === "order") {
+            merged.items = key.items || [];
+            merged.itemsAr = key.itemsAr || [];
+          }
+          return merged;
+        });
+      } catch (error) {
+        throw new Error("Die privaten Antwortdaten für die veröffentlichte Challenge „" + (challenge.title || challenge.id) +
+          "“ konnten nicht geladen werden. Bitte führe zuerst die sichere Challenge-Migration aus. " +
+          String(error && error.message || ""));
+      }
+    }
+  }
+  return challenges;
 }
 async function saveChallenge(challenge) {
   const user = await requireTeacher();
@@ -271,6 +347,28 @@ async function saveChallenge(challenge) {
   const old = existing.exists() ? existing.data() : null;
   const payload = challengePayload(challenge, old && old.ownerUid ? old.ownerUid : user.uid, old && old.createdAt);
   await setDoc(ref, payload);
+  if (payload.status === "published") {
+    const syncAnswerKey = httpsCallable(functionsFor(defaultApp), "syncRewardChallengeAnswerKey");
+    try {
+      await syncAnswerKey({
+        challengeId: payload.id,
+        expectedUpdatedAt: payload.updatedAt,
+        questions: plain(challenge.questions || [])
+      });
+    } catch (error) {
+      // Fail closed: never leave a challenge published if its private answer key
+      // could not be synchronized. A later teacher save can safely republish it.
+      try {
+        await updateDoc(ref, {
+          status: "draft",
+          updatedAt: new Date().toISOString()
+        });
+      } catch (rollbackError) {
+        console.error("Could not roll back publication after answer-key sync failure.", rollbackError);
+      }
+      throw error;
+    }
+  }
   return payload;
 }
 async function loadResults() {
@@ -278,19 +376,36 @@ async function loadResults() {
   const snap = await getDocs(collection(db, "challengeResults"));
   return snap.docs.map(item => ({ ...item.data(), id: item.id }));
 }
-async function saveStudentResult(result) {
-  const payload = cleanResult(result);
-  if (!payload.id || !payload.challengeId) throw new Error("Ergebnisdaten sind unvollständig.");
+async function migratePublishedChallengeAnswerKeys() {
+  const migrate = httpsCallable(functionsFor(defaultApp), "migratePublishedChallengeAnswerKeys");
+  const response = await migrate({});
+  return response.data || {};
+}
+async function evaluateBibleChallengeSubmission(challengeId, answers, metadata = {}) {
   if (!studentAuth.currentUser || !studentAuth.currentUser.isAnonymous) {
     await signInAnonymously(studentAuth);
   }
-  const challengeSnap = await getDoc(doc(studentDb, "challenges", payload.challengeId));
-  if (!challengeSnap.exists() || challengeSnap.data().status !== "published") {
-    throw new Error("Diese Challenge ist nicht mehr veröffentlicht; das Ergebnis wurde lokal gespeichert.");
-  }
-  await setDoc(doc(studentDb, "challengeResults", payload.id), payload);
-  return true;
+  const evaluate = httpsCallable(functionsFor(studentApp), "evaluateBibleChallengeSubmission");
+  const response = await evaluate({
+    challengeId: String(challengeId), answers,
+    resultId: String(metadata.resultId || ""),
+    studentName: String(metadata.studentName || ""),
+    elapsedSeconds: Number(metadata.elapsedSeconds)
+  });
+  return response.data || {};
 }
+async function claimBibleChallengeReward(studentCode, pin, resultId) {
+  const functions = functionsFor(rewardsApp);
+  const login = httpsCallable(functions, "loginRewardStudent");
+  const loginResponse = await login({ studentCode: String(studentCode || ""), pin: String(pin || "") });
+  const token = loginResponse.data && loginResponse.data.token;
+  if (!token) throw new Error("Die Rewards-Anmeldung war nicht erfolgreich.");
+  await signInWithCustomToken(rewardsAuth, token);
+  const claim = httpsCallable(functions, "claimBibleChallengeReward");
+  const claimResponse = await claim({ resultId: String(resultId || "") });
+  return claimResponse.data || {};
+}
+
 
 window.bibleFirebaseReady = Promise.resolve({
   projectId: firebaseConfig.projectId,
@@ -305,6 +420,8 @@ window.bibleFirebaseReady = Promise.resolve({
   loadChallenges,
   saveChallenge,
   loadResults,
-  saveStudentResult,
+  evaluateBibleChallengeSubmission,
+  claimBibleChallengeReward,
+  migratePublishedChallengeAnswerKeys,
   getCurrentTeacher: () => authorizedTeacher()
 });
