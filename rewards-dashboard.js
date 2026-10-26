@@ -87,11 +87,12 @@
   }
   async function refresh() {
     if (busy) return;
-    busy = true; renderShell(); say("Daten werden geladen… / جارٍ تحميل البيانات…");
+    busy = true; message = ""; renderShell(); say("Daten werden geladen… / جارٍ تحميل البيانات…");
     try {
       const service = await api();
       cache = await service.loadRewardsTeacherData();
-      renderTab(); say(message || "Daten aktualisiert. / تم تحديث البيانات.");
+      message = "Daten aktualisiert. / تم تحديث البيانات.";
+      renderTab(); say(message);
     } catch (e) { say(String(e && e.message || "Rewards konnten nicht geladen werden."), true); }
     finally { busy = false; }
   }
@@ -122,9 +123,11 @@
     try {
       const service=await api();
       const item={name:$("rwRewardName").value.trim(),nameAr:$("rwRewardNameAr").value.trim(),description:$("rwRewardDesc").value.trim(),descriptionAr:$("rwRewardDescAr").value.trim(),cost:Number($("rwRewardCost").value),emoji:$("rwRewardEmoji").value.trim()||"🎁",active:true};
+      const editingId=$("rwRewardName").dataset.editId;
+      if(editingId){const existing=cache.rewards.find(r=>r.id===editingId);if(existing)item.active=existing.active===true;}
       if(!item.name||!item.nameAr||!Number.isInteger(item.cost)||item.cost<1) throw new Error("Name in beiden Sprachen und positive ganze Punktkosten erforderlich.");
       const id=$("rwRewardName").dataset.editId;
-      await service.saveReward(item,id||null); message="Belohnung gespeichert. / تم حفظ المكافأة."; activeTab="catalogue"; await refresh();
+      await service.saveReward(item,id||null); $("rwRewardName").dataset.editId=""; message="Belohnung gespeichert. / تم حفظ المكافأة."; activeTab="catalogue"; await refresh();
     } catch(e) { say(String(e.message||e),true); }
   };
   window.rewardsEditReward = function (id) {
