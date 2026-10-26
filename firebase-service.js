@@ -10,19 +10,16 @@ import {
 import { getFunctions, connectFunctionsEmulator, httpsCallable } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js";
 import { firebaseConfig } from "./firebase-config.js";
 
-// Dedicated test branch: always use the non-deployable demo project ID.
-// Even if this branch is accidentally hosted, it must never connect to production.
+// Local development uses an isolated demo project. Hosted builds use the
+// existing Biblereise Firebase web-app configuration.
 const useEmulators = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const appConfig = {
+const appConfig = useEmulators ? {
   apiKey: "fake-api-key",
-  authDomain: "demo-ava-rewards.firebaseapp.com",
-  projectId: "demo-ava-rewards",
+  authDomain: "demo-biblereise-security.firebaseapp.com",
+  projectId: "demo-biblireise-security",
   appId: "1:123456789:web:emulator",
   messagingSenderId: "123456789"
-};
-if (!useEmulators) {
-  console.error("End-to-end test branch is local-only and will not connect to production Firebase.");
-}
+} : firebaseConfig;
 
 const defaultApp = getApps().some(app => app.name === "[DEFAULT]")
   ? getApp()
