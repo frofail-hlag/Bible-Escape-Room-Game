@@ -349,11 +349,25 @@ async function saveChallenge(challenge) {
   await setDoc(ref, payload);
   if (payload.status === "published") {
     const syncAnswerKey = httpsCallable(functionsFor(defaultApp), "syncRewardChallengeAnswerKey");
-    await syncAnswerKey({
-      challengeId: payload.id,
-      expectedUpdatedAt: payload.updatedAt,
-      questions: plain(challenge.questions || [])
-    });
+    try {
+      await syncAnswerKey({
+        challengeId: payload.id,
+        expectedUpdatedAt: payload.updatedAt,
+        questions: plain(challenge.questions || [])
+      });
+    } catch (error) {
+      // Fail closed: never leave a challenge published if its private answer key
+      // could not be synchronized. A later teacher save can safely republish it.
+      try {
+        await updateDoc(ref, {
+          status: "draft",
+          updatedAt: new Date().toISOString()
+        });
+      } catch (rollbackError) {
+        console.error("Could not roll back publication after answer-key sync failure.", rollbackError);
+      }
+      throw error;
+    }
   }
   return payload;
 }
