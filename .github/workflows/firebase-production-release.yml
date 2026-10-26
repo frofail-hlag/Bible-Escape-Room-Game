@@ -1,0 +1,54 @@
+name: Firebase production release
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production_deploy:
+        description: "I confirm deployment to the live bible-escape-room Firebase project"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-production-release
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ inputs.confirm_production_deploy == true && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BIBLE_ESCAPE_ROOM }}
+          create_credentials_file: true
+
+      - name: Install Cloud Functions dependencies
+        working-directory: functions
+        run: npm install --no-audit --no-fund
+
+      - name: Verify backend syntax
+        run: |
+          node --check functions/index.js
+          node --check functions/answer-evaluator.js
+
+      - name: Deploy Cloud Functions and Firestore rules to the explicitly selected production project
+        run: npx --yes firebase-tools@14.7.0 deploy --only functions,firestore:rules --project bible-escape-room --non-interactive
+
+# This workflow intentionally does NOT run migratePublishedChallengeAnswerKeys.
+# Back up production Firestore and review the migration result before invoking
+# the admin-only migration separately from an authenticated teacher session.
